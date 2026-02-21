@@ -1,5 +1,5 @@
 {
-  "name": "adhome",
+  "name": "visyx",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -11,9 +11,9 @@
     "clean:workspaces": "turbo clean",
     "dev": "turbo dev --parallel",
     "test": "turbo test --parallel",
-    "start:website": "turbo start --filter=@adhome/website",
-    "dev:api": "turbo dev --filter=@adhome/api",
-    "dev:website": "turbo dev --filter=@adhome/website ",
+    "start:website": "turbo start --filter=@visyx/website",
+    "dev:api": "turbo dev --filter=@visyx/api",
+    "dev:website": "turbo dev --filter=@visyx/website ",
     "format": "biome format --write .",
     "lint": "turbo lint && manypkg check",
     "typecheck": "turbo typecheck"
@@ -44,7 +44,8 @@
     "sharp": "0.34.5",
     "typescript": "^5.9.3",
     "uuid": "^13.0.0",
-    "zod": "^4.3.5"
+"zod": "^4.3.5",
+    "bun-types": "^1.2.0"
   },
   "trustedDependencies": [
     "@biomejs/biome",

@@ -1,10 +1,10 @@
 # Security
 
-Contact: [security@adhome.africa](mailto:security@adhome.africa)
+Contact: [security@visyx.africa](mailto:security@visyx.africa)
 
 Based on [https://supabase.com/.well-known/security.txt](https://supabase.com/.well-known/security.txt)
 
-At adhome, we consider the security of our systems a top priority. But no matter
+At visyx, we consider the security of our systems a top priority. But no matter
 how much effort we put into system security, there can still be vulnerabilities
 present.
 
@@ -27,7 +27,7 @@ better protect our clients and our systems.
 
 ## Please do the following
 
-- E-mail your findings to [security@adhome.africa](mailto:security@adhome.africa).
+- E-mail your findings to [security@visyx.africa](mailto:security@visyx.africa).
 - Do not run automated scanners on our infrastructure or dashboard. If you wish
   to do this, contact us and we will set up a sandbox for you.
 - Do not take advantage of the vulnerability or problem you have discovered,

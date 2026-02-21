@@ -14,7 +14,7 @@ describe("Encryption/Decryption", () => {
 
   beforeEach(() => {
     // Set the environment variable before each test
-    process.env.ADHOME_ENCRYPTION_KEY = validKey;
+    process.env.VISYX_ENCRYPTION_KEY = validKey;
   });
 
   it("should encrypt and decrypt a string successfully", () => {

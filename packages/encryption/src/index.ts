@@ -92,13 +92,13 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
 function getKey(): Buffer {
-  const key = process.env.ADHOME_ENCRYPTION_KEY;
+  const key = process.env.VISYX_ENCRYPTION_KEY;
   if (!key) {
-    throw new Error("ADHOME_ENCRYPTION_KEY environment variable is not set.");
+    throw new Error("VISYX_ENCRYPTION_KEY environment variable is not set.");
   }
   if (Buffer.from(key, "hex").length !== 32) {
     throw new Error(
-      "ADHOME_ENCRYPTION_KEY must be a 64-character hex string (32 bytes).",
+      "VISYX_ENCRYPTION_KEY must be a 64-character hex string (32 bytes).",
     );
   }
   return Buffer.from(key, "hex");
