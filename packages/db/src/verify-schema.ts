@@ -1,22 +1,41 @@
-
 import { db } from "./client";
 import { sql } from "drizzle-orm";
-// I'll use a direct query to check tables
+
+const EXPECTED_TABLES = [
+  "user_profiles",
+  "branches",
+  "permissions",
+  "permission_groups",
+  "permission_group_items",
+  "staff",
+  "staff_permissions",
+  "audit_logs",
+] as const;
 
 async function main() {
-    console.log("Verifying DB Schema...");
-    try {
-        const result = await db.execute(sql`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name IN ('user_profiles');
+  console.log("Verifying DB schema...");
+  try {
+    const result = await db.execute(sql`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name
     `);
-        console.log("Found tables:", result.rows);
-    } catch (e) {
-        console.error("Error verifying DB:", e);
+    const rows = ((result as unknown) as { rows: { table_name: string }[] }).rows ?? [];
+    const found = rows.map((r) => r.table_name);
+    const missing = EXPECTED_TABLES.filter((t) => !found.includes(t));
+
+    console.log("Found tables:", found.length, found);
+    if (missing.length > 0) {
+      console.warn("Missing tables:", missing);
+      process.exit(1);
     }
-    process.exit(0);
+    console.log("All expected tables present.");
+  } catch (e) {
+    console.error("Error verifying schema:", e);
+    process.exit(1);
+  }
+  process.exit(0);
 }
 
 main();

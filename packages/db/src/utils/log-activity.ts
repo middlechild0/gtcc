@@ -1,9 +1,10 @@
 import type { DatabaseOrTransaction } from "../client";
 import { auditLogs } from "../schema";
 
+/** Action format: "module:event" e.g. "auth:login", "staff:permission_granted" */
 export type ActivityType =
-  | "login"
-  | "logout"
+  | "auth:login"
+  | "auth:logout"
   | "create"
   | "update"
   | "delete"
@@ -13,30 +14,39 @@ export type ActivityType =
   | "system"
   | "security";
 
-interface LogActivityOptions {
+export interface LogActivityOptions {
   db: DatabaseOrTransaction;
-  teamId?: string; // Optional or unused in new schema, keeping for compatibility
   userId?: string;
+  branchId?: number;
   type: ActivityType;
-  metadata: Record<string, any>;
-  priority?: number;
-  source?: "user" | "system";
+  metadata: Record<string, unknown>;
+  entityType?: string;
+  entityId?: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export function logActivity(options: LogActivityOptions) {
   try {
-    options.db.insert(auditLogs).values({
-      userId: options.userId,
-      action: options.type,
-      details: options.metadata,
-      // ipAddress: options.ipAddress // If we had it
-    }).catch((error: unknown) => {
-      console.warn("Audit logging failed", {
-        error,
+    void options.db
+      .insert(auditLogs)
+      .values({
+        userId: options.userId ?? null,
+        branchId: options.branchId ?? null,
         action: options.type,
+        entityType: options.entityType ?? null,
+        entityId: options.entityId ?? null,
+        details: options.metadata,
+        ipAddress: options.ipAddress ?? null,
+        userAgent: options.userAgent ?? null,
+      })
+      .catch((error: unknown) => {
+        console.warn("Audit logging failed", {
+          error,
+          action: options.type,
+        });
       });
-    });
   } catch {
-    // Even if the call itself throws, ignore it
+    // Ignore sync errors
   }
 }

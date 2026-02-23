@@ -1,4 +1,4 @@
-export class ReportNotFoundError extends Error {
+export class UserProfileNotFoundError extends Error {
   code = "USER_PROFILE_NOT_FOUND" as const;
 
   constructor() {

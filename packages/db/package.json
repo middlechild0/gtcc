@@ -5,6 +5,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:verify": "bun run src/verify-schema.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "bun test --exit",
@@ -18,10 +19,9 @@
     "./queries": "./src/queries/index.ts",
     "./errors": "./src/errors.ts",
     "./schema": "./src/schema.ts",
-    "./sql": "./src/sql.ts",
-    "./utils/api-keys": "./src/utils/api-keys.ts",
     "./utils/search-query": "./src/utils/search-query.ts",
-    "./utils/health": "./src/utils/health.ts"
+    "./utils/health": "./src/utils/health.ts",
+    "./utils/log-activity": "./src/utils/log-activity.ts"
   },
   "dependencies": {
     "@date-fns/tz": "catalog:",
