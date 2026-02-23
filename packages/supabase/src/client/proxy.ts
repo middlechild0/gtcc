@@ -2,8 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_EXACT_PATHS = [
-  "/",
-
+  "/terms"
 ];
 
 const PUBLIC_PREFIXES = ["/auth"];
