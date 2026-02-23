@@ -55,23 +55,8 @@ export function AuthLayout({
         {footer ? (
           <CardFooter className="flex flex-col items-center gap-2 border-t border-border/60 py-4 text-center">
             {footer}
-            <Link
-              href="/"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Back to site
-            </Link>
           </CardFooter>
-        ) : (
-          <CardFooter className="py-4">
-            <Link
-              href="/"
-              className="w-full text-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Back to site
-            </Link>
-          </CardFooter>
-        )}
+        ) : null}
       </Card>
       </motion.div>
     </section>

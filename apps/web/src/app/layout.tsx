@@ -3,8 +3,9 @@ import { cn } from "@visyx/ui/cn";
 import "@visyx/ui/globals.css";
 import { Hedvig_Letters_Sans, Hedvig_Letters_Serif } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import type { ReactElement } from "react";
+import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { AppHeader } from "./app-header";
 import { Providers } from "./providers";
 
 
@@ -35,7 +36,7 @@ export const viewport = {
   ],
 };
 
-export default function Layout({ children }: { children: ReactElement }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -50,6 +51,7 @@ export default function Layout({ children }: { children: ReactElement }) {
       >
         <NuqsAdapter>
             <Providers>
+              <AppHeader />
               <main className="container mx-auto px-4 overflow-hidden md:overflow-visible">
                 {children}
               </main>

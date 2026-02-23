@@ -3,17 +3,22 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { InputOTP } from "@visyx/ui/input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@visyx/ui/input-otp";
 import { AuthLayout } from "../components/auth-layout";
 import { useVerifyOtp } from "../_hooks/use-verify-otp";
 import { Button } from "@visyx/ui/button";
+import { SubmitButton } from "@visyx/ui/submit-button";
 import { cn } from "@visyx/ui/cn";
 
 export default function VerifyCodePage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const [code, setCode] = useState("");
-  const { verify, loading } = useVerifyOtp();
+  const { verify, loading, resend, resendLoading } = useVerifyOtp();
 
   const isValid = code.length === 6;
 
@@ -51,45 +56,58 @@ export default function VerifyCodePage() {
       }
       footer={
         <Link href="/auth/sign-in" className="text-muted-foreground underline-offset-4 hover:underline text-sm">
-          Use a different method
+          Use a different email
         </Link>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex flex-col items-center gap-3">
           <InputOTP
             maxLength={6}
             value={code}
             onChange={(v) => setCode(v)}
-            containerClassName="w-full justify-center gap-1"
+            containerClassName="w-full justify-center gap-1.5"
             render={({ slots }) => (
-              <div className="flex w-full justify-center gap-1">
-                {slots.map((slot, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "relative flex h-12 w-12 flex-1 max-w-[3rem] items-center justify-center rounded-lg border border-input bg-background text-center text-xl font-semibold tabular-nums text-foreground transition-colors",
-                      slot.isActive && "z-10 border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background",
-                    )}
-                  >
-                    {slot.char ?? (slot.hasFakeCaret ? (
-                      <span className="animate-caret-blink inline-block h-5 w-0.5 bg-foreground" />
-                    ) : null)}
-                  </div>
-                ))}
-              </div>
+              <InputOTPGroup className="gap-1.5">
+                {slots.map((slot, i) => {
+                  const { index: _index, ...slotProps } = slot as typeof slot & { index?: number };
+                  return (
+                    <InputOTPSlot
+                      key={i}
+                      {...slotProps}
+                      className={cn(
+                        "h-12 w-12 rounded-lg border border-input bg-background text-center text-xl font-semibold tabular-nums text-foreground",
+                        slotProps.isActive && "z-10 border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background",
+                      )}
+                    />
+                  );
+                })}
+              </InputOTPGroup>
             )}
           />
           <p className="text-xs text-muted-foreground">Enter the 6-digit code from your email</p>
         </div>
 
-        <Button
-          type="submit"
-          disabled={!isValid || loading}
-          className={cn("w-full rounded-lg h-11 font-medium")}
-        >
-          {loading ? "Verifying…" : "Verify and sign in"}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <SubmitButton
+            type="submit"
+            isSubmitting={loading}
+            disabled={!isValid}
+            className="w-full rounded-lg h-11 font-medium"
+          >
+            Verify and sign in
+          </SubmitButton>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground"
+            disabled={resendLoading}
+            onClick={() => resend(email)}
+          >
+            {resendLoading ? "Sending…" : "Resend code"}
+          </Button>
+        </div>
       </form>
     </AuthLayout>
   );

@@ -14,6 +14,7 @@
         "./trpc/routers/_app": "./src/trpc/routers/_app.ts"
     },
     "dependencies": {
+        "@visyx/db": "workspace:*",
         "@visyx/encryption": "workspace:*",
         "@visyx/logger": "workspace:*",
         "@visyx/supabase": "workspace:*",

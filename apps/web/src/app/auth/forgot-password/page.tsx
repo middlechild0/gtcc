@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout
       title="Reset your password"
-      subtitle="Enter the email linked to your Batian Optical account. We'll send you a secure reset link."
+      subtitle="Enter the email linked to your account. We'll send you a secure reset link."
       footer={
         <Link href="/auth/sign-in" className="underline-offset-4 hover:underline">
           Back to sign in

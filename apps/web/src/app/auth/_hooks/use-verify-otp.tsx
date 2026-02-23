@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 export function useVerifyOtp(nextPath?: string) {
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   async function verify(email: string, token: string) {
     setLoading(true);
@@ -30,5 +31,22 @@ export function useVerifyOtp(nextPath?: string) {
     }
   }
 
-  return { verify, loading };
+  async function resend(email: string) {
+    setResendLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (error) throw error;
+      toast.success("New code sent. Check your email.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to resend code.");
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
+  return { verify, loading, resend, resendLoading };
 }

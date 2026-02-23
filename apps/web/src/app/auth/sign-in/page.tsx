@@ -15,6 +15,7 @@ import { Input } from "@visyx/ui/input";
 import { SubmitButton } from "@visyx/ui/submit-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@visyx/ui/tabs";
 import { cn } from "@visyx/ui/cn";
+import { Loader } from "@visyx/ui/loader";
 
 export default function SignInPage() {
   const {

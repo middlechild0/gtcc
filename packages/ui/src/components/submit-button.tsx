@@ -20,8 +20,8 @@ export function SubmitButton({
     >
       <span className={cn(isSubmitting && "invisible")}>{children}</span>
       {isSubmitting && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Spinner />
+        <div className="absolute inset-0 flex items-center justify-center text-inherit">
+          <Spinner className="size-5 shrink-0 stroke-current" size={20} />
         </div>
       )}
     </Button>

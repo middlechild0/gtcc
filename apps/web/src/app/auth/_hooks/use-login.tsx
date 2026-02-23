@@ -1,5 +1,5 @@
 import { createClient } from "@visyx/supabase/client";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export type LoginMode = "passwordless" | "password";
@@ -8,20 +8,16 @@ export function useLogin(nextPath?: string) {
   const [mode, setMode] = useState<LoginMode>("passwordless");
   const [loading, setLoading] = useState(false);
 
-  const getRedirectUrl = useCallback(() => {
-    const next = nextPath ?? "/";
-    return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-  }, [nextPath]);
-
   async function continueWithEmail(email: string) {
     setLoading(true);
     try {
       const supabase = createClient();
+      // Omit emailRedirectTo so Supabase sends a 6-digit OTP (not a magic link).
+      // In Supabase Dashboard: Auth → Email Templates → set "Confirm signup" to use {{ .Token }} for the code.
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: getRedirectUrl(),
         },
       });
 
