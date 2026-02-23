@@ -1,0 +1,19 @@
+{
+  "name": "@visyx/cache",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@visyx/logger": "workspace:*"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    "./redis-client": "./src/redis-client.ts",
+    "./shared-redis": "./src/shared-redis.ts",
+    "./health": "./src/health.ts",
+    "./ioredis-adapter": "./src/ioredis-adapter.ts"
+  }
+}

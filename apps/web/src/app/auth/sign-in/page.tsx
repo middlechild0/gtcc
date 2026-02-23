@@ -39,7 +39,7 @@ export default function LoginPage() {
   return (
     <AuthLayout
       title="Sign in to Batian Optical"
-      subtitle="Secure access to your clinics, lenses, and optical workflows."
+      subtitle="Enter your work email to sign in."
       footer={
         <Link
           href="/auth/forgot-password"

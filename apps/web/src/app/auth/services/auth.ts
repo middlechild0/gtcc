@@ -1,7 +1,8 @@
+import { createClient } from "@visyx/supabase/client";
+
 export type AuthCredentials = {
   email: string;
   password: string;
-  name?: string;
 };
 
 export type AuthResponse = {
@@ -9,33 +10,41 @@ export type AuthResponse = {
   redirectTo?: string;
 };
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+export async function login(credentials: AuthCredentials): Promise<AuthResponse> {
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
   });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || "Request failed");
+  if (error) {
+    throw new Error(error.message);
   }
 
-  if (response.status === 204) {
-    // No content
-    return { ok: true } as T;
+  return {
+    ok: true,
+    redirectTo: "/",
+  };
+}
+
+export async function requestPasswordReset(email: string): Promise<AuthResponse> {
+  const supabase = createClient();
+  const redirectTo =
+    process.env.NEXT_PUBLIC_APP_URL != null
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/sign-in`
+      : undefined;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    throw new Error(error.message);
   }
 
-  return (await response.json()) as T;
-}
-
-export async function login(credentials: AuthCredentials) {
-  return postJson<AuthResponse>("/api/auth/login", credentials);
-}
-
-export async function requestPasswordReset(email: string) {
-  return postJson<AuthResponse>("/api/auth/forgot-password", { email });
+  return {
+    ok: true,
+  };
 }
 
