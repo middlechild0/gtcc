@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
   InputOTP,
   InputOTPGroup,
@@ -12,9 +12,10 @@ import { AuthLayout } from "../components/auth-layout";
 import { useVerifyOtp } from "../_hooks/use-verify-otp";
 import { Button } from "@visyx/ui/button";
 import { SubmitButton } from "@visyx/ui/submit-button";
+import { Loader } from "@visyx/ui/loader";
 import { cn } from "@visyx/ui/cn";
 
-export default function VerifyCodePage() {
+function VerifyCodeContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const [code, setCode] = useState("");
@@ -110,5 +111,21 @@ export default function VerifyCodePage() {
         </div>
       </form>
     </AuthLayout>
+  );
+}
+
+export default function VerifyCodePage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout title="Check your email" subtitle="Loading…">
+          <div className="flex justify-center py-8">
+            <Loader />
+          </div>
+        </AuthLayout>
+      }
+    >
+      <VerifyCodeContent />
+    </Suspense>
   );
 }

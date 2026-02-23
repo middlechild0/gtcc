@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { createClient } from "@visyx/supabase/client";
 import { AuthLayout } from "../components/auth-layout";
 import {
@@ -16,12 +16,13 @@ import {
 import { Input } from "@visyx/ui/input";
 import { Button } from "@visyx/ui/button";
 import { SubmitButton } from "@visyx/ui/submit-button";
+import { Loader } from "@visyx/ui/loader";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 type FormValues = { password: string; confirmPassword: string };
 
-export default function UpdatePasswordPage() {
+function UpdatePasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const errorFromCallback = searchParams.get("error");
@@ -143,5 +144,21 @@ export default function UpdatePasswordPage() {
         </form>
       </Form>
     </AuthLayout>
+  );
+}
+
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout title="Set new password" subtitle="Loading…">
+          <div className="flex justify-center py-8">
+            <Loader />
+          </div>
+        </AuthLayout>
+      }
+    >
+      <UpdatePasswordContent />
+    </Suspense>
   );
 }
