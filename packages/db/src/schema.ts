@@ -25,3 +25,12 @@ export const userProfiles = pgTable("user_profiles", {
   state: text("state").notNull(),
   zip: text("zip").notNull(),
 });
+
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => userProfiles.userId, { onDelete: "set null" }),
+  action: text("action").notNull(), // e.g. 'verification:approved', 'user:role_changed'
+  details: jsonb("details"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
