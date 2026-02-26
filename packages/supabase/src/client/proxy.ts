@@ -63,7 +63,15 @@ export async function updateSession(request: NextRequest) {
   // send them to the main app instead.
   if (user && AUTH_REDIRECT_PATHS.includes(normalizedPathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // If the user is signed in and hits the marketing/root page, send them
+  // straight to the dashboard shell.
+  if (user && normalizedPathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

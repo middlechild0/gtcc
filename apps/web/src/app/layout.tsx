@@ -5,7 +5,6 @@ import { Hedvig_Letters_Sans, Hedvig_Letters_Serif } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
-import { AppHeader } from "./app-header";
 import { Providers } from "./providers";
 
 
@@ -51,7 +50,6 @@ export default function Layout({ children }: { children: ReactNode }) {
       >
         <NuqsAdapter>
             <Providers>
-              <AppHeader />
               {children}
               <Toaster />
             </Providers>

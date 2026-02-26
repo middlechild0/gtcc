@@ -29,12 +29,29 @@ import type { ReactNode } from "react";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user } = useSession();
-  console.log("user in layout", user);
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;
 
-  const navTitle =
-    pathname?.includes("user-administration") ? "User Administration" : "Dashboard";
+  const navTitle = (() => {
+    const parts = (pathname ?? "").split("/").filter(Boolean);
+    const dashIdx = parts.indexOf("dashboard");
+    const section = dashIdx >= 0 ? parts[dashIdx + 1] : parts[0];
+
+    if (!section) return "Dashboard";
+
+    const map: Record<string, string> = {
+      dashboard: "Dashboard",
+      settings: "Settings",
+      "user-administration": "User Administration",
+    };
+
+    return (
+      map[section] ??
+      section
+        .replace(/[-_]+/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    );
+  })();
 
   return (
     <SidebarProvider defaultOpen={true}>
