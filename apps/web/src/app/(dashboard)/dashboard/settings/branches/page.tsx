@@ -7,15 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@visyx/ui/card";
 import { Input } from "@visyx/ui/input";
 import { Switch } from "@visyx/ui/switch";
 import { Plus, RefreshCw } from "lucide-react";
-import { useAuth } from "@/app/auth/_hooks/use-auth";
-import { NoPermission } from "@/app/auth/components/no-permission";
 import { PermissionGate } from "@/app/auth/components/permission-gate";
+import { RouteGuard } from "@/app/auth/components/route-guard";
 import { BranchesHeader } from "./_components/branches-header";
 import { BranchesTable } from "./_components/branches-table";
 import { useBranchesList } from "./_hooks/use-branches-list";
 
 function BranchesContent() {
-  const { isLoading: authLoading, hasPermission } = useAuth();
   const {
     filteredBranches,
     search,
@@ -26,17 +24,6 @@ function BranchesContent() {
     error,
     refetch,
   } = useBranchesList();
-
-  const canView = !authLoading && hasPermission("branches:view");
-
-  if (!authLoading && !canView) {
-    return (
-      <NoPermission
-        title="You don't have permission to view branches"
-        description="Contact a system administrator if you need access to branch management."
-      />
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -112,16 +99,18 @@ function BranchesContent() {
 
 export default function BranchesPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="space-y-4">
-          <div className="h-7 w-40 rounded-md bg-muted" />
-          <div className="h-32 rounded-md bg-muted" />
-        </div>
-      }
-    >
-      <BranchesContent />
-    </Suspense>
+    <RouteGuard required="branches:view">
+      <Suspense
+        fallback={
+          <div className="space-y-4">
+            <div className="h-7 w-40 rounded-md bg-muted" />
+            <div className="h-32 rounded-md bg-muted" />
+          </div>
+        }
+      >
+        <BranchesContent />
+      </Suspense>
+    </RouteGuard>
   );
 }
 

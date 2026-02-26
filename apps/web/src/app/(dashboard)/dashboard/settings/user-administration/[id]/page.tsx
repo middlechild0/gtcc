@@ -28,7 +28,7 @@ export default function UserAdministrationDetailPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <Button variant="ghost" size="sm" className="w-fit -ml-2" asChild>
-          <Link href="/dashboard/user-administration">
+          <Link href="/dashboard/settings/user-administration">
             <ArrowLeft className="mr-2 size-4" />
             Back to users
           </Link>

@@ -150,7 +150,7 @@ export default function UserAdministrationPage() {
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" asChild>
                       <Link
-                        href={`/dashboard/user-administration/${u.id}`}
+                        href={`/dashboard/settings/user-administration/${u.id}`}
                       >
                         View
                       </Link>

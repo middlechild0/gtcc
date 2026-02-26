@@ -44,7 +44,7 @@ const DEFAULT_ITEMS: SettingsMenuItem[] = [
   { label: "Roster and Open Hours", href: "#" },
   { label: "Task Automation", href: "#" },
   { label: "Templates", href: "#" },
-  { label: "User Administration", href: "/dashboard/user-administration" },
+  { label: "User Administration", href: "/dashboard/settings/user-administration" },
   { label: "Workout Configuration", href: "#" },
 ];
 

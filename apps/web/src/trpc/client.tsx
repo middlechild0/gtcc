@@ -69,6 +69,11 @@ export function TRPCReactProvider(
               headers["x-force-primary"] = "true";
             }
 
+            const branchId = getCookie("branch_id");
+            if (branchId) {
+              headers["x-branch-id"] = branchId;
+            }
+
             return headers;
           },
         }),
