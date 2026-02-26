@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { SettingsMenu } from "@visyx/ui/settings-menu";
 import { TopNav } from "@visyx/ui/top-nav";
 import type { ReactNode } from "react";
-import { BranchProvider } from "./dashboard/branch-context";
+import { useBranch } from "./dashboard/branch-context";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
@@ -14,6 +14,29 @@ import {
   searchableRoutes,
   sidebarRoutes,
 } from "./dashboard/routes.config";
+
+function BranchReadyGate({ children }: { children: ReactNode }) {
+  const { isBranchReady } = useBranch();
+
+  if (isBranchReady) {
+    return (
+      <div className="min-h-0 flex-1 overflow-auto p-6">{children}</div>
+    );
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-auto p-6">
+      <div className="space-y-4">
+        <div className="h-5 w-40 rounded-md bg-muted" />
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="h-28 rounded-lg bg-muted" />
+          <div className="h-28 rounded-lg bg-muted" />
+        </div>
+        <div className="h-48 rounded-lg bg-muted" />
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user } = useSession();
@@ -24,29 +47,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <BranchProvider>
-        <DashboardSidebar mainItems={sidebarRoutes} />
-        <SidebarInset className="flex min-h-svh flex-col">
-          <TopNav
-            title={<DashboardBreadcrumb />}
-            searchPlaceholder="Find Member"
-            user={
-              user
-                ? { name: displayName, email: userEmail }
-                : undefined
-            }
-            actions={
-              <SettingsMenu
-                items={settingsMenuItems}
-                searchPlaceholder="Search pages and settings"
-              />
-            }
-            className="border-sidebar-border bg-sidebar text-sidebar-foreground"
-          />
-          <div className="min-h-0 flex-1 overflow-auto p-6">{children}</div>
-          <DashboardFooterContent />
-        </SidebarInset>
-      </BranchProvider>
+      <DashboardSidebar mainItems={sidebarRoutes} />
+      <SidebarInset className="flex min-h-svh flex-col">
+        <TopNav
+          title={<DashboardBreadcrumb />}
+          searchPlaceholder="Find Member"
+          user={user ? { name: displayName, email: userEmail } : undefined}
+          actions={
+            <SettingsMenu
+              items={settingsMenuItems}
+              searchPlaceholder="Search pages and settings"
+            />
+          }
+          className="border-sidebar-border bg-sidebar text-sidebar-foreground"
+        />
+        <BranchReadyGate>{children}</BranchReadyGate>
+        <DashboardFooterContent />
+      </SidebarInset>
     </SidebarProvider>
   );
 }
