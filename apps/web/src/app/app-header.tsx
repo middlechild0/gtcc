@@ -11,7 +11,12 @@ export function AppHeader() {
   const router = useRouter();
   const { user, loading } = useSession();
 
-  if (pathname.startsWith("/auth") || loading || !user) {
+  if (
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/dashboard") ||
+    loading ||
+    !user
+  ) {
     return null;
   }
 

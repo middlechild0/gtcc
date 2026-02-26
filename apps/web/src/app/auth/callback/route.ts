@@ -1,14 +1,7 @@
 import { createClient } from "@visyx/supabase/server";
 import { NextResponse } from "next/server";
 
-/**
- * Handles the redirect from Supabase after magic link / password reset.
- * Exchanges the auth code for a session using the server client (cookies),
- * so the PKCE code verifier is found and the flow works.
- *
- * Add this URL to Supabase Dashboard → Auth → URL Configuration → Redirect URLs:
- * - http://localhost:3000/auth/callback (and your production origin + /auth/callback)
- */
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");

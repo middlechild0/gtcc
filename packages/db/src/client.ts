@@ -15,7 +15,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const connectionString = process.env.DATABASE_SESSION_POOLER;
 if (!connectionString) {
   throw new Error(
-    "DATABASE_SESSION_POOLER is required. Set it in .env (Supabase: Project Settings → Database → Connection string, Session mode).",
+    "DATABASE_SESSION_POOLER is required. Set it in .env).",
   );
 }
 

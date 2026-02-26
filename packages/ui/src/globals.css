@@ -33,6 +33,16 @@
     --input: 155 20% 85%;
     --ring: 155 43% 18%;
     --radius: 0.5rem;
+    /* Sidebar */
+    --sidebar-width: 16rem;
+    --sidebar-width-icon: 3rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
     /* Chart colors */
     --chart-grid-stroke: #e6e6e6;
     --chart-axis-text: #707070;
@@ -48,6 +58,7 @@
     --chart-gradient-start: #707070;
     --chart-gradient-end: #000000;
     --chart-line-secondary: #666666;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -79,6 +90,16 @@
     --border: 216 20% 20%;
     --input: 216 20% 20%;
     --ring: 129 56% 90%;
+    /* Sidebar */
+    --sidebar-width: 16rem;
+    --sidebar-width-icon: 3rem;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
     /* Chart colors */
     --chart-grid-stroke: #1d1d1d;
     --chart-axis-text: #666666;
@@ -94,6 +115,7 @@
     --chart-gradient-start: #666666;
     --chart-gradient-end: #ffffff;
     --chart-line-secondary: #999999;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 

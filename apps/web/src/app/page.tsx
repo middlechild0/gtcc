@@ -1,9 +1,7 @@
-
-
 export default function Home() {
   return (
-    <div >
-    
-    </div>
+    <main className="container mx-auto px-4 overflow-hidden md:overflow-visible">
+      <div />
+    </main>
   );
 }
