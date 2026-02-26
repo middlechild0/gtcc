@@ -4,46 +4,158 @@ import type { PermissionKey } from "@/auth/permissions";
 
 export type RouteGroup = "main" | "settings";
 
-export type NavItemConfig = {
+/**
+ * Single source of truth for a route: path, labels, permissions, and where it appears (sidebar, search, breadcrumb).
+ * Use path for static routes; use "[id]" in path for dynamic segments. For 100+ routes, split into domain files
+ * (e.g. branchRoutes, userAdminRoutes) and concatenate here.
+ */
+export type RouteConfig = {
   id: string;
+  /** Path pattern: e.g. "/dashboard/settings/branches", "/dashboard/settings/branches/new", "/dashboard/settings/branches/[id]" */
+  path: string;
   label: string;
-  href: string;
+  /** Shown in breadcrumb; defaults to label */
+  breadcrumbLabel?: string;
+  /** Parent route id for breadcrumb chain */
+  parentId?: string;
   group: RouteGroup;
+  permissions?: PermissionKey | PermissionKey[];
+  /** Show in sidebar (only applies when group === "main") */
+  showInSidebar?: boolean;
+  /** Include in top-nav settings search */
+  showInSearch?: boolean;
   icon?: ComponentType<{ className?: string }>;
-  requiredPermissions?: PermissionKey | PermissionKey[];
 };
 
-export type SettingsCardConfig = {
-  id: string;
-  title: string;
-  description: string;
-  href: string;
-  requiredPermissions?: PermissionKey | PermissionKey[];
-};
-
-export const navItems: NavItemConfig[] = [
+/** All routes in a flat list. Add new routes here */
+export const routes: RouteConfig[] = [
   {
     id: "dashboard",
+    path: "/dashboard",
     label: "Dashboard",
-    href: "/dashboard",
     group: "main",
+    showInSidebar: true,
+    showInSearch: true,
     icon: LayoutDashboard,
   },
   {
-    id: "branches",
+    id: "branches-list",
+    path: "/dashboard/settings/branches",
     label: "Branches",
-    href: "/dashboard/settings/branches",
+    breadcrumbLabel: "Branches",
     group: "settings",
-    requiredPermissions: "branches:view",
+    parentId: "settings-root",
+    permissions: "branches:view",
+    showInSearch: true,
   },
   {
-    id: "user-administration",
-    label: "User Administration",
-    href: "/dashboard/settings/user-administration",
+    id: "branches-new",
+    path: "/dashboard/settings/branches/new",
+    label: "New branch",
+    breadcrumbLabel: "New branch",
     group: "settings",
+    parentId: "branches-list",
+    permissions: "branches:manage",
+    showInSearch: true,
+  },
+  {
+    id: "branches-detail",
+    path: "/dashboard/settings/branches/[id]",
+    label: "Branch",
+    breadcrumbLabel: "Branch",
+    group: "settings",
+    parentId: "branches-list",
+    permissions: "branches:view",
+    showInSearch: false,
+  },
+  {
+    id: "user-admin-list",
+    path: "/dashboard/settings/user-administration",
+    label: "User Administration",
+    breadcrumbLabel: "User Administration",
+    group: "settings",
+    parentId: "settings-root",
+    permissions: "auth:manage_staff",
+    showInSearch: true,
     icon: Users,
-    requiredPermissions: "auth:manage_staff",
+  },
+  {
+    id: "user-admin-detail",
+    path: "/dashboard/settings/user-administration/[id]",
+    label: "User",
+    breadcrumbLabel: "User",
+    group: "settings",
+    parentId: "user-admin-list",
+    permissions: "auth:manage_staff",
+    showInSearch: false,
   },
 ];
 
+const routesById = new Map(routes.map((r) => [r.id, r]));
 
+/** Turn a path pattern like "/dashboard/settings/branches/[id]" into a RegExp that matches pathnames */
+function pathToRegex(path: string): RegExp {
+  const pattern = path
+    .replace(/\[\.\.\.\w+\]/g, ".+")
+    .replace(/\[\w+\]/g, "[^/]+");
+  return new RegExp(`^${pattern}$`);
+}
+
+/** Find the route that matches the given pathname (exact first, then dynamic [id] patterns). */
+export function getRouteByPathname(pathname: string): RouteConfig | null {
+  const normalized = pathname.replace(/\?.*$/, "").replace(/\/$/, "") || "/";
+  const exact = routes.find((r) => r.path === normalized);
+  if (exact) return exact;
+  const dynamic = routes.filter((r) => r.path.includes("[id]"));
+  for (const r of dynamic) {
+    if (pathToRegex(r.path).test(normalized)) return r;
+  }
+  return null;
+}
+
+export type BreadcrumbItem = { label: string; href?: string };
+
+/** Build breadcrumb items for the current pathname (root to current). */
+export function getBreadcrumb(pathname: string): BreadcrumbItem[] {
+  const route = getRouteByPathname(pathname);
+  if (!route) return [];
+
+  const ancestors: RouteConfig[] = [];
+  let current: RouteConfig | undefined = route;
+  while (current) {
+    ancestors.unshift(current);
+    current = current.parentId
+      ? (routesById.get(current.parentId) as RouteConfig | undefined)
+      : undefined;
+  }
+
+  const normalized = pathname.replace(/\?.*$/, "").replace(/\/$/, "") || "/";
+  return ancestors.map((r, i) => {
+    const isLast = i === ancestors.length - 1;
+    const label = r.breadcrumbLabel ?? r.label;
+    const isDynamic = r.path.includes("[id]");
+    const href =
+      isDynamic && isLast
+        ? normalized
+        : isDynamic
+          ? undefined
+          : r.path;
+    return { label, href };
+  });
+}
+
+/** Routes that should appear in the sidebar (main group, showInSidebar). */
+export const sidebarRoutes: RouteConfig[] = routes.filter(
+  (r) => r.group === "main" && r.showInSidebar !== false,
+);
+
+/** Routes that are searchable in the top nav (showInSearch; caller must filter by permission). */
+export const searchableRoutes: RouteConfig[] = routes.filter(
+  (r) => r.showInSearch !== false,
+);
+
+/** Href for a route (path for static; pass pathname for dynamic current page). */
+export function getRouteHref(route: RouteConfig, currentPathname?: string): string {
+  if (route.path.includes("[id]") && currentPathname) return currentPathname.replace(/\?.*$/, "").replace(/\/$/, "") || "/";
+  return route.path;
+}
