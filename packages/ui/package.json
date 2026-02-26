@@ -58,6 +58,7 @@
     "./radio-group": "./src/components/radio-group.tsx",
     "./scroll-area": "./src/components/scroll-area.tsx",
     "./select": "./src/components/select.tsx",
+    "./settings-menu": "./src/components/settings-menu.tsx",
     "./sheet": "./src/components/sheet.tsx",
     "./sidebar": "./src/components/sidebar.tsx",
     "./badge": "./src/components/badge.tsx",

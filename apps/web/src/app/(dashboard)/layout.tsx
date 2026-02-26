@@ -19,15 +19,21 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@visyx/ui/sidebar";
+import { SettingsMenu } from "@visyx/ui/settings-menu";
 import { TopNav } from "@visyx/ui/top-nav";
 import { LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { user } = useSession();
   const displayName = user?.user_metadata?.full_name ?? user?.email ?? "User";
   const userEmail = user?.email ?? undefined;
+
+  const navTitle =
+    pathname?.includes("user-administration") ? "User Administration" : "Dashboard";
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -73,13 +79,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </Sidebar>
       <SidebarInset className="flex min-h-svh flex-col">
         <TopNav
-          title="Dashboard"
+          title={navTitle}
           searchPlaceholder="Find Member"
           user={
             user
               ? { name: displayName, email: userEmail }
               : undefined
           }
+          actions={<SettingsMenu />}
           className="border-sidebar-border bg-sidebar text-sidebar-foreground"
         />
         <div className="min-h-0 flex-1 overflow-auto p-6">{children}</div>
