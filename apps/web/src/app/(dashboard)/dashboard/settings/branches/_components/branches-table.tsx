@@ -65,13 +65,17 @@ export function BranchesTable({
         ) : (
           branches.map((branch) => (
             <TableRow key={branch.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium">{branch.name}</TableCell>
+              <TableCell className="font-medium hover:underline">
+                <Link href={`/dashboard/settings/branches/${branch.id}`}>{branch.name}</Link>
+              </TableCell>
               <TableCell className="max-w-xs truncate text-muted-foreground">
                 {branch.address || "—"}
               </TableCell>
-              <TableCell>{branch.phone || "—"}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {branch.email || "—"}
+              <TableCell className="hover:underline">
+                <Link href={`tel:${branch.phone}`}>{branch.phone || "—"}</Link>
+              </TableCell>
+              <TableCell className="text-muted-foreground hover:underline">
+                <Link href={`mailto:${branch.email}`}>{branch.email || "—"}</Link>
               </TableCell>
               <TableCell>
                 <BranchStatusBadge isActive={branch.isActive} />
@@ -95,9 +99,24 @@ export function BranchesTable({
 
 function SkeletonRow() {
   return (
-    <TableRow>
-      <TableCell colSpan={6} className="py-6 text-muted-foreground text-sm">
-        Loading branches…
+    <TableRow className="animate-pulse">
+      <TableCell className="py-4">
+        <div className="h-4 w-32 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-44 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-40 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-5 w-16 rounded-full bg-muted" />
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="ml-auto h-8 w-16 rounded bg-muted" />
       </TableCell>
     </TableRow>
   );

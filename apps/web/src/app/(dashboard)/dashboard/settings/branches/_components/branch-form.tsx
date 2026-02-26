@@ -14,6 +14,7 @@ import {
 import { Input } from "@visyx/ui/input";
 import { Label } from "@visyx/ui/label";
 import Link from "next/link";
+import { SubmitButton } from "@visyx/ui/submit-button";
 
 const branchFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -127,24 +128,13 @@ export function BranchForm({
           </div>
         </CardContent>
         <CardFooter className="flex items-center justify-between gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            asChild
-            disabled={submitting}
-          >
+          <Button type="button" variant="outline" asChild disabled={submitting}>
             <Link href={cancelHref}>Cancel</Link>
           </Button>
           {!readOnly && (
-            <Button type="submit" disabled={submitting}>
-              {submitting
-                ? mode === "create"
-                  ? "Saving..."
-                  : "Saving changes..."
-                : mode === "create"
-                  ? "Save branch"
-                  : "Save changes"}
-            </Button>
+            <SubmitButton type="submit" isSubmitting={Boolean(submitting)}>
+              {mode === "create" ? "Save branch" : "Save changes"}
+            </SubmitButton>
           )}
         </CardFooter>
       </form>
