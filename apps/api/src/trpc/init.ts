@@ -1,15 +1,15 @@
+import { createClient } from "@supabase/supabase-js";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { createClient } from "@supabase/supabase-js";
-import { eq, and, or, isNull } from "drizzle-orm";
-import superjson from "superjson";
 import { db } from "@visyx/db/client";
 import {
-  userProfiles,
+  permissions,
   staff,
   staffPermissions,
-  permissions,
+  userProfiles,
 } from "@visyx/db/schema";
+import { and, eq, isNull, or } from "drizzle-orm";
+import superjson from "superjson";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -28,7 +28,9 @@ export type AuthContext = {
   isStaffAdmin: boolean;
 };
 
-async function getAuthUserFromRequest(req: Request): Promise<{ id: string } | null> {
+async function getAuthUserFromRequest(
+  req: Request,
+): Promise<{ id: string } | null> {
   const authHeader = req.headers.get("Authorization");
   const token = authHeader?.startsWith("Bearer ")
     ? authHeader.slice(7).trim()
@@ -77,7 +79,8 @@ async function loadProfileAndRoles(
     };
   }
 
-  const resolvedBranchId = requestedBranchId ?? staffRow.primaryBranchId ?? null;
+  const resolvedBranchId =
+    requestedBranchId ?? staffRow.primaryBranchId ?? null;
 
   const isAdmin = staffRow.isAdmin === true;
   const isSuperuser = profileRow.isSuperuser === true;
@@ -106,9 +109,9 @@ async function loadProfileAndRoles(
         eq(staffPermissions.granted, true),
         resolvedBranchId
           ? or(
-            isNull(staffPermissions.branchId),
-            eq(staffPermissions.branchId, resolvedBranchId),
-          )
+              isNull(staffPermissions.branchId),
+              eq(staffPermissions.branchId, resolvedBranchId),
+            )
           : isNull(staffPermissions.branchId),
       ),
     );

@@ -1,7 +1,7 @@
 // Import Sentry instrumentation first, before any other modules
 import "./instrument";
-import { logger } from "@visyx/logger";
 import * as Sentry from "@sentry/bun";
+import { logger } from "@visyx/logger";
 
 import app from "./app";
 

@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { authRouter } from "./auth";
-import { publicProcedure, router } from "../init";
-
-import { patientsRouter } from "../../modules/patients/router";
-import { billingRouter } from "../../modules/billing/router";
-import { inventoryRouter } from "../../modules/inventory/router";
 import { accountingRouter } from "../../modules/accounting/router";
+import { billingRouter } from "../../modules/billing/router";
+import { branchesRouter } from "../../modules/branches/router";
+import { inventoryRouter } from "../../modules/inventory/router";
+import { patientsRouter } from "../../modules/patients/router";
 import { staffRouter } from "../../modules/staff/router";
+import { publicProcedure, router } from "../init";
+import { authRouter } from "./auth";
 
 export const appRouter = router({
   hello: publicProcedure
@@ -20,6 +20,7 @@ export const appRouter = router({
   inventory: inventoryRouter,
   accounting: accountingRouter,
   staff: staffRouter,
+  branches: branchesRouter,
 });
 
 export type AppRouter = typeof appRouter;
