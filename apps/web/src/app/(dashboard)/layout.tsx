@@ -29,6 +29,7 @@ import type { ReactNode } from "react";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user } = useSession();
+  console.log("user in layout", user);
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;
 

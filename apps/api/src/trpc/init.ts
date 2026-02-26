@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { createClient } from "@supabase/supabase-js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, isNull } from "drizzle-orm";
 import superjson from "superjson";
 import { db } from "@visyx/db/client";
 import {
@@ -22,6 +22,7 @@ export type AuthContext = {
   authUserId: string | null;
   profile: Profile | null;
   staff: Staff | null;
+  branchId: number | null;
   permissionKeys: string[];
   isSuperuser: boolean;
   isStaffAdmin: boolean;
@@ -42,9 +43,13 @@ async function getAuthUserFromRequest(req: Request): Promise<{ id: string } | nu
   return { id: user.id };
 }
 
-async function loadProfileAndRoles(authUserId: string): Promise<{
+async function loadProfileAndRoles(
+  authUserId: string,
+  requestedBranchId: number | null,
+): Promise<{
   profile: Profile | null;
   staff: Staff | null;
+  branchId: number | null;
   permissionKeys: string[];
 }> {
   const [profileRow] = await db
@@ -54,7 +59,7 @@ async function loadProfileAndRoles(authUserId: string): Promise<{
     .limit(1);
 
   if (!profileRow) {
-    return { profile: null, staff: null, permissionKeys: [] };
+    return { profile: null, staff: null, branchId: null, permissionKeys: [] };
   }
 
   const [staffRow] = await db
@@ -64,33 +69,65 @@ async function loadProfileAndRoles(authUserId: string): Promise<{
     .limit(1);
 
   if (!staffRow) {
-    return { profile: profileRow, staff: null, permissionKeys: [] };
+    return {
+      profile: profileRow,
+      staff: null,
+      branchId: null,
+      permissionKeys: [],
+    };
   }
+
+  const resolvedBranchId = requestedBranchId ?? staffRow.primaryBranchId ?? null;
 
   const isAdmin = staffRow.isAdmin === true;
   const isSuperuser = profileRow.isSuperuser === true;
 
   if (isSuperuser || isAdmin) {
-    const allPerms = await db.select({ key: permissions.key }).from(permissions);
+    // Superusers and Admins implicitly have all permissions and access to all branches.
+    // Optimization: we return empty permission keys here since the middleware
+    // short-circuits for them anyway. This saves a database roundtrip.
     return {
       profile: profileRow,
       staff: staffRow,
-      permissionKeys: allPerms.map((p) => p.key),
+      branchId: resolvedBranchId,
+      permissionKeys: [],
     };
   }
 
+  // Find all active permissions for this staff member that apply to this branch
+  // (either globally via branchId IS NULL, or specifically for the resolved branch)
   const permRows = await db
     .select({ key: permissions.key })
     .from(staffPermissions)
     .innerJoin(permissions, eq(staffPermissions.permissionId, permissions.id))
     .where(
-      and(eq(staffPermissions.staffId, staffRow.id), eq(staffPermissions.granted, true)),
+      and(
+        eq(staffPermissions.staffId, staffRow.id),
+        eq(staffPermissions.granted, true),
+        resolvedBranchId
+          ? or(
+            isNull(staffPermissions.branchId),
+            eq(staffPermissions.branchId, resolvedBranchId),
+          )
+          : isNull(staffPermissions.branchId),
+      ),
     );
+
+  // If there's a resolved branch ID and they have absolutely zero matching permissions
+  // (not even global ones), they are completely unauthorized for this branch.
+  if (resolvedBranchId && permRows.length === 0) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You are not authorized to access this branch.",
+    });
+  }
+
   const permissionKeys = [...new Set(permRows.map((r) => r.key))];
 
   return {
     profile: profileRow,
     staff: staffRow,
+    branchId: resolvedBranchId,
     permissionKeys,
   };
 }
@@ -102,6 +139,9 @@ export async function createTRPCContext(
   const resHeaders = opts.resHeaders;
   const authUser = await getAuthUserFromRequest(req);
 
+  const branchHeader = req.headers.get("x-branch-id");
+  const requestedBranchId = branchHeader ? parseInt(branchHeader, 10) : null;
+
   if (!authUser) {
     return {
       req,
@@ -109,15 +149,19 @@ export async function createTRPCContext(
       authUserId: null,
       profile: null,
       staff: null,
+      branchId: requestedBranchId,
       permissionKeys: [],
       isSuperuser: false,
       isStaffAdmin: false,
     };
   }
 
-  const { profile, staff: staffRow, permissionKeys } = await loadProfileAndRoles(
-    authUser.id,
-  );
+  const {
+    profile,
+    staff: staffRow,
+    branchId,
+    permissionKeys,
+  } = await loadProfileAndRoles(authUser.id, requestedBranchId);
 
   return {
     req,
@@ -125,6 +169,7 @@ export async function createTRPCContext(
     authUserId: authUser.id,
     profile,
     staff: staffRow,
+    branchId,
     permissionKeys,
     isSuperuser: profile?.isSuperuser ?? false,
     isStaffAdmin: staffRow?.isAdmin ?? false,
@@ -133,7 +178,7 @@ export async function createTRPCContext(
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
-const t = initTRPC.context<Context>().create({
+export const t = initTRPC.context<Context>().create({
   transformer: superjson,
 });
 
@@ -156,6 +201,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
       authUserId: ctx.authUserId,
       profile: ctx.profile,
       staff: ctx.staff,
+      branchId: ctx.branchId,
       permissionKeys: ctx.permissionKeys,
       isSuperuser: ctx.isSuperuser,
       isStaffAdmin: ctx.isStaffAdmin,

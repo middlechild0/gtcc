@@ -40,6 +40,11 @@ export class RedisCache {
   }
 
   async get<T>(key: string): Promise<T | undefined> {
+    if (!this.redis) {
+      logger.debug(`Cache bypassed (get): redis not initialized`, { key });
+      return undefined;
+    }
+
     try {
       const value = await this.redis.get(this.getKey(key));
       return this.parseValue<T>(value);
@@ -53,6 +58,11 @@ export class RedisCache {
   }
 
   async set(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
+    if (!this.redis) {
+      logger.debug(`Cache bypassed (set): redis not initialized`, { key });
+      return;
+    }
+
     try {
       const serializedValue = this.stringifyValue(value);
       const redisKey = this.getKey(key);
@@ -76,6 +86,11 @@ export class RedisCache {
   }
 
   async delete(key: string): Promise<void> {
+    if (!this.redis) {
+      logger.debug(`Cache bypassed (delete): redis not initialized`, { key });
+      return;
+    }
+
     try {
       await this.redis.del(this.getKey(key));
     } catch (error) {
@@ -87,6 +102,11 @@ export class RedisCache {
   }
 
   async healthCheck(): Promise<void> {
+    if (!this.redis) {
+      logger.debug(`Cache bypassed (healthCheck): redis not initialized`);
+      return;
+    }
+
     try {
       await this.redis.send("PING", []);
     } catch (error) {
