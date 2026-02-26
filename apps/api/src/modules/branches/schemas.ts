@@ -27,8 +27,13 @@ export const DeactivateBranchSchema = z.object({
   id: z.number().int().positive(),
 });
 
+export const ReactivateBranchSchema = z.object({
+  id: z.number().int().positive(),
+});
+
 export type CreateBranchInput = z.infer<typeof CreateBranchSchema>;
 export type UpdateBranchInput = z.infer<typeof UpdateBranchSchema>;
 export type GetBranchInput = z.infer<typeof GetBranchSchema>;
 export type ListBranchesInput = z.infer<typeof ListBranchesSchema>;
 export type DeactivateBranchInput = z.infer<typeof DeactivateBranchSchema>;
+export type ReactivateBranchInput = z.infer<typeof ReactivateBranchSchema>;

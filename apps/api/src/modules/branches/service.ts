@@ -141,6 +141,32 @@ export class BranchesService {
 
     return results[0];
   }
+
+  /**
+   * Reactivates a previously deactivated branch.
+   * It sets the `isActive` flag to true.
+   * Requires `branches:manage` permission.
+   *
+   * @param id The ID of the branch to reactivate
+   * @returns The reactivated branch object
+   *
+   * @example
+   * ```ts
+   * await trpc.branches.reactivate.mutate({ id: 1 });
+   * ```
+   */
+  async reactivateBranch(id: number) {
+    const results = await db
+      .update(branches)
+      .set({
+        isActive: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(branches.id, id))
+      .returning();
+
+    return results[0];
+  }
 }
 
 export const branchesService = new BranchesService();

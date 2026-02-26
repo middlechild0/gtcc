@@ -19,6 +19,7 @@
     "./queries": "./src/queries/index.ts",
     "./errors": "./src/errors.ts",
     "./schema": "./src/schema.ts",
+    "./permissions": "./src/permissions.ts",
     "./utils/search-query": "./src/utils/search-query.ts",
     "./utils/health": "./src/utils/health.ts",
     "./utils/log-activity": "./src/utils/log-activity.ts"

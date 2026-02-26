@@ -6,6 +6,7 @@ import {
   DeactivateBranchSchema,
   GetBranchSchema,
   ListBranchesSchema,
+  ReactivateBranchSchema,
   UpdateBranchSchema,
 } from "./schemas";
 import { branchesService } from "./service";
@@ -47,5 +48,13 @@ export const branchesRouter = router({
     .input(DeactivateBranchSchema)
     .mutation(async ({ input }) => {
       return branchesService.deactivateBranch(input.id);
+    }),
+
+  reactivate: protectedProcedure
+    .use(hasPermission("branches:manage"))
+    .use(withAuditLog("branches:reactivate", "branch"))
+    .input(ReactivateBranchSchema)
+    .mutation(async ({ input }) => {
+      return branchesService.reactivateBranch(input.id);
     }),
 });

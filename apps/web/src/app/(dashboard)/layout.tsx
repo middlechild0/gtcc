@@ -25,6 +25,7 @@ import { LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { PermissionGate } from "@/app/auth/components/permission-gate";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -86,6 +87,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <PermissionGate required="branches:view">
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Branches">
+                    <Link href="/dashboard/settings/branches">
+                      <span>Branches</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </PermissionGate>
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
