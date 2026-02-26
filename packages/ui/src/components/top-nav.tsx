@@ -53,6 +53,7 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
     },
     ref,
   ) => {
+
     return (
       <header
         ref={ref}
@@ -85,7 +86,6 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
           )}
         </div>
         <div className="flex items-center gap-2">
-          {actions}
           {user != null && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -105,9 +105,7 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
                         .toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden max-w-[8rem] truncate text-sm font-medium md:inline">
-                    {user.name}
-                  </span>
+               
                   <ChevronDown className="size-4 shrink-0 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
@@ -130,6 +128,7 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          {actions}
         </div>
         {children}
       </header>
