@@ -13,9 +13,9 @@ import {
 } from "@visyx/ui/sidebar";
 import Link from "next/link";
 import { PermissionGate } from "@/app/auth/components/permission-gate";
+import { BranchSwitcher } from "../branch-switcher";
 import type { RouteConfig } from "../routes.config";
 import { getRouteHref } from "../routes.config";
-import { BranchSwitcher } from "../branch-switcher";
 
 type DashboardSidebarProps = {
   mainItems: RouteConfig[];
@@ -48,10 +48,7 @@ export function DashboardSidebar({ mainItems }: DashboardSidebarProps) {
               );
               if (!item.permissions) return link;
               return (
-                <PermissionGate
-                  key={item.id}
-                  required={item.permissions}
-                >
+                <PermissionGate key={item.id} required={item.permissions}>
                   {link}
                 </PermissionGate>
               );

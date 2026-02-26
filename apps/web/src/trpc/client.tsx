@@ -1,15 +1,15 @@
 "use client";
 
-import type { AppRouter } from "@visyx/api/trpc/routers/_app";
 import type { inferRouterOutputs } from "@trpc/server";
+import type { AppRouter } from "@visyx/api/trpc/routers/_app";
 
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-import { createClient } from "@visyx/supabase/client";
 import type { QueryClient } from "@tanstack/react-query";
 import { isServer, QueryClientProvider } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
+import { createClient } from "@visyx/supabase/client";
 import { useState } from "react";
 import superjson from "superjson";
 import { Cookies } from "@/utils/constants";

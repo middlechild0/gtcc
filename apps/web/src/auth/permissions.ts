@@ -3,4 +3,3 @@
 import type { PermissionKey as DbPermissionKey } from "@visyx/db/permissions";
 
 export type PermissionKey = DbPermissionKey;
-

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import type { SettingsMenuItem } from "@visyx/ui/settings-menu";
+import { useMemo } from "react";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
 import type { RouteConfig } from "../routes.config";
 import { getRouteHref } from "../routes.config";
@@ -16,12 +16,10 @@ export function useSettingsMenuItems(
 
     return searchableRoutes
       .map((route) => {
-        const allowed =
-          !route.permissions || hasPermission(route.permissions);
+        const allowed = !route.permissions || hasPermission(route.permissions);
         if (!allowed) return null;
 
-        const groupLabel =
-          route.group === "settings" ? "Settings" : "Main";
+        const groupLabel = route.group === "settings" ? "Settings" : "Main";
         return {
           label: `${groupLabel} · ${route.label}`,
           href: getRouteHref(route),

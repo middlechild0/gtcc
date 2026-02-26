@@ -1,15 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { useBreadcrumb } from "../_hooks/use-breadcrumb";
 import { cn } from "@visyx/ui/cn";
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { useBreadcrumb } from "../_hooks/use-breadcrumb";
 
 export function DashboardBreadcrumb() {
   const items = useBreadcrumb();
 
   if (items.length === 0) {
-    return <span className="text-lg font-semibold tracking-tight">Dashboard</span>;
+    return (
+      <span className="text-lg font-semibold tracking-tight">Dashboard</span>
+    );
   }
 
   return (

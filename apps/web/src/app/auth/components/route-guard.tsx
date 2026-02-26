@@ -41,4 +41,3 @@ export function RouteGuard(props: RouteGuardProps) {
 
   return <>{children}</>;
 }
-

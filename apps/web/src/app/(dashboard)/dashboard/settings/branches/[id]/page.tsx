@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@visyx/ui/button";
-import { Skeleton } from "@visyx/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,11 +11,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@visyx/ui/alert-dialog";
-import { BranchStatusBadge } from "../_components/branch-status-badge";
+import { Button } from "@visyx/ui/button";
+import { Skeleton } from "@visyx/ui/skeleton";
+import Link from "next/link";
+import { NoPermission } from "@/app/auth/components/no-permission";
 import { BranchForm } from "../_components/branch-form";
+import { BranchStatusBadge } from "../_components/branch-status-badge";
 import { useBranchDetail } from "../_hooks/use-branch-detail";
 import { useBranchMutations } from "../_hooks/use-branch-mutations";
-import { NoPermission } from "@/app/auth/components/no-permission";
 
 export default function BranchDetailPage() {
   const {
@@ -149,7 +149,9 @@ export default function BranchDetailPage() {
           email: branch.email ?? "",
         }}
         readOnly={readOnly}
-        submitting={update.isPending || deactivate.isPending || reactivate.isPending}
+        submitting={
+          update.isPending || deactivate.isPending || reactivate.isPending
+        }
         cancelHref="/dashboard/settings/branches"
         onSubmit={handleSubmit}
       />
@@ -216,4 +218,3 @@ export default function BranchDetailPage() {
     </div>
   );
 }
-

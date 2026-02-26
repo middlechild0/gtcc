@@ -64,4 +64,3 @@ export function useBranchMutations(id?: number) {
     reactivate,
   };
 }
-

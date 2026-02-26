@@ -1,14 +1,14 @@
 import "server-only";
 
-import type { AppRouter } from "@visyx/api/trpc/routers/_app";
-import { getLocationHeaders } from "@visyx/location";
-import { createClient } from "@visyx/supabase/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import {
   createTRPCOptionsProxy,
   type TRPCQueryOptions,
 } from "@trpc/tanstack-react-query";
+import type { AppRouter } from "@visyx/api/trpc/routers/_app";
+import { getLocationHeaders } from "@visyx/location";
+import { createClient } from "@visyx/supabase/server";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";

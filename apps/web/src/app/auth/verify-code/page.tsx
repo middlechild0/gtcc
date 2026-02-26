@@ -1,19 +1,15 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Suspense, useState } from "react";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@visyx/ui/input-otp";
-import { AuthLayout } from "../components/auth-layout";
-import { useVerifyOtp } from "../_hooks/use-verify-otp";
 import { Button } from "@visyx/ui/button";
-import { SubmitButton } from "@visyx/ui/submit-button";
-import { Loader } from "@visyx/ui/loader";
 import { cn } from "@visyx/ui/cn";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@visyx/ui/input-otp";
+import { Loader } from "@visyx/ui/loader";
+import { SubmitButton } from "@visyx/ui/submit-button";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useVerifyOtp } from "../_hooks/use-verify-otp";
+import { AuthLayout } from "../components/auth-layout";
 
 function VerifyCodeContent() {
   const searchParams = useSearchParams();
@@ -35,7 +31,10 @@ function VerifyCodeContent() {
         title="Missing email"
         subtitle="Please start sign-in again from the beginning."
         footer={
-          <Link href="/auth/sign-in" className="text-primary underline-offset-4 hover:underline">
+          <Link
+            href="/auth/sign-in"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             Back to sign in
           </Link>
         }
@@ -52,11 +51,16 @@ function VerifyCodeContent() {
       title="Check your email"
       subtitle={
         <>
-          We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>. Enter it below.
+          We sent a 6-digit code to{" "}
+          <span className="font-medium text-foreground">{email}</span>. Enter it
+          below.
         </>
       }
       footer={
-        <Link href="/auth/sign-in" className="text-muted-foreground underline-offset-4 hover:underline text-sm">
+        <Link
+          href="/auth/sign-in"
+          className="text-muted-foreground underline-offset-4 hover:underline text-sm"
+        >
           Use a different email
         </Link>
       }
@@ -71,14 +75,16 @@ function VerifyCodeContent() {
             render={({ slots }) => (
               <InputOTPGroup className="gap-1.5">
                 {slots.map((slot, i) => {
-                  const { index: _index, ...slotProps } = slot as typeof slot & { index?: number };
+                  const { index: _index, ...slotProps } =
+                    slot as typeof slot & { index?: number };
                   return (
                     <InputOTPSlot
                       key={i}
                       {...slotProps}
                       className={cn(
                         "h-12 w-12 rounded-lg border border-input bg-background text-center text-xl font-semibold tabular-nums text-foreground",
-                        slotProps.isActive && "z-10 border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background",
+                        slotProps.isActive &&
+                          "z-10 border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background",
                       )}
                     />
                   );
@@ -86,7 +92,9 @@ function VerifyCodeContent() {
               </InputOTPGroup>
             )}
           />
-          <p className="text-xs text-muted-foreground">Enter the 6-digit code from your email</p>
+          <p className="text-xs text-muted-foreground">
+            Enter the 6-digit code from your email
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">

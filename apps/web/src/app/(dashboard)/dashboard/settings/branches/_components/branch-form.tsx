@@ -1,8 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@visyx/ui/button";
 import {
   Card,
@@ -13,18 +11,16 @@ import {
 } from "@visyx/ui/card";
 import { Input } from "@visyx/ui/input";
 import { Label } from "@visyx/ui/label";
-import Link from "next/link";
 import { SubmitButton } from "@visyx/ui/submit-button";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const branchFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
 });
 
 export type BranchFormValues = z.infer<typeof branchFormSchema>;
@@ -141,4 +137,3 @@ export function BranchForm({
     </Card>
   );
 }
-

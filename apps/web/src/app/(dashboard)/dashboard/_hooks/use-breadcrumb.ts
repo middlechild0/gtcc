@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { getBreadcrumb, type BreadcrumbItem } from "../routes.config";
+import { type BreadcrumbItem, getBreadcrumb } from "../routes.config";
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const pathname = usePathname();

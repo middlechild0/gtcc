@@ -1,10 +1,17 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@visyx/ui/card";
+import { cn } from "@visyx/ui/cn";
+import { motion } from "motion/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@visyx/ui/card";
-import { cn } from "@visyx/ui/cn";
 
 type AuthLayoutProps = {
   title: string;
@@ -35,29 +42,29 @@ export function AuthLayout({
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="w-full max-w-[400px]"
       >
-      <Card className="w-full rounded-2xl border border-border/80 bg-card/95 shadow-lg shadow-black/5 backdrop-blur-sm">
-        <CardHeader className="space-y-1.5 pb-6 pt-8 text-center sm:pt-10">
-          <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            Batian Optical
-          </p>
-          <CardTitle className="font-serif text-2xl font-normal tracking-tight text-foreground">
-            {title}
-          </CardTitle>
-          {subtitle ? (
-            <CardDescription className="text-sm leading-relaxed text-muted-foreground">
-              {subtitle}
-            </CardDescription>
+        <Card className="w-full rounded-2xl border border-border/80 bg-card/95 shadow-lg shadow-black/5 backdrop-blur-sm">
+          <CardHeader className="space-y-1.5 pb-6 pt-8 text-center sm:pt-10">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Batian Optical
+            </p>
+            <CardTitle className="font-serif text-2xl font-normal tracking-tight text-foreground">
+              {title}
+            </CardTitle>
+            {subtitle ? (
+              <CardDescription className="text-sm leading-relaxed text-muted-foreground">
+                {subtitle}
+              </CardDescription>
+            ) : null}
+          </CardHeader>
+
+          <CardContent className="pb-6">{children}</CardContent>
+
+          {footer ? (
+            <CardFooter className="flex flex-col items-center gap-2 border-t border-border/60 py-4 text-center">
+              {footer}
+            </CardFooter>
           ) : null}
-        </CardHeader>
-
-        <CardContent className="pb-6">{children}</CardContent>
-
-        {footer ? (
-          <CardFooter className="flex flex-col items-center gap-2 border-t border-border/60 py-4 text-center">
-            {footer}
-          </CardFooter>
-        ) : null}
-      </Card>
+        </Card>
       </motion.div>
     </section>
   );

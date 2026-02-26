@@ -16,7 +16,8 @@ const passwordSchema = z.object({
 export type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export function useLoginForms() {
-  const { mode, setMode, continueWithEmail, signInWithPassword, loading } = useLogin();
+  const { mode, setMode, continueWithEmail, signInWithPassword, loading } =
+    useLogin();
 
   const passwordlessForm = useForm<PasswordlessFormValues>({
     defaultValues: {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { trpc } from "@/trpc/client";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
+import { trpc } from "@/trpc/client";
 
 export function useBranchDetail() {
   const params = useParams();
@@ -38,4 +38,3 @@ export function useBranchDetail() {
     authLoading,
   };
 }
-

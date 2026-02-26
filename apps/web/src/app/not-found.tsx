@@ -9,7 +9,6 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-background selection:bg-primary/30">
-
       <div className="z-10 flex flex-col items-center justify-center space-y-8 px-4 text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -21,7 +20,6 @@ export default function NotFound() {
           }}
           className="relative"
         >
-     
           <h1 className="text-[10rem] font-bold leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/40 sm:text-[16rem]">
             404
           </h1>
@@ -67,7 +65,6 @@ export default function NotFound() {
           </Button>
         </motion.div>
       </div>
-
     </div>
   );
 }

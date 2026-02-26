@@ -2,7 +2,10 @@
 
 import type { Branch } from "./branch-types";
 
-export function filterBranches(branches: Branch[], rawSearch: string): Branch[] {
+export function filterBranches(
+  branches: Branch[],
+  rawSearch: string,
+): Branch[] {
   const term = rawSearch.trim().toLowerCase();
   if (!term) return branches;
 
@@ -19,4 +22,3 @@ export function filterBranches(branches: Branch[], rawSearch: string): Branch[] 
     );
   });
 }
-

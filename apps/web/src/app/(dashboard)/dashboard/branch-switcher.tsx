@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from "@visyx/ui/select";
+import { useMemo } from "react";
 import { useHasPermission } from "@/app/auth/components/permission-gate";
 import { useBranch } from "./branch-context";
 
@@ -41,9 +41,7 @@ export function BranchSwitcher() {
         <p className="text-xs font-medium text-sidebar-foreground">
           Active branch
         </p>
-        <p className="text-muted-foreground text-xs">
-          No branches available.
-        </p>
+        <p className="text-muted-foreground text-xs">No branches available.</p>
       </div>
     );
   }
@@ -76,4 +74,3 @@ export function BranchSwitcher() {
     </div>
   );
 }
-

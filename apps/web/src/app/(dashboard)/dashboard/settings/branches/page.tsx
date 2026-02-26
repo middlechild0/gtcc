@@ -1,12 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
-import Link from "next/link";
 import { Button } from "@visyx/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@visyx/ui/card";
 import { Input } from "@visyx/ui/input";
 import { Switch } from "@visyx/ui/switch";
 import { Plus, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
 import { PermissionGate } from "@/app/auth/components/permission-gate";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { BranchesHeader } from "./_components/branches-header";
@@ -86,9 +86,7 @@ function BranchesContent() {
             isLoading={isLoading}
             error={error}
             emptyMessage={
-              search
-                ? "No branches match your search."
-                : "No branches found."
+              search ? "No branches match your search." : "No branches found."
             }
           />
         </CardContent>
@@ -113,4 +111,3 @@ export default function BranchesPage() {
     </RouteGuard>
   );
 }
-

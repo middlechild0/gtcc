@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { AuthLayout } from "../components/auth-layout";
-import { useLoginForms } from "../_hooks/use-login-forms";
+import { cn } from "@visyx/ui/cn";
 import {
   Form,
   FormControl,
@@ -12,10 +10,12 @@ import {
   FormMessage,
 } from "@visyx/ui/form";
 import { Input } from "@visyx/ui/input";
+import { Loader } from "@visyx/ui/loader";
 import { SubmitButton } from "@visyx/ui/submit-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@visyx/ui/tabs";
-import { cn } from "@visyx/ui/cn";
-import { Loader } from "@visyx/ui/loader";
+import Link from "next/link";
+import { useLoginForms } from "../_hooks/use-login-forms";
+import { AuthLayout } from "../components/auth-layout";
 
 export default function SignInPage() {
   const {

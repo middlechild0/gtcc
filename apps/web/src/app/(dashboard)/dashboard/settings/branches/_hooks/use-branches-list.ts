@@ -1,21 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { trpc } from "@/trpc/client";
-import type { Branch } from "../_utils/branch-types";
 import { filterBranches } from "../_utils/branch-filters";
+import type { Branch } from "../_utils/branch-types";
 
 export function useBranchesList() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [search, setSearchState] = useState(searchParams?.get("q") ?? "");
-  const includeInactiveParam =
-    searchParams?.get("includeInactive") === "true";
-  const [includeInactive, setIncludeInactiveState] = useState(
-    includeInactiveParam,
-  );
+  const includeInactiveParam = searchParams?.get("includeInactive") === "true";
+  const [includeInactive, setIncludeInactiveState] =
+    useState(includeInactiveParam);
 
   const { data, isLoading, error, refetch } = trpc.branches.list.useQuery({
     includeInactive,
@@ -68,4 +66,3 @@ export function useBranchesList() {
     refetch,
   };
 }
-

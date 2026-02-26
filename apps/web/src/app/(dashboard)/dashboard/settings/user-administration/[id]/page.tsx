@@ -2,7 +2,13 @@
 
 import { Avatar, AvatarFallback } from "@visyx/ui/avatar";
 import { Button } from "@visyx/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@visyx/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@visyx/ui/card";
 import { Input } from "@visyx/ui/input";
 import { Label } from "@visyx/ui/label";
 import {

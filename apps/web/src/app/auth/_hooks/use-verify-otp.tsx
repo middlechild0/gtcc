@@ -23,7 +23,8 @@ export function useVerifyOtp(nextPath?: string) {
       toast.success("Signed in.");
       window.location.assign(nextPath ?? "/");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid or expired code.";
+      const message =
+        err instanceof Error ? err.message : "Invalid or expired code.";
       toast.error(message);
       throw err;
     } finally {
@@ -42,7 +43,9 @@ export function useVerifyOtp(nextPath?: string) {
       if (error) throw error;
       toast.success("New code sent. Check your email.");
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to resend code.");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to resend code.",
+      );
     } finally {
       setResendLoading(false);
     }

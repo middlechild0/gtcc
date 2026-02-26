@@ -9,4 +9,3 @@ export function getFriendlyErrorMessage(error: unknown) {
 
   return "Something went wrong. Please try again.";
 }
-

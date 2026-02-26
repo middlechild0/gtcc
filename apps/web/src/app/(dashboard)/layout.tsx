@@ -1,27 +1,22 @@
 "use client";
 
-import { useSession } from "@/app/auth/_hooks/use-session";
-import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { SettingsMenu } from "@visyx/ui/settings-menu";
+import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { TopNav } from "@visyx/ui/top-nav";
 import type { ReactNode } from "react";
-import { useBranch } from "./dashboard/branch-context";
+import { useSession } from "@/app/auth/_hooks/use-session";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
 import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
-import {
-  searchableRoutes,
-  sidebarRoutes,
-} from "./dashboard/routes.config";
+import { useBranch } from "./dashboard/branch-context";
+import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
 
 function BranchReadyGate({ children }: { children: ReactNode }) {
   const { isBranchReady } = useBranch();
 
   if (isBranchReady) {
-    return (
-      <div className="min-h-0 flex-1 overflow-auto p-6">{children}</div>
-    );
+    return <div className="min-h-0 flex-1 overflow-auto p-6">{children}</div>;
   }
 
   return (

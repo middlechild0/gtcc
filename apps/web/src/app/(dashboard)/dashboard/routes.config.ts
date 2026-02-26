@@ -1,5 +1,5 @@
-import type { ComponentType } from "react";
 import { LayoutDashboard, Settings, Users } from "lucide-react";
+import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
 export type RouteGroup = "main" | "settings";
@@ -135,11 +135,7 @@ export function getBreadcrumb(pathname: string): BreadcrumbItem[] {
     const label = r.breadcrumbLabel ?? r.label;
     const isDynamic = r.path.includes("[id]");
     const href =
-      isDynamic && isLast
-        ? normalized
-        : isDynamic
-          ? undefined
-          : r.path;
+      isDynamic && isLast ? normalized : isDynamic ? undefined : r.path;
     return { label, href };
   });
 }
@@ -155,7 +151,11 @@ export const searchableRoutes: RouteConfig[] = routes.filter(
 );
 
 /** Href for a route (path for static; pass pathname for dynamic current page). */
-export function getRouteHref(route: RouteConfig, currentPathname?: string): string {
-  if (route.path.includes("[id]") && currentPathname) return currentPathname.replace(/\?.*$/, "").replace(/\/$/, "") || "/";
+export function getRouteHref(
+  route: RouteConfig,
+  currentPathname?: string,
+): string {
+  if (route.path.includes("[id]") && currentPathname)
+    return currentPathname.replace(/\?.*$/, "").replace(/\/$/, "") || "/";
   return route.path;
 }

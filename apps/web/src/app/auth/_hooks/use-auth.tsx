@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
+import type { PermissionKey } from "@/auth/permissions";
 import type { RouterOutputs } from "@/trpc/client";
 import { trpc } from "@/trpc/client";
-import type { PermissionKey } from "@/auth/permissions";
 
 type AuthMe = RouterOutputs["auth"]["me"];
 
@@ -85,4 +85,3 @@ export function useAuth(): AuthContextValue {
   }
   return ctx;
 }
-

@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
 import { createClient } from "@visyx/supabase/client";
-import { AuthLayout } from "../components/auth-layout";
+import { Button } from "@visyx/ui/button";
 import {
   Form,
   FormControl,
@@ -14,11 +11,14 @@ import {
   FormMessage,
 } from "@visyx/ui/form";
 import { Input } from "@visyx/ui/input";
-import { Button } from "@visyx/ui/button";
-import { SubmitButton } from "@visyx/ui/submit-button";
 import { Loader } from "@visyx/ui/loader";
+import { SubmitButton } from "@visyx/ui/submit-button";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { AuthLayout } from "../components/auth-layout";
 
 type FormValues = { password: string; confirmPassword: string };
 
@@ -45,13 +45,17 @@ function UpdatePasswordContent() {
     setSubmitting(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({ password: values.password });
+      const { error } = await supabase.auth.updateUser({
+        password: values.password,
+      });
       if (error) throw error;
       toast.success("Password updated.");
       router.replace("/");
       router.refresh();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to update password.");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update password.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -63,12 +67,19 @@ function UpdatePasswordContent() {
         title="Invalid or expired link"
         subtitle={decodeURIComponent(errorFromCallback)}
         footer={
-          <Link href="/auth/forgot-password" className="underline-offset-4 hover:underline">
+          <Link
+            href="/auth/forgot-password"
+            className="underline-offset-4 hover:underline"
+          >
             Request a new reset link
           </Link>
         }
       >
-        <Button asChild className="h-11 w-full rounded-lg font-medium" variant="default">
+        <Button
+          asChild
+          className="h-11 w-full rounded-lg font-medium"
+          variant="default"
+        >
           <Link href="/auth/forgot-password">Request new link</Link>
         </Button>
       </AuthLayout>
@@ -80,7 +91,10 @@ function UpdatePasswordContent() {
       title="Set new password"
       subtitle="Choose a new password for your account."
       footer={
-        <Link href="/auth/sign-in" className="underline-offset-4 hover:underline">
+        <Link
+          href="/auth/sign-in"
+          className="underline-offset-4 hover:underline"
+        >
           Back to sign in
         </Link>
       }

@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { AuthLayout } from "../components/auth-layout";
-import { useResetPassword } from "../_hooks/use-reset-password";
-import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -14,6 +10,10 @@ import {
 } from "@visyx/ui/form";
 import { Input } from "@visyx/ui/input";
 import { SubmitButton } from "@visyx/ui/submit-button";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { useResetPassword } from "../_hooks/use-reset-password";
+import { AuthLayout } from "../components/auth-layout";
 
 type FormValues = { email: string };
 
@@ -32,16 +32,16 @@ export default function ForgotPasswordPage() {
       title="Reset your password"
       subtitle="Enter the email linked to your account. We'll send you a secure reset link."
       footer={
-        <Link href="/auth/sign-in" className="underline-offset-4 hover:underline">
+        <Link
+          href="/auth/sign-in"
+          className="underline-offset-4 hover:underline"
+        >
           Back to sign in
         </Link>
       }
     >
       <Form {...form}>
-        <form
-          className="space-y-4"
-          onSubmit={form.handleSubmit(onSubmit)}
-        >
+        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="email"

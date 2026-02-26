@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@visyx/ui/button";
 import {
   Table,
@@ -10,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@visyx/ui/table";
+import Link from "next/link";
 import type { Branch } from "../_utils/branch-types";
 import { BranchStatusBadge } from "./branch-status-badge";
 
@@ -66,7 +66,9 @@ export function BranchesTable({
           branches.map((branch) => (
             <TableRow key={branch.id} className="hover:bg-muted/50">
               <TableCell className="font-medium hover:underline">
-                <Link href={`/dashboard/settings/branches/${branch.id}`}>{branch.name}</Link>
+                <Link href={`/dashboard/settings/branches/${branch.id}`}>
+                  {branch.name}
+                </Link>
               </TableCell>
               <TableCell className="max-w-xs truncate text-muted-foreground">
                 {branch.address || "—"}
@@ -75,16 +77,16 @@ export function BranchesTable({
                 <Link href={`tel:${branch.phone}`}>{branch.phone || "—"}</Link>
               </TableCell>
               <TableCell className="text-muted-foreground hover:underline">
-                <Link href={`mailto:${branch.email}`}>{branch.email || "—"}</Link>
+                <Link href={`mailto:${branch.email}`}>
+                  {branch.email || "—"}
+                </Link>
               </TableCell>
               <TableCell>
                 <BranchStatusBadge isActive={branch.isActive} />
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link
-                    href={`/dashboard/settings/branches/${branch.id}`}
-                  >
+                  <Link href={`/dashboard/settings/branches/${branch.id}`}>
                     View
                   </Link>
                 </Button>
@@ -121,4 +123,3 @@ function SkeletonRow() {
     </TableRow>
   );
 }
-

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   createContext,
   useCallback,
@@ -8,10 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { ReactNode } from "react";
+import { useAuth } from "@/app/auth/_hooks/use-auth";
 import type { RouterOutputs } from "@/trpc/client";
 import { trpc } from "@/trpc/client";
-import { useAuth } from "@/app/auth/_hooks/use-auth";
 
 type Branch = RouterOutputs["branches"]["list"][number];
 
@@ -58,8 +58,8 @@ export function BranchProvider({ children }: { children: ReactNode }) {
   } = useAuth();
   const utils = trpc.useUtils();
 
-  const [activeBranchId, setActiveBranchIdState] = useState<number | null>(
-    () => getBranchIdFromCookie(),
+  const [activeBranchId, setActiveBranchIdState] = useState<number | null>(() =>
+    getBranchIdFromCookie(),
   );
 
   const {
@@ -212,4 +212,3 @@ export function useBranch(): BranchContextValue {
   }
   return ctx;
 }
-

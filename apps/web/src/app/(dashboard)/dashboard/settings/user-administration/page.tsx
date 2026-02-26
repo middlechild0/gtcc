@@ -141,7 +141,9 @@ export default function UserAdministrationPage() {
               {PLACEHOLDER_USERS.map((u) => (
                 <TableRow key={u.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{u.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {u.email}
+                  </TableCell>
                   <TableCell>{u.role}</TableCell>
                   <TableCell>{u.status}</TableCell>
                   <TableCell className="text-muted-foreground">

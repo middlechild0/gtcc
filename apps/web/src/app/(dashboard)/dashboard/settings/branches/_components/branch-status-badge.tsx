@@ -13,4 +13,3 @@ export function BranchStatusBadge(props: { isActive: boolean }) {
     </Badge>
   );
 }
-
