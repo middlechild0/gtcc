@@ -1,16 +1,13 @@
 "use client";
 
 import { ArrowLeft, ChevronDown, Search, Settings } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
+import { cn } from "../utils";
 import { Button } from "./button";
 import { Input } from "./input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { ScrollArea } from "./scroll-area";
-import { cn } from "../utils";
 
 export interface SettingsMenuItem {
   label: string;
@@ -44,7 +41,10 @@ const DEFAULT_ITEMS: SettingsMenuItem[] = [
   { label: "Roster and Open Hours", href: "#" },
   { label: "Task Automation", href: "#" },
   { label: "Templates", href: "#" },
-  { label: "User Administration", href: "/dashboard/settings/user-administration" },
+  {
+    label: "User Administration",
+    href: "/dashboard/settings/user-administration",
+  },
   { label: "Workout Configuration", href: "#" },
 ];
 
@@ -114,13 +114,13 @@ export function SettingsMenu({
               <ul className="flex flex-col gap-0.5">
                 {filteredItems.map((item) => (
                   <li key={item.label}>
-                    <a
+                    <Link
                       href={item.href}
                       className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground block rounded-md px-3 py-2 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring"
                       onClick={() => setOpen(false)}
                     >
                       {item.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

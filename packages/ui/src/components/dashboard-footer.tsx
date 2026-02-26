@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "../utils";
 import { Button } from "./button";
 import { Input } from "./input";
-import { cn } from "../utils";
 
 export interface DashboardFooterProps extends React.ComponentProps<"footer"> {
   /** Optional class name for the footer wrapper */
@@ -50,15 +50,9 @@ const DashboardFooterSection = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & { title?: React.ReactNode }
 >(({ title, className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col gap-3", className)}
-    {...props}
-  >
+  <div ref={ref} className={cn("flex flex-col gap-3", className)} {...props}>
     {title != null && (
-      <h3 className="text-sidebar-foreground text-sm font-semibold">
-        {title}
-      </h3>
+      <h3 className="text-sidebar-foreground text-sm font-semibold">{title}</h3>
     )}
     <div className="text-muted-foreground text-sm">{children}</div>
   </div>
@@ -98,8 +92,4 @@ function DashboardFooterFeedback({
   );
 }
 
-export {
-  DashboardFooter,
-  DashboardFooterSection,
-  DashboardFooterFeedback,
-};
+export { DashboardFooter, DashboardFooterSection, DashboardFooterFeedback };

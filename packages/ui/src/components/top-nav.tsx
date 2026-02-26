@@ -2,6 +2,7 @@
 
 import { ChevronDown, Search } from "lucide-react";
 import * as React from "react";
+import { cn } from "../utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { Button } from "./button";
 import {
@@ -15,7 +16,6 @@ import {
 } from "./dropdown-menu";
 import { Input } from "./input";
 import { SidebarTrigger } from "./sidebar";
-import { cn } from "../utils";
 
 export interface TopNavUser {
   name: string;
@@ -53,7 +53,6 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
     },
     ref,
   ) => {
-
     return (
       <header
         ref={ref}
@@ -105,7 +104,7 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
                         .toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-               
+
                   <ChevronDown className="size-4 shrink-0 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
@@ -114,7 +113,9 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
                   <div className="flex flex-col gap-1">
                     <p className="text-sm font-medium">{user.name}</p>
                     {user.email != null && (
-                      <p className="text-muted-foreground text-xs">{user.email}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {user.email}
+                      </p>
                     )}
                   </div>
                 </DropdownMenuLabel>
