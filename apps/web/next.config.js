@@ -5,6 +5,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import("next").NextConfig} */
 const config = {
+  output: "standalone",
   poweredByHeader: false,
   turbopack: {
     // Monorepo: resolve next from workspace root node_modules
