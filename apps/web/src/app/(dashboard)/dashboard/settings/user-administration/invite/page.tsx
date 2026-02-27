@@ -99,13 +99,14 @@ export default function InviteStaffPage() {
               Invite a new user
             </h1>
             <p className="text-muted-foreground">
-              Invite a new user to the system. They will receive an email invite to set their password.
+              Invite a new user to the system. They will receive an email invite
+              to set their password.
             </p>
           </div>
         </div>
 
         {!canProceed ? (
-          <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+          <Card className="border border-border bg-muted/40">
             <CardContent className="pt-6">
               <p className="text-sm">
                 {!hasBranches && !hasGroups
