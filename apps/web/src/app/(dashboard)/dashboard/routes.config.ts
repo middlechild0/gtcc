@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, User, Users } from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
@@ -98,6 +98,16 @@ export const routes: RouteConfig[] = [
     parentId: "user-admin-list",
     permissions: "auth:manage_staff",
     showInSearch: false,
+  },
+  {
+    id: "account-settings",
+    path: "/dashboard/settings/account",
+    label: "My Account",
+    breadcrumbLabel: "My Account",
+    group: "settings",
+    parentId: "settings-root",
+    showInSearch: true,
+    icon: User,
   },
 ];
 

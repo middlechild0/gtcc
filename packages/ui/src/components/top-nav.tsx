@@ -37,6 +37,12 @@ export interface TopNavProps
   left?: React.ReactNode;
   /** Class name for the header */
   className?: string;
+  /** Optional handler when the user selects “Account” in the menu */
+  onAccountClick?: () => void;
+  /** Optional handler when the user selects “Settings” in the menu */
+  onSettingsClick?: () => void;
+  /** Optional handler when the user selects “Log out” in the menu */
+  onLogoutClick?: () => void;
 }
 
 const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
@@ -48,6 +54,9 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
       actions,
       left,
       className,
+      onAccountClick,
+      onSettingsClick,
+      onLogoutClick,
       children,
       ...props
     },
@@ -121,11 +130,17 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>Account</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem onClick={onAccountClick}>
+                    Account
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onSettingsClick}>
+                    Settings
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem onClick={onLogoutClick}>
+                  Log out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}

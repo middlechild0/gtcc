@@ -4,6 +4,8 @@ import { SettingsMenu } from "@visyx/ui/settings-menu";
 import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { TopNav } from "@visyx/ui/top-nav";
 import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@visyx/supabase/client";
 import { useSession } from "@/app/auth/_hooks/use-session";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
@@ -34,11 +36,23 @@ function BranchReadyGate({ children }: { children: ReactNode }) {
 }
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const { user } = useSession();
   const settingsMenuItems = useSettingsMenuItems(searchableRoutes);
 
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;
+
+  const handleAccountClick = () => {
+    router.push("/dashboard/settings/account");
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/auth/sign-in");
+    router.refresh();
+  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -48,6 +62,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           title={<DashboardBreadcrumb />}
           searchPlaceholder="Find Member"
           user={user ? { name: displayName, email: userEmail } : undefined}
+          onAccountClick={handleAccountClick}
+          onLogoutClick={handleLogout}
           actions={
             <SettingsMenu
               items={settingsMenuItems}
