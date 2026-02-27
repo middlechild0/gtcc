@@ -10,9 +10,12 @@ let workerDb: ReturnType<typeof drizzle> | null = null;
 
 function getWorkerConnectionString(): string {
   const url =
-    process.env.DATABASE_PRIMARY_POOLER_URL ?? process.env.DATABASE_SESSION_POOLER;
+    process.env.DATABASE_PRIMARY_POOLER_URL ??
+    process.env.DATABASE_SESSION_POOLER;
   if (!url) {
-    throw new Error("DATABASE_SESSION_POOLER or DATABASE_PRIMARY_POOLER_URL must be set");
+    throw new Error(
+      "DATABASE_SESSION_POOLER or DATABASE_PRIMARY_POOLER_URL must be set",
+    );
   }
   return url;
 }

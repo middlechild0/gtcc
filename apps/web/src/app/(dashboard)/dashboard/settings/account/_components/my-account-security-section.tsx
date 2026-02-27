@@ -28,7 +28,9 @@ type MyAccountSecuritySectionProps = {
   email: string | null;
 };
 
-export function MyAccountSecuritySection({ email }: MyAccountSecuritySectionProps) {
+export function MyAccountSecuritySection({
+  email,
+}: MyAccountSecuritySectionProps) {
   const form = useForm<FormValues>({
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
@@ -132,7 +134,9 @@ export function MyAccountSecuritySection({ email }: MyAccountSecuritySectionProp
                   className="h-9 rounded-lg"
                   disabled={form.formState.isSubmitting}
                 >
-                  {form.formState.isSubmitting ? "Updating..." : "Update password"}
+                  {form.formState.isSubmitting
+                    ? "Updating..."
+                    : "Update password"}
                 </Button>
               </div>
             </form>
@@ -142,7 +146,9 @@ export function MyAccountSecuritySection({ email }: MyAccountSecuritySectionProp
             <p className="text-sm font-medium">Password reset link</p>
             <p className="text-muted-foreground text-xs">
               We&apos;ll email a secure link to{" "}
-              <span className="font-medium">{email ?? "your account email"}</span>{" "}
+              <span className="font-medium">
+                {email ?? "your account email"}
+              </span>{" "}
               so you can reset your password.
             </p>
             <Button
@@ -182,4 +188,3 @@ export function MyAccountSecuritySection({ email }: MyAccountSecuritySectionProp
     </div>
   );
 }
-

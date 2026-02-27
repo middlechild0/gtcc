@@ -84,4 +84,3 @@ export function MyAccountSessionsSection({
     </div>
   );
 }
-

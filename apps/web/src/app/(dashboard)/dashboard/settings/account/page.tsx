@@ -12,8 +12,14 @@ import { MyAccountSecuritySection } from "./_components/my-account-security-sect
 import { MyAccountSessionsSection } from "./_components/my-account-sessions-section";
 
 export default function MyAccountPage() {
-  const { profile, staff, isLoading: authLoading, hasPermission, isSuperuser, refetch } =
-    useAuth();
+  const {
+    profile,
+    staff,
+    isLoading: authLoading,
+    hasPermission,
+    isSuperuser,
+    refetch,
+  } = useAuth();
   const { user, loading: sessionLoading } = useSession();
 
   const canManageOwnStaffProfile =
@@ -129,4 +135,3 @@ export default function MyAccountPage() {
     </div>
   );
 }
-

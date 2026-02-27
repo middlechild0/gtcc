@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@visyx/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +10,6 @@ import {
 } from "@visyx/ui/card";
 import { Input } from "@visyx/ui/input";
 import { Label } from "@visyx/ui/label";
-import { Button } from "@visyx/ui/button";
 import { useEffect, useState } from "react";
 import type { AuthContextValue } from "@/app/auth/_hooks/use-auth";
 
@@ -184,4 +184,3 @@ export function MyAccountProfileForm({
     </Card>
   );
 }
-

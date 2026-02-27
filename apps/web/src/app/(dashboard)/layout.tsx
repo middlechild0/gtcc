@@ -1,11 +1,11 @@
 "use client";
 
+import { createClient } from "@visyx/supabase/client";
 import { SettingsMenu } from "@visyx/ui/settings-menu";
 import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { TopNav } from "@visyx/ui/top-nav";
-import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@visyx/supabase/client";
+import type { ReactNode } from "react";
 import { useSession } from "@/app/auth/_hooks/use-session";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";

@@ -13,7 +13,7 @@ import { branchesService } from "./service";
 
 export const branchesRouter = router({
   list: protectedProcedure
-    // Removed hasPermission("branches:view") here so all authenticated users 
+    // Removed hasPermission("branches:view") here so all authenticated users
     // can load the branch switcher in the UI to change contexts.
     .input(ListBranchesSchema)
     .query(async ({ input }) => {

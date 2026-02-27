@@ -1,6 +1,8 @@
 "use client";
 
-import { getAppUrl } from "@midday/utils/envs";
+// Temporary fallback since we don't know where getAppUrl is right now
+const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || "";
+
 import Link from "next/link";
 import { type ComponentProps, memo } from "react";
 import { Streamdown } from "streamdown";

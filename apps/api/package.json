@@ -7,20 +7,13 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "find src -name '*.test.ts' -o -name '*.spec.ts' | grep -q . && bun test --exit src || echo 'No tests yet'"
+    "test": "bun test --pass-with-no-tests src"
   },
   "exports": {
     "./ai/types": "./src/ai/types.ts",
     "./trpc/routers/_app": "./src/trpc/routers/_app.ts"
   },
   "dependencies": {
-    "@visyx/db": "workspace:*",
-    "@visyx/encryption": "workspace:*",
-    "@visyx/logger": "workspace:*",
-    "@visyx/supabase": "workspace:*",
-    "@visyx/utils": "workspace:*",
-    "@visyx/cache": "workspace:*",
-    "@visyx/email": "workspace:*",
     "@ai-sdk-tools/agents": "^1.2.0",
     "@ai-sdk-tools/artifacts": "^1.2.0",
     "@ai-sdk-tools/cache": "^1.2.0",
@@ -37,6 +30,13 @@
     "@supabase/supabase-js": "^2.96.0",
     "@trigger.dev/sdk": "catalog:",
     "@trpc/server": "^11.10.0",
+    "@visyx/cache": "workspace:*",
+    "@visyx/db": "workspace:*",
+    "@visyx/email": "workspace:*",
+    "@visyx/encryption": "workspace:*",
+    "@visyx/logger": "workspace:*",
+    "@visyx/supabase": "workspace:*",
+    "@visyx/utils": "workspace:*",
     "ai": "catalog:",
     "camelcase-keys": "catalog:",
     "date-fns": "catalog:",

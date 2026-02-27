@@ -104,7 +104,8 @@ export const PERMISSIONS = [
     key: "billing:create_invoice",
     module: "billing",
     label: "Create Invoice",
-    description: "Generate invoices for consultations, frames, lenses, services",
+    description:
+      "Generate invoices for consultations, frames, lenses, services",
   },
   {
     key: "billing:view_invoices",
@@ -257,4 +258,3 @@ export const PERMISSIONS = [
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];
-

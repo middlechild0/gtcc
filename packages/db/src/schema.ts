@@ -31,6 +31,7 @@
  *   This lets you revoke a single permission from a template without chaos.
  */
 
+import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -42,7 +43,6 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // USER PROFILES
@@ -73,7 +73,7 @@ export const userProfiles = pgTable("user_profiles", {
 
 export const branches = pgTable("branches", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),           // e.g. "Great Batian - Nyeri Town"
+  name: text("name").notNull(), // e.g. "Great Batian - Nyeri Town"
   address: text("address"),
   phone: text("phone"),
   email: text("email"),
@@ -91,10 +91,10 @@ export const branches = pgTable("branches", {
 
 export const permissions = pgTable("permissions", {
   id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),  // e.g. "billing:create_invoice"
-  module: text("module").notNull(),         // e.g. "billing"
-  label: text("label").notNull(),          // Human-readable: "Create Invoice"
-  description: text("description"),             // Tooltip/help text in the UI
+  key: text("key").notNull().unique(), // e.g. "billing:create_invoice"
+  module: text("module").notNull(), // e.g. "billing"
+  label: text("label").notNull(), // Human-readable: "Create Invoice"
+  description: text("description"), // Tooltip/help text in the UI
   isActive: boolean("is_active").default(true).notNull(),
 });
 
@@ -115,17 +115,21 @@ export const permissionGroups = pgTable("permission_groups", {
 });
 
 // Permissions that belong to a group/template
-export const permissionGroupItems = pgTable("permission_group_items", {
-  id: serial("id").primaryKey(),
-  groupId: integer("group_id")
-    .notNull()
-    .references(() => permissionGroups.id, { onDelete: "cascade" }),
-  permissionId: integer("permission_id")
-    .notNull()
-    .references(() => permissions.id, { onDelete: "cascade" }),
-}, (t) => ({
-  unq: unique().on(t.groupId, t.permissionId),
-}));
+export const permissionGroupItems = pgTable(
+  "permission_group_items",
+  {
+    id: serial("id").primaryKey(),
+    groupId: integer("group_id")
+      .notNull()
+      .references(() => permissionGroups.id, { onDelete: "cascade" }),
+    permissionId: integer("permission_id")
+      .notNull()
+      .references(() => permissions.id, { onDelete: "cascade" }),
+  },
+  (t) => ({
+    unq: unique().on(t.groupId, t.permissionId),
+  }),
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STAFF
@@ -141,8 +145,9 @@ export const staff = pgTable("staff", {
     .notNull()
     .unique()
     .references(() => userProfiles.userId, { onDelete: "cascade" }),
-  primaryBranchId: integer("primary_branch_id")
-    .references(() => branches.id, { onDelete: "set null" }),
+  primaryBranchId: integer("primary_branch_id").references(() => branches.id, {
+    onDelete: "set null",
+  }),
   jobTitle: text("job_title"),
 
   // Clinic-level system admin. Implicitly has all permissions.
@@ -169,37 +174,45 @@ export const staff = pgTable("staff", {
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const staffPermissions = pgTable("staff_permissions", {
-  id: serial("id").primaryKey(),
-  staffId: integer("staff_id")
-    .notNull()
-    .references(() => staff.id, { onDelete: "cascade" }),
-  permissionId: integer("permission_id")
-    .notNull()
-    .references(() => permissions.id, { onDelete: "cascade" }),
+export const staffPermissions = pgTable(
+  "staff_permissions",
+  {
+    id: serial("id").primaryKey(),
+    staffId: integer("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    permissionId: integer("permission_id")
+      .notNull()
+      .references(() => permissions.id, { onDelete: "cascade" }),
 
-  // NULL = all branches. A specific branchId scopes it to that branch only.
-  branchId: integer("branch_id")
-    .references(() => branches.id, { onDelete: "cascade" }),
+    // NULL = all branches. A specific branchId scopes it to that branch only.
+    branchId: integer("branch_id").references(() => branches.id, {
+      onDelete: "cascade",
+    }),
 
-  // false = explicitly revoked. Useful for removing one permission from a template.
-  granted: boolean("granted").default(true).notNull(),
+    // false = explicitly revoked. Useful for removing one permission from a template.
+    granted: boolean("granted").default(true).notNull(),
 
-  // Which template was this copied from? NULL = manually granted.
-  appliedFromGroupId: integer("applied_from_group_id")
-    .references(() => permissionGroups.id, { onDelete: "set null" }),
+    // Which template was this copied from? NULL = manually granted.
+    appliedFromGroupId: integer("applied_from_group_id").references(
+      () => permissionGroups.id,
+      { onDelete: "set null" },
+    ),
 
-  // Who granted or revoked this?
-  grantedById: uuid("granted_by_id")
-    .references(() => userProfiles.userId, { onDelete: "set null" }),
+    // Who granted or revoked this?
+    grantedById: uuid("granted_by_id").references(() => userProfiles.userId, {
+      onDelete: "set null",
+    }),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (t) => ({
-  // A staff member can only have one row per permission per branch scope.
-  // PostgreSQL 15+ supports NULLS NOT DISTINCT which treats multiple NULL branchIds as violating the unique constraint.
-  unq: unique().on(t.staffId, t.permissionId, t.branchId).nullsNotDistinct(),
-}));
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    // A staff member can only have one row per permission per branch scope.
+    // PostgreSQL 15+ supports NULLS NOT DISTINCT which treats multiple NULL branchIds as violating the unique constraint.
+    unq: unique().on(t.staffId, t.permissionId, t.branchId).nullsNotDistinct(),
+  }),
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUDIT LOGS
@@ -209,14 +222,16 @@ export const staffPermissions = pgTable("staff_permissions", {
 
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => userProfiles.userId, { onDelete: "set null" }),
-  branchId: integer("branch_id")
-    .references(() => branches.id, { onDelete: "set null" }),
-  action: text("action").notNull(),      // e.g. "staff:permission_granted"
-  entityType: text("entity_type"),           // e.g. "invoice", "patient", "staff"
-  entityId: text("entity_id"),             // The ID of the affected record
-  details: jsonb("details"),              // Snapshot of before/after or extra context
+  userId: uuid("user_id").references(() => userProfiles.userId, {
+    onDelete: "set null",
+  }),
+  branchId: integer("branch_id").references(() => branches.id, {
+    onDelete: "set null",
+  }),
+  action: text("action").notNull(), // e.g. "staff:permission_granted"
+  entityType: text("entity_type"), // e.g. "invoice", "patient", "staff"
+  entityId: text("entity_id"), // The ID of the affected record
+  details: jsonb("details"), // Snapshot of before/after or extra context
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -226,10 +241,16 @@ export const auditLogs = pgTable("audit_logs", {
 // RELATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const userProfilesRelations = relations(userProfiles, ({ one, many }) => ({
-  staff: one(staff, { fields: [userProfiles.userId], references: [staff.userId] }),
-  auditLogs: many(auditLogs),
-}));
+export const userProfilesRelations = relations(
+  userProfiles,
+  ({ one, many }) => ({
+    staff: one(staff, {
+      fields: [userProfiles.userId],
+      references: [staff.userId],
+    }),
+    auditLogs: many(auditLogs),
+  }),
+);
 
 export const branchesRelations = relations(branches, ({ many }) => ({
   staff: many(staff),
@@ -242,31 +263,73 @@ export const permissionsRelations = relations(permissions, ({ many }) => ({
   staffPermissions: many(staffPermissions),
 }));
 
-export const permissionGroupsRelations = relations(permissionGroups, ({ many }) => ({
-  items: many(permissionGroupItems),
-  staffPermissions: many(staffPermissions),
-}));
+export const permissionGroupsRelations = relations(
+  permissionGroups,
+  ({ many }) => ({
+    items: many(permissionGroupItems),
+    staffPermissions: many(staffPermissions),
+  }),
+);
 
-export const permissionGroupItemsRelations = relations(permissionGroupItems, ({ one }) => ({
-  group: one(permissionGroups, { fields: [permissionGroupItems.groupId], references: [permissionGroups.id] }),
-  permission: one(permissions, { fields: [permissionGroupItems.permissionId], references: [permissions.id] }),
-}));
+export const permissionGroupItemsRelations = relations(
+  permissionGroupItems,
+  ({ one }) => ({
+    group: one(permissionGroups, {
+      fields: [permissionGroupItems.groupId],
+      references: [permissionGroups.id],
+    }),
+    permission: one(permissions, {
+      fields: [permissionGroupItems.permissionId],
+      references: [permissions.id],
+    }),
+  }),
+);
 
 export const staffRelations = relations(staff, ({ one, many }) => ({
-  user: one(userProfiles, { fields: [staff.userId], references: [userProfiles.userId] }),
-  primaryBranch: one(branches, { fields: [staff.primaryBranchId], references: [branches.id] }),
+  user: one(userProfiles, {
+    fields: [staff.userId],
+    references: [userProfiles.userId],
+  }),
+  primaryBranch: one(branches, {
+    fields: [staff.primaryBranchId],
+    references: [branches.id],
+  }),
   permissions: many(staffPermissions),
 }));
 
-export const staffPermissionsRelations = relations(staffPermissions, ({ one }) => ({
-  staff: one(staff, { fields: [staffPermissions.staffId], references: [staff.id] }),
-  permission: one(permissions, { fields: [staffPermissions.permissionId], references: [permissions.id] }),
-  branch: one(branches, { fields: [staffPermissions.branchId], references: [branches.id] }),
-  appliedFromGroup: one(permissionGroups, { fields: [staffPermissions.appliedFromGroupId], references: [permissionGroups.id] }),
-  grantedBy: one(userProfiles, { fields: [staffPermissions.grantedById], references: [userProfiles.userId] }),
-}));
+export const staffPermissionsRelations = relations(
+  staffPermissions,
+  ({ one }) => ({
+    staff: one(staff, {
+      fields: [staffPermissions.staffId],
+      references: [staff.id],
+    }),
+    permission: one(permissions, {
+      fields: [staffPermissions.permissionId],
+      references: [permissions.id],
+    }),
+    branch: one(branches, {
+      fields: [staffPermissions.branchId],
+      references: [branches.id],
+    }),
+    appliedFromGroup: one(permissionGroups, {
+      fields: [staffPermissions.appliedFromGroupId],
+      references: [permissionGroups.id],
+    }),
+    grantedBy: one(userProfiles, {
+      fields: [staffPermissions.grantedById],
+      references: [userProfiles.userId],
+    }),
+  }),
+);
 
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
-  user: one(userProfiles, { fields: [auditLogs.userId], references: [userProfiles.userId] }),
-  branch: one(branches, { fields: [auditLogs.branchId], references: [branches.id] }),
+  user: one(userProfiles, {
+    fields: [auditLogs.userId],
+    references: [userProfiles.userId],
+  }),
+  branch: one(branches, {
+    fields: [auditLogs.branchId],
+    references: [branches.id],
+  }),
 }));
