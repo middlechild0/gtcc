@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from "@visyx/ui/form";
 import { Input } from "@visyx/ui/input";
-import { Loader } from "@visyx/ui/loader";
 import { SubmitButton } from "@visyx/ui/submit-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@visyx/ui/tabs";
 import Link from "next/link";

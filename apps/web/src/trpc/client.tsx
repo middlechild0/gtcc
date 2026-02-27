@@ -7,7 +7,7 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 import type { QueryClient } from "@tanstack/react-query";
 import { isServer, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
+import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { createClient } from "@visyx/supabase/client";
 import { useState } from "react";

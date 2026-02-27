@@ -10,160 +10,174 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@visyx/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@visyx/ui/table";
-import { UserPlus } from "lucide-react";
-import Link from "next/link";
+import { Switch } from "@visyx/ui/switch";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { Suspense, useMemo } from "react";
+import { useAuth } from "@/app/auth/_hooks/use-auth";
+import { RouteGuard } from "@/app/auth/components/route-guard";
+import { trpc } from "@/trpc/client";
+import { InviteStaffDialog } from "./_components/invite-staff-dialog";
+import { StaffTable } from "./_components/staff-table";
+import { UserAdminHeader } from "./_components/user-admin-header";
+import { useStaffList } from "./_hooks/use-staff-list";
 
-const PLACEHOLDER_USERS = [
-  {
-    id: "1",
-    name: "Alex Morgan",
-    email: "alex.morgan@example.com",
-    role: "Admin",
-    status: "Active",
-    lastActive: "2 hours ago",
-  },
-  {
-    id: "2",
-    name: "Jordan Lee",
-    email: "jordan.lee@example.com",
-    role: "Member",
-    status: "Active",
-    lastActive: "1 day ago",
-  },
-  {
-    id: "3",
-    name: "Sam Taylor",
-    email: "sam.taylor@example.com",
-    role: "Member",
-    status: "Pending",
-    lastActive: "—",
-  },
-  {
-    id: "4",
-    name: "Casey Kim",
-    email: "casey.kim@example.com",
-    role: "Manager",
-    status: "Active",
-    lastActive: "5 hours ago",
-  },
-  {
-    id: "5",
-    name: "Riley Jones",
-    email: "riley.jones@example.com",
-    role: "Member",
-    status: "Inactive",
-    lastActive: "2 weeks ago",
-  },
-];
+function UserAdministrationContent() {
+  const {
+    staffList,
+    search,
+    setSearch,
+    includeInactive,
+    setIncludeInactive,
+    branchId,
+    setBranchId,
+    page,
+    setPage,
+    hasNextPage,
+    isLoading,
+    error,
+    refetch,
+  } = useStaffList();
 
-export default function UserAdministrationPage() {
+  const { isLoading: authLoading, hasPermission } = useAuth();
+  const canViewBranches = !authLoading && hasPermission("branches:view");
+
+  const { data: branches } = trpc.branches.list.useQuery(
+    { includeInactive: false },
+    { enabled: canViewBranches },
+  );
+
+  const branchOptions = useMemo(() => branches ?? [], [branches]);
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          User Administration
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button asChild>
-            <Link href="#">
-              <UserPlus className="mr-2 size-4" />
-              Invite new user
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="#">Refresh</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="#">Export</Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4">
-        <Input
-          type="search"
-          placeholder="Search by name or email"
-          className="h-9 w-full max-w-xs"
-          aria-label="Search users"
-        />
-        <Select>
-          <SelectTrigger className="h-9 w-[180px]">
-            <SelectValue placeholder="All roles" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="member">Member</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger className="h-9 w-[160px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          Clear filters
-        </Button>
-      </div>
+      <UserAdminHeader
+        title="User Administration"
+        description="Invite staff, manage profiles, and control access."
+        actions={
+          <>
+            <InviteStaffDialog />
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Refresh users"
+              onClick={() => {
+                void refetch();
+              }}
+            >
+              <RefreshCw className="size-4" />
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-base">Users</CardTitle>
+              <p className="text-muted-foreground text-sm">
+                Search, invite, and manage staff accounts.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <Input
+                type="search"
+                placeholder="Search by name or email"
+                className="h-9 w-full max-w-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+
+              {canViewBranches ? (
+                <Select
+                  value={branchId != null ? String(branchId) : "all"}
+                  onValueChange={(value) => {
+                    if (value === "all") setBranchId(undefined);
+                    else setBranchId(Number(value));
+                  }}
+                >
+                  <SelectTrigger className="h-9 w-full sm:w-[220px]">
+                    <SelectValue placeholder="All branches" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All branches</SelectItem>
+                    {branchOptions.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="include-inactive-staff"
+                  checked={includeInactive}
+                  onCheckedChange={setIncludeInactive}
+                />
+                <label
+                  htmlFor="include-inactive-staff"
+                  className="text-muted-foreground text-sm"
+                >
+                  Include inactive
+                </label>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last active</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {PLACEHOLDER_USERS.map((u) => (
-                <TableRow key={u.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{u.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {u.email}
-                  </TableCell>
-                  <TableCell>{u.role}</TableCell>
-                  <TableCell>{u.status}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {u.lastActive}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/dashboard/settings/user-administration/${u.id}`}
-                      >
-                        View
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <StaffTable
+            staff={staffList}
+            isLoading={isLoading}
+            error={error}
+            emptyMessage={search ? "No users match your search." : undefined}
+          />
+
+          <div className="flex items-center justify-between border-t p-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(page - 1)}
+              disabled={page <= 1 || isLoading}
+            >
+              <ChevronLeft className="mr-2 size-4" />
+              Previous
+            </Button>
+
+            <div className="text-muted-foreground text-sm">Page {page}</div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(page + 1)}
+              disabled={!hasNextPage || isLoading}
+            >
+              Next
+              <ChevronRight className="ml-2 size-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function UserAdministrationPage() {
+  return (
+    <RouteGuard required="auth:manage_staff">
+      <Suspense
+        fallback={
+          <div className="space-y-4">
+            <div className="h-7 w-40 rounded-md bg-muted" />
+            <div className="h-32 rounded-md bg-muted" />
+          </div>
+        }
+      >
+        <UserAdministrationContent />
+      </Suspense>
+    </RouteGuard>
   );
 }

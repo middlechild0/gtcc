@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@visyx/ui/alert";
-import { AlertCircle, WifiOff } from "lucide-react";
+import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function NetworkStatus() {

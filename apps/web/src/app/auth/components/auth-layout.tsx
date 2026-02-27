@@ -10,7 +10,6 @@ import {
 } from "@visyx/ui/card";
 import { cn } from "@visyx/ui/cn";
 import { motion } from "motion/react";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 type AuthLayoutProps = {

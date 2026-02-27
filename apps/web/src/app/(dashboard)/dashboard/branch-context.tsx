@@ -43,9 +43,11 @@ function getBranchIdFromCookie(): number | null {
 function setBranchIdCookie(id: number | null) {
   if (typeof document === "undefined") return;
   if (id == null) {
+    // biome-ignore lint/suspicious/noDocumentCookie: Cookie is required for API header propagation.
     document.cookie = `${BRANCH_COOKIE_NAME}=; path=/; max-age=0`;
     return;
   }
+  // biome-ignore lint/suspicious/noDocumentCookie: Cookie is required for API header propagation.
   document.cookie = `${BRANCH_COOKIE_NAME}=${id}; path=/; max-age=${BRANCH_COOKIE_MAX_AGE}`;
 }
 

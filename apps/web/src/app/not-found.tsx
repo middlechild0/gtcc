@@ -3,7 +3,7 @@
 import { Button } from "@visyx/ui/button";
 import { TextEffect } from "@visyx/ui/text-effect";
 import { motion } from "framer-motion";
-import { ArrowLeft, Compass } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
