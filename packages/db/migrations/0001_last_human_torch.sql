@@ -1,0 +1,2 @@
+ALTER TABLE "staff_permissions" DROP CONSTRAINT "staff_permissions_staff_id_permission_id_branch_id_unique";--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_staff_id_permission_id_branch_id_unique" UNIQUE NULLS NOT DISTINCT("staff_id","permission_id","branch_id");

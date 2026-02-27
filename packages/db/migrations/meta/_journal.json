@@ -1,1 +1,20 @@
-{"version":"7","dialect":"postgresql","entries":[{"idx":0,"version":"7","when":1771884556179,"tag":"0000_nasty_namor","breakpoints":true}]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1771884556179,
+      "tag": "0000_nasty_namor",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772155423064,
+      "tag": "0001_last_human_torch",
+      "breakpoints": true
+    }
+  ]
+}
