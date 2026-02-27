@@ -10,6 +10,7 @@ import { useSession } from "@/app/auth/_hooks/use-session";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
+import { ZeroPermissionBanner } from "./dashboard/_components/zero-permission-banner";
 import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
 import { useBranch } from "./dashboard/branch-context";
 import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
@@ -72,6 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           }
           className="border-sidebar-border bg-sidebar text-sidebar-foreground"
         />
+        <ZeroPermissionBanner />
         <BranchReadyGate>{children}</BranchReadyGate>
         <DashboardFooterContent />
       </SidebarInset>

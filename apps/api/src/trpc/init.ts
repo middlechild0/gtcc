@@ -109,21 +109,17 @@ async function loadProfileAndRoles(
         eq(staffPermissions.granted, true),
         resolvedBranchId
           ? or(
-              isNull(staffPermissions.branchId),
-              eq(staffPermissions.branchId, resolvedBranchId),
-            )
+            isNull(staffPermissions.branchId),
+            eq(staffPermissions.branchId, resolvedBranchId),
+          )
           : isNull(staffPermissions.branchId),
       ),
     );
 
-  // If there's a resolved branch ID and they have absolutely zero matching permissions
-  // (not even global ones), they are completely unauthorized for this branch.
-  if (resolvedBranchId && permRows.length === 0) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You are not authorized to access this branch.",
-    });
-  }
+  // We no longer throw an error here if they have zero permissions for the branch.
+  // Returning an empty permission array allows endpoints like `auth.me` to successfully
+  // return their identity and zero permissions, letting the UI gracefully reject them
+  // or prompt them to switch branches, rather than crashing the entire API layer with a 403.
 
   const permissionKeys = [...new Set(permRows.map((r) => r.key))];
 
