@@ -80,6 +80,16 @@ export const routes: RouteConfig[] = [
     icon: Users,
   },
   {
+    id: "user-admin-invite",
+    path: "/dashboard/settings/user-administration/invite",
+    label: "Invite user",
+    breadcrumbLabel: "Invite user",
+    group: "settings",
+    parentId: "user-admin-list",
+    permissions: "auth:manage_staff",
+    showInSearch: true,
+  },
+  {
     id: "user-admin-detail",
     path: "/dashboard/settings/user-administration/[id]",
     label: "User",

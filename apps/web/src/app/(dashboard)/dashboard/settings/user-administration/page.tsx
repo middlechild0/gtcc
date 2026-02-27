@@ -11,12 +11,12 @@ import {
   SelectValue,
 } from "@visyx/ui/select";
 import { Switch } from "@visyx/ui/switch";
-import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { Suspense, useMemo } from "react";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { trpc } from "@/trpc/client";
-import { InviteStaffDialog } from "./_components/invite-staff-dialog";
 import { StaffTable } from "./_components/staff-table";
 import { UserAdminHeader } from "./_components/user-admin-header";
 import { useStaffList } from "./_hooks/use-staff-list";
@@ -55,7 +55,12 @@ function UserAdministrationContent() {
         description="Invite staff, manage profiles, and control access."
         actions={
           <>
-            <InviteStaffDialog />
+            <Button asChild>
+              <Link href="/dashboard/settings/user-administration/invite">
+                <Plus className="mr-2 size-4" />
+                Invite user
+              </Link>
+            </Button>
             <Button
               variant="outline"
               size="icon"

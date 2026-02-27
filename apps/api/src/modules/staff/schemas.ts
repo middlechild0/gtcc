@@ -9,9 +9,12 @@ export const InviteStaffSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phone: z.string().optional(),
-  primaryBranchId: z.number().int().positive().optional(),
+  primaryBranchId: z.number().int().positive("Primary branch is required"),
   jobTitle: z.string().optional(),
-  startingPermissionGroupId: z.number().int().positive().optional(),
+  startingPermissionGroupId: z
+    .number()
+    .int()
+    .positive("Starting permission group is required"),
 });
 
 export const UpdateStaffSchema = z.object({
