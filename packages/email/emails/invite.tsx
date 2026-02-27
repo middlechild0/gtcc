@@ -35,22 +35,22 @@ import {
 
 interface Props {
   invitedByName?: string;
-  teamName?: string;
+  appName?: string;
   email?: string;
   inviteLink?: string;
 }
 
 export const InviteEmail = ({
-  invitedByName = "Someone",
-  teamName = "a team",
+  invitedByName = "Administrator",
+  appName = "Visyx",
   email = "user@example.com",
-  inviteLink = `${getAppUrl()}/invite`,
+  inviteLink = `${getAppUrl()}/auth/sign-in`,
 }: Props) => {
   const themeClasses = getEmailThemeClasses();
   const lightStyles = getEmailInlineStyles("light");
 
   return (
-    <EmailThemeProvider preview={<Preview>Join {teamName} on Visyx</Preview>}>
+    <EmailThemeProvider preview={<Preview>Welcome to {appName}!</Preview>}>
       <Body
         className={`my-auto mx-auto font-sans ${themeClasses.body}`}
         style={lightStyles.body}
@@ -61,6 +61,7 @@ export const InviteEmail = ({
             borderStyle: "solid",
             borderWidth: 1,
             borderColor: lightStyles.container.borderColor,
+            borderRadius: "8px",
           }}
         >
           <Logo />
@@ -68,16 +69,57 @@ export const InviteEmail = ({
             className={`mx-0 my-[30px] p-0 text-[24px] font-normal text-center ${themeClasses.heading}`}
             style={{ color: lightStyles.text.color }}
           >
-            Join <strong>{teamName}</strong> on Visyx
+            Welcome to <strong>{appName}</strong>
           </Heading>
+
           <Text
             className={`text-[14px] leading-[24px] ${themeClasses.text}`}
             style={{ color: lightStyles.text.color }}
           >
-            {invitedByName} has invited you to join the {teamName} team.
+            Hello there,
           </Text>
-          <Section className="mb-[32px] mt-[32px] text-center">
-            <Button href={inviteLink}>Join the team</Button>
+          <Text
+            className={`text-[14px] leading-[24px] ${themeClasses.text}`}
+            style={{ color: lightStyles.text.color }}
+          >
+            {invitedByName} has created an account for you on {appName}. Your
+            account is ready to use!
+          </Text>
+
+          <div
+            className="p-[16px] my-[24px]"
+            style={{
+              backgroundColor: "#f9fafb", // subtle gray background for instructions
+              borderRadius: "6px",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            <Heading
+              as="h3"
+              className="text-[16px] m-0 mb-[8px]"
+              style={{ color: lightStyles.text.color }}
+            >
+              How to sign in:
+            </Heading>
+            <Text
+              className={`text-[14px] leading-[24px] m-0 ${themeClasses.text}`}
+              style={{ color: lightStyles.text.color }}
+            >
+              <strong>1. Request an OTP:</strong> Click the link below and enter
+              your email address ({email}). We will email you a secure One-Time
+              Password.
+              <br />
+              <strong>2. Log In:</strong> Enter the OTP to securely access your
+              account dashboard.
+              <br />
+              <strong>3. Set a Password (Optional):</strong> Once logged in, you
+              can visit your Account Settings to set up a permanent password if
+              you prefer that over OTPs.
+            </Text>
+          </div>
+
+          <Section className="mb-[32px] mt-[16px] text-center">
+            <Button href={inviteLink}>Sign In to Your Account</Button>
           </Section>
           <Text
             className={`text-[12px] break-all ${themeClasses.mutedText}`}

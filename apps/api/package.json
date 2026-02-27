@@ -20,6 +20,7 @@
     "@visyx/supabase": "workspace:*",
     "@visyx/utils": "workspace:*",
     "@visyx/cache": "workspace:*",
+    "@visyx/email": "workspace:*",
     "@ai-sdk-tools/agents": "^1.2.0",
     "@ai-sdk-tools/artifacts": "^1.2.0",
     "@ai-sdk-tools/cache": "^1.2.0",

@@ -1,5 +1,9 @@
+import * as React from "react";
 import { TRPCError } from "@trpc/server";
 import { db } from "@visyx/db/client";
+import { sendEmail } from "@visyx/email";
+import { InviteEmail } from "@visyx/email/emails/invite";
+import { render } from "@visyx/email/render";
 import {
   branches,
   permissionGroupItems,
@@ -58,14 +62,17 @@ export class StaffService {
       });
     }
 
-    // 1. Call Supabase Admin Invite API
+    // 1. Call Supabase Admin Create User API (silent creation)
     const { data: authData, error: authError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail);
+      await supabaseAdmin.auth.admin.createUser({
+        email: normalizedEmail,
+        email_confirm: true,
+      });
 
     if (authError || !authData.user) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: authError?.message || "Failed to invite user via Supabase",
+        message: authError?.message || "Failed to create user in Supabase",
       });
     }
 
@@ -129,6 +136,30 @@ export class StaffService {
         // Swallow rollback errors; original error is more important.
       }
       throw err;
+    }
+
+    // 3. Send custom welcome email via locally linked @visyx/email
+    try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://app.visyx.co.ke";
+      const loginLink = `${appUrl}/auth/sign-in`;
+
+      const html = await render(
+        React.createElement(InviteEmail, {
+          invitedByName: "Administrator",
+          appName: "Visyx",
+          email: normalizedEmail,
+          inviteLink: loginLink,
+        })
+      );
+
+      await sendEmail({
+        to: normalizedEmail,
+        subject: "Welcome to Visyx - Account Created",
+        html,
+      });
+    } catch (emailErr) {
+      // Log but don't fail the request if the email fails (e.g. absent RESEND_API_KEY)
+      console.error("Failed to send welcome email:", emailErr);
     }
 
     return { id: newUserId, email: normalizedEmail };
