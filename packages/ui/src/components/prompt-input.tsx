@@ -1,21 +1,21 @@
 "use client";
 
-import { Button } from "@midday/ui/button";
-import { cn } from "@midday/ui/cn";
+import { Button } from "./button";
+import { cn } from "../utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@midday/ui/dropdown-menu";
+} from "./dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@midday/ui/select";
-import { Textarea } from "@midday/ui/textarea";
+} from "./select";
+import { Textarea } from "./textarea";
 import type { ChatStatus, FileUIPart } from "ai";
 import { PaperclipIcon, PlusIcon, XIcon } from "lucide-react";
 import {
@@ -171,7 +171,7 @@ export const PromptInputActionAddAttachments = ({
       variant="ghost"
       size="icon"
       type="button"
-      // @ts-expect-error
+      // @ts-expect-error typing mismatch between DropdownMenuItem and Button
       onClick={attachments.openFileDialog}
       className="size-6 text-muted-foreground"
       {...props}
@@ -572,7 +572,7 @@ export const PromptInputTextarea = ({
         className,
       )}
       name="message"
-      onChange={(e) => {
+      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
         onChange?.(e);
       }}
       onKeyDown={handleKeyDown}

@@ -1,9 +1,5 @@
-import * as React from "react";
 import { TRPCError } from "@trpc/server";
 import { db } from "@visyx/db/client";
-import { sendEmail } from "@visyx/email";
-import { InviteEmail } from "@visyx/email/emails/invite";
-import { render } from "@visyx/email/render";
 import {
   branches,
   permissionGroupItems,
@@ -13,8 +9,12 @@ import {
   staffPermissions,
   userProfiles,
 } from "@visyx/db/schema";
+import { sendEmail } from "@visyx/email";
+import { InviteEmail } from "@visyx/email/emails/invite";
+import { render } from "@visyx/email/render";
 import { createClient } from "@visyx/supabase/job";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import * as React from "react";
 import type {
   ApplyGroupInput,
   BulkUpdatePermissionsInput,
@@ -140,7 +140,10 @@ export class StaffService {
 
     // 3. Send custom welcome email via locally linked @visyx/email
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://app.visyx.co.ke";
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.APP_URL ||
+        "https://app.visyx.co.ke";
       const loginLink = `${appUrl}/auth/sign-in`;
 
       const html = await render(
@@ -149,7 +152,7 @@ export class StaffService {
           appName: "Visyx",
           email: normalizedEmail,
           inviteLink: loginLink,
-        })
+        }),
       );
 
       await sendEmail({

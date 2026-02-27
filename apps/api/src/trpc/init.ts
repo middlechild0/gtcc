@@ -109,9 +109,9 @@ async function loadProfileAndRoles(
         eq(staffPermissions.granted, true),
         resolvedBranchId
           ? or(
-            isNull(staffPermissions.branchId),
-            eq(staffPermissions.branchId, resolvedBranchId),
-          )
+              isNull(staffPermissions.branchId),
+              eq(staffPermissions.branchId, resolvedBranchId),
+            )
           : isNull(staffPermissions.branchId),
       ),
     );

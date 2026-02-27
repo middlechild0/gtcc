@@ -30,7 +30,7 @@
     "@visyx/ui": "workspace:*",
     "ai": "^6.0.86",
     "hls.js": "^1.6.15",
-    "lucide-react": "^0.574.0",
+    "lucide-react": "^0.575.0",
     "motion": "^12.34.0",
     "next": "16.1.6",
     "next-mdx-remote": "^6.0.0",
@@ -47,8 +47,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@visyx/tsconfig": "workspace:*",
     "@types/node": "^25.2.3",
-    "@types/react": "^19.2.14"
+    "@types/react": "^19.2.14",
+    "@visyx/tsconfig": "workspace:*"
   }
 }

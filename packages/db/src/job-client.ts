@@ -15,9 +15,12 @@ export const createJobDb = () => {
   const isDevelopment = process.env.NODE_ENV === "development";
 
   const connectionString =
-    process.env.DATABASE_PRIMARY_POOLER_URL ?? process.env.DATABASE_SESSION_POOLER;
+    process.env.DATABASE_PRIMARY_POOLER_URL ??
+    process.env.DATABASE_SESSION_POOLER;
   if (!connectionString) {
-    throw new Error("DATABASE_SESSION_POOLER or DATABASE_PRIMARY_POOLER_URL must be set");
+    throw new Error(
+      "DATABASE_SESSION_POOLER or DATABASE_PRIMARY_POOLER_URL must be set",
+    );
   }
   const jobPool = new Pool({
     connectionString,
