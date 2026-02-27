@@ -81,6 +81,7 @@ export function PromptInputAttachment({
       {...props}
     >
       {data.mediaType?.startsWith("image/") && data.url ? (
+        // biome-ignore lint/performance/noImgElement: attachment preview URL, not next/image
         <img
           alt={data.filename || "attachment"}
           className="size-full object-cover"
