@@ -39,6 +39,17 @@ export const routes: RouteConfig[] = [
     icon: LayoutDashboard,
   },
   {
+    id: "patients-list",
+    path: "/dashboard/patients",
+    label: "Patients",
+    group: "main",
+    showInSidebar: true,
+    showInSearch: true,
+    permissions: "patients:view",
+    icon: Users,
+  },
+
+  {
     id: "branches-list",
     path: "/dashboard/settings/branches",
     label: "Branches",

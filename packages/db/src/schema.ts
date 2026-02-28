@@ -83,6 +83,25 @@ export const branches = pgTable("branches", {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PATIENTS
+// Core patient records (non-staff). Separate from userProfiles so that
+// patients do not need login accounts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const patients = pgTable("patients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** Unique human-readable id, e.g. PAT-000001 */
+  patientNumber: text("patient_number").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PERMISSIONS MASTER LIST
 // Seeded once at deployment. Never created at runtime by users.
 // Keys follow the format: module:action
