@@ -90,6 +90,8 @@ export const branches = pgTable("branches", {
 
 export const patients = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
+  /** Unique human-readable id, e.g. PAT-000001 */
+  patientNumber: text("patient_number").notNull().unique(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email"),

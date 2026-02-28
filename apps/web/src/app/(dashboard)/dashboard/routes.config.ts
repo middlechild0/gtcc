@@ -48,16 +48,7 @@ export const routes: RouteConfig[] = [
     permissions: "patients:view",
     icon: Users,
   },
-  {
-    id: "patients-new",
-    path: "/dashboard/patients/new",
-    label: "New patient",
-    breadcrumbLabel: "New patient",
-    group: "main",
-    parentId: "patients-list",
-    permissions: "patients:create",
-    showInSearch: true,
-  },
+ 
   {
     id: "branches-list",
     path: "/dashboard/settings/branches",

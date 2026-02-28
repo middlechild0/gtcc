@@ -13,10 +13,12 @@ export function filterPatients(
     const firstName = p.firstName?.toLowerCase() ?? "";
     const lastName = p.lastName?.toLowerCase() ?? "";
     const fullName = `${firstName} ${lastName}`.trim();
+    const patientNumber = p.patientNumber?.toLowerCase() ?? "";
     return (
       firstName.includes(term) ||
       lastName.includes(term) ||
-      fullName.includes(term)
+      fullName.includes(term) ||
+      patientNumber.includes(term)
     );
   });
 }

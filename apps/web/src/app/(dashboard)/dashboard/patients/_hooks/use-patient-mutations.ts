@@ -8,7 +8,10 @@ export function usePatientMutations() {
 
   const create = trpc.patients.create.useMutation({
     onSuccess: async () => {
-      await utils.patients.list.invalidate();
+      await Promise.all([
+        utils.patients.list.invalidate(),
+        utils.patients.kpis.invalidate(),
+      ]);
       toast.success("Patient registered");
     },
     onError: (err) => {

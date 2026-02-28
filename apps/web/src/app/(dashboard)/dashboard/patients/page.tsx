@@ -19,8 +19,17 @@ import { PatientsTable } from "@/app/(dashboard)/dashboard/patients/_components/
 
 function PatientsContent() {
   const { kpis, isLoading: kpisLoading } = usePatientKpis();
-  const { patients, filteredPatients, search, setSearch, isLoading, error, refetch } =
-    usePatientsList();
+  const {
+    patients,
+    filteredPatients,
+    totalFiltered,
+    search,
+    setSearch,
+    isLoading,
+    error,
+    refetch,
+    pagination,
+  } = usePatientsList();
 
   return (
     <div className="space-y-8">
@@ -87,12 +96,16 @@ function PatientsContent() {
             isLoading={isLoading}
             error={error}
             emptyMessage={
-              patients.length === 0
-                ? "No patients found."
-                : "No patients match your search."
+              totalFiltered === 0
+                ? search.trim()
+                  ? "No patients match your search."
+                  : "No patients found."
+                : "No patients found."
             }
             search={search}
             onSearchChange={setSearch}
+            pagination={pagination}
+            totalFiltered={totalFiltered}
           />
         </CardContent>
       </Card>
