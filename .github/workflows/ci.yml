@@ -1,0 +1,40 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    types: ["opened", "synchronize", "reopened", "ready_for_review"]
+
+jobs:
+  verify:
+    name: Lint, Typecheck, Test, and Build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Format & Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Run Tests
+        run: bun run test
+
+      - name: Build Verification
+        run: bun run build
+        env:
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+          NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321"
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "anon-key"

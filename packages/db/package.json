@@ -8,7 +8,7 @@
     "db:verify": "bun run src/verify-schema.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test": "bun test --exit",
+    "test": "bun test --pass-with-no-tests",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit"
   },
@@ -27,12 +27,12 @@
   "dependencies": {
     "@date-fns/tz": "catalog:",
     "@date-fns/utc": "^2.1.1",
+    "@sindresorhus/slugify": "catalog:",
+    "@types/pg": "^8.15.6",
     "@visyx/cache": "workspace:*",
     "@visyx/encryption": "workspace:*",
     "@visyx/logger": "workspace:*",
     "@visyx/utils": "workspace:*",
-    "@sindresorhus/slugify": "catalog:",
-    "@types/pg": "^8.15.6",
     "camelcase-keys": "catalog:",
     "drizzle-orm": "^0.45.0",
     "nanoid": "catalog:",

@@ -12,6 +12,7 @@ export const Image = ({
   mediaType,
   ...props
 }: ImageProps) => (
+  // biome-ignore lint/performance/noImgElement: data URL from AI-generated image, not from next/image
   <img
     {...props}
     alt={props.alt}

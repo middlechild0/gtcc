@@ -1,13 +1,16 @@
 "use client";
 
+import { createClient } from "@visyx/supabase/client";
 import { SettingsMenu } from "@visyx/ui/settings-menu";
 import { SidebarInset, SidebarProvider } from "@visyx/ui/sidebar";
 import { TopNav } from "@visyx/ui/top-nav";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useSession } from "@/app/auth/_hooks/use-session";
 import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrumb";
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
+import { ZeroPermissionBanner } from "./dashboard/_components/zero-permission-banner";
 import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
 import { useBranch } from "./dashboard/branch-context";
 import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
@@ -34,11 +37,23 @@ function BranchReadyGate({ children }: { children: ReactNode }) {
 }
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const { user } = useSession();
   const settingsMenuItems = useSettingsMenuItems(searchableRoutes);
 
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;
+
+  const handleAccountClick = () => {
+    router.push("/dashboard/settings/account");
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/auth/sign-in");
+    router.refresh();
+  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -48,6 +63,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           title={<DashboardBreadcrumb />}
           searchPlaceholder="Find Member"
           user={user ? { name: displayName, email: userEmail } : undefined}
+          onAccountClick={handleAccountClick}
+          onLogoutClick={handleLogout}
           actions={
             <SettingsMenu
               items={settingsMenuItems}
@@ -56,6 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           }
           className="border-sidebar-border bg-sidebar text-sidebar-foreground"
         />
+        <ZeroPermissionBanner />
         <BranchReadyGate>{children}</BranchReadyGate>
         <DashboardFooterContent />
       </SidebarInset>

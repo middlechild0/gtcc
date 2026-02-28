@@ -7,11 +7,13 @@ import {
   SelectTrigger,
 } from "@visyx/ui/select";
 import { useMemo } from "react";
-import { useHasPermission } from "@/app/auth/components/permission-gate";
 import { useBranch } from "./branch-context";
 
+/**
+ * Shown to all authenticated staff. Backend allows branches.list without
+ * branches:view so users can always switch branch (e.g. escape a zero-permission branch).
+ */
 export function BranchSwitcher() {
-  const { isLoading: authLoading, allowed } = useHasPermission("branches:view");
   const { branches, activeBranchId, setActiveBranchId, isLoading, error } =
     useBranch();
 
@@ -19,10 +21,6 @@ export function BranchSwitcher() {
     () => branches.find((b) => b.id === activeBranchId) ?? null,
     [branches, activeBranchId],
   );
-
-  if (authLoading || !allowed) {
-    return null;
-  }
 
   if (isLoading) {
     return (

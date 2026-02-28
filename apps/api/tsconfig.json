@@ -2,6 +2,7 @@
   "extends": "@visyx/tsconfig/base.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"]
     },

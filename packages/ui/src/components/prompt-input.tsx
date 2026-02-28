@@ -1,21 +1,5 @@
 "use client";
 
-import { Button } from "@midday/ui/button";
-import { cn } from "@midday/ui/cn";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@midday/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@midday/ui/select";
-import { Textarea } from "@midday/ui/textarea";
 import type { ChatStatus, FileUIPart } from "ai";
 import { PaperclipIcon, PlusIcon, XIcon } from "lucide-react";
 import {
@@ -37,7 +21,23 @@ import {
   useRef,
   useState,
 } from "react";
+import { cn } from "../utils";
+import { Button } from "./button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
 import { Icons } from "./icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+import { Textarea } from "./textarea";
 
 type AttachmentsContext = {
   files: (FileUIPart & { id: string })[];
@@ -81,6 +81,7 @@ export function PromptInputAttachment({
       {...props}
     >
       {data.mediaType?.startsWith("image/") && data.url ? (
+        // biome-ignore lint/performance/noImgElement: attachment preview URL, not next/image
         <img
           alt={data.filename || "attachment"}
           className="size-full object-cover"
@@ -171,7 +172,7 @@ export const PromptInputActionAddAttachments = ({
       variant="ghost"
       size="icon"
       type="button"
-      // @ts-expect-error
+      // @ts-expect-error typing mismatch between DropdownMenuItem and Button
       onClick={attachments.openFileDialog}
       className="size-6 text-muted-foreground"
       {...props}
@@ -572,7 +573,7 @@ export const PromptInputTextarea = ({
         className,
       )}
       name="message"
-      onChange={(e) => {
+      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
         onChange?.(e);
       }}
       onKeyDown={handleKeyDown}

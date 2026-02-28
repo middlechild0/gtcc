@@ -1,5 +1,5 @@
-import { db } from "./client";
 import { sql } from "drizzle-orm";
+import { db } from "./client";
 
 const EXPECTED_TABLES = [
   "user_profiles",
@@ -21,7 +21,8 @@ async function main() {
       WHERE table_schema = 'public'
       ORDER BY table_name
     `);
-    const rows = ((result as unknown) as { rows: { table_name: string }[] }).rows ?? [];
+    const rows =
+      (result as unknown as { rows: { table_name: string }[] }).rows ?? [];
     const found = rows.map((r) => r.table_name);
     const missing = EXPECTED_TABLES.filter((t) => !found.includes(t));
 

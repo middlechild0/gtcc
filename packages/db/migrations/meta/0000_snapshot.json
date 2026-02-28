@@ -77,12 +77,8 @@
           "name": "audit_logs_user_id_user_profiles_user_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -90,12 +86,8 @@
           "name": "audit_logs_branch_id_branches_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -199,12 +191,8 @@
           "name": "permission_group_items_group_id_permission_groups_id_fk",
           "tableFrom": "permission_group_items",
           "tableTo": "permission_groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -212,12 +200,8 @@
           "name": "permission_group_items_permission_id_permissions_id_fk",
           "tableFrom": "permission_group_items",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -227,10 +211,7 @@
         "permission_group_items_group_id_permission_id_unique": {
           "name": "permission_group_items_group_id_permission_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "group_id",
-            "permission_id"
-          ]
+          "columns": ["group_id", "permission_id"]
         }
       },
       "policies": {},
@@ -288,9 +269,7 @@
         "permission_groups_name_unique": {
           "name": "permission_groups_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -346,9 +325,7 @@
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -418,12 +395,8 @@
           "name": "staff_user_id_user_profiles_user_id_fk",
           "tableFrom": "staff",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -431,12 +404,8 @@
           "name": "staff_primary_branch_id_branches_id_fk",
           "tableFrom": "staff",
           "tableTo": "branches",
-          "columnsFrom": [
-            "primary_branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["primary_branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -446,9 +415,7 @@
         "staff_user_id_unique": {
           "name": "staff_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -523,12 +490,8 @@
           "name": "staff_permissions_staff_id_staff_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "staff",
-          "columnsFrom": [
-            "staff_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["staff_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -536,12 +499,8 @@
           "name": "staff_permissions_permission_id_permissions_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -549,12 +508,8 @@
           "name": "staff_permissions_branch_id_branches_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -562,12 +517,8 @@
           "name": "staff_permissions_applied_from_group_id_permission_groups_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "permission_groups",
-          "columnsFrom": [
-            "applied_from_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["applied_from_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -575,12 +526,8 @@
           "name": "staff_permissions_granted_by_id_user_profiles_user_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "granted_by_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["granted_by_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -590,11 +537,7 @@
         "staff_permissions_staff_id_permission_id_branch_id_unique": {
           "name": "staff_permissions_staff_id_permission_id_branch_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "staff_id",
-            "permission_id",
-            "branch_id"
-          ]
+          "columns": ["staff_id", "permission_id", "branch_id"]
         }
       },
       "policies": {},
@@ -678,16 +621,12 @@
         "user_profiles_user_id_unique": {
           "name": "user_profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "user_profiles_email_unique": {
           "name": "user_profiles_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
