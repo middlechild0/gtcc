@@ -1,6 +1,7 @@
 import { protectedProcedure, router } from "../../trpc/init";
 import { withAuditLog } from "../../trpc/middleware/withAudit";
 import { hasPermission } from "../../trpc/middleware/withPermission";
+import { CreatePatientSchema } from "./schemas";
 import { patientService } from "./service";
 
 export const patientsRouter = router({
@@ -10,12 +11,17 @@ export const patientsRouter = router({
       return patientService.getPatients();
     }),
 
-  // An example mutation to demonstrate the withAuditLog
-  createPlaceholder: protectedProcedure
+  create: protectedProcedure
     .use(hasPermission("patients:create"))
     .use(withAuditLog("patients:create", "patient"))
+    .input(CreatePatientSchema)
     .mutation(async ({ input }) => {
-      // Create logic goes here...
-      return { success: true, id: "new-patient-uuid" };
+      return patientService.createPatient(input);
+    }),
+
+  kpis: protectedProcedure
+    .use(hasPermission("patients:view"))
+    .query(async () => {
+      return patientService.getKpis();
     }),
 });

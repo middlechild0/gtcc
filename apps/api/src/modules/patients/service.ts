@@ -1,39 +1,58 @@
-import { RedisCache } from "@visyx/cache/redis-client";
 import { db } from "@visyx/db/client";
-import { userProfiles } from "@visyx/db/schema";
-
-// Utilizing the optional Redis cache
-const patientCache = new RedisCache("patients", 3600); // 1 hour TTL
+import { patients } from "@visyx/db/schema";
+import { desc, eq } from "drizzle-orm";
+import type { CreatePatientInput } from "./schemas";
 
 export class PatientService {
   /**
-   * Fetch a test patient list
-   * Demonstrates using the cache gracefully
+   * Fetch a real patient list from the patients table.
    */
   async getPatients() {
-    const CACHE_KEY = "list_all";
-    const cached = await patientCache.get<any[]>(CACHE_KEY);
-
-    if (cached) {
-      return cached;
-    }
-
-    // Since we don't have a patients table yet, we'll just query the userProfiles
-    // as a placeholder to demonstrate the architecture.
-    // In reality, this would query a patients table.
     const results = await db
-      .select({
-        id: userProfiles.id,
-        firstName: userProfiles.firstName,
-        lastName: userProfiles.lastName,
-      })
-      .from(userProfiles)
+      .select()
+      .from(patients)
+      .where(eq(patients.isActive, true))
+      .orderBy(desc(patients.createdAt))
       .limit(50);
 
-    // Save to cache without blocking
-    void patientCache.set(CACHE_KEY, results).catch(console.error);
-
     return results;
+  }
+
+  /**
+   * Create a new patient record.
+   */
+  async createPatient(input: CreatePatientInput) {
+    const [created] = await db
+      .insert(patients)
+      .values({
+        firstName: input.firstName,
+        lastName: input.lastName,
+        // Keep the DB clean: empty string → null
+        email: input.email === "" ? null : input.email,
+        phone: input.phone,
+      })
+      .returning();
+
+    return created;
+  }
+
+  /**
+   * Simple KPI-style stats for the placeholder patients list.
+   * For now this is derived from userProfiles, limited to the same
+   * placeholder dataset as getPatients().
+   */
+  async getKpis() {
+    const patients = await this.getPatients();
+    const totalPatients = patients.length;
+
+    // With the current placeholder data we don't distinguish active/inactive,
+    // so we treat all returned rows as active.
+    const activePatients = totalPatients;
+
+    return {
+      totalPatients,
+      activePatients,
+    };
   }
 }
 
