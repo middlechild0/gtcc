@@ -31,7 +31,8 @@ function get<T>(row: PatientRow, camel: string, snake: string): T | undefined {
 function toPatientListItem(row: PatientRow) {
   return {
     id: get<string>(row, "id", "id")!,
-    patientNumber: get<string | null>(row, "patientNumber", "patient_number") ?? null,
+    patientNumber:
+      get<string | null>(row, "patientNumber", "patient_number") ?? null,
     firstName: get<string>(row, "firstName", "first_name")!,
     lastName: get<string>(row, "lastName", "last_name")!,
     email: get<string | null>(row, "email", "email") ?? null,
@@ -106,7 +107,8 @@ export class PatientService {
       sql`SELECT nextval('patient_number_seq') as nextval`,
     );
     const nextvalRow = (seqResult as { rows: { nextval?: unknown }[] }).rows[0];
-    const nextVal = nextvalRow?.nextval != null ? String(nextvalRow.nextval) : "1";
+    const nextVal =
+      nextvalRow?.nextval != null ? String(nextvalRow.nextval) : "1";
     const patientNumber = `PAT-${String(Number(nextVal)).padStart(6, "0")}`;
 
     const [created] = await db

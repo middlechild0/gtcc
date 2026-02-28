@@ -3,8 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { trpc } from "@/trpc/client";
-import { useDebouncedValue } from "./use-debounced-value";
 import type { Patient } from "../_utils/patient-types";
+import { useDebouncedValue } from "./use-debounced-value";
 
 const DEFAULT_PAGE_SIZE = 10;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
@@ -72,4 +72,3 @@ export function usePatientsList() {
     },
   };
 }
-

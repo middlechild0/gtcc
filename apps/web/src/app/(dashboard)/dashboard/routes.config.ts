@@ -48,7 +48,7 @@ export const routes: RouteConfig[] = [
     permissions: "patients:view",
     icon: Users,
   },
- 
+
   {
     id: "branches-list",
     path: "/dashboard/settings/branches",

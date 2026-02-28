@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  DashboardFooter,
-  DashboardFooterFeedback,
-  DashboardFooterSection,
-} from "@visyx/ui/dashboard-footer";
-import Link from "next/link";
+import { DashboardFooter } from "@visyx/ui/dashboard-footer";
 
 export function DashboardFooterContent() {
   return (
@@ -20,8 +15,6 @@ export function DashboardFooterContent() {
           </p>
         </>
       }
-    >
-     
-    </DashboardFooter>
+    ></DashboardFooter>
   );
 }

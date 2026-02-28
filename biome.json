@@ -9,7 +9,11 @@
       "!**/.turbo",
       "!**/.next",
       "!**/.react-email",
-      "!**/.wrangler"
+      "!**/.wrangler",
+      "!packages/db/.env",
+      "!packages/supabase/.env",
+      "!apps/api/.env",
+      "!apps/web/.env"
     ]
   },
   "css": {

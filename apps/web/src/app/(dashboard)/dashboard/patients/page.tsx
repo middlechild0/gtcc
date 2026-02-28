@@ -11,16 +11,15 @@ import {
 import { Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { RouteGuard } from "@/app/auth/components/route-guard";
 import { PatientsHeader } from "@/app/(dashboard)/dashboard/patients/_components/patients-header";
-import { usePatientsList } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patients-list";
-import { usePatientKpis } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patient-kpis";
 import { PatientsTable } from "@/app/(dashboard)/dashboard/patients/_components/patients-table";
+import { usePatientKpis } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patient-kpis";
+import { usePatientsList } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patients-list";
+import { RouteGuard } from "@/app/auth/components/route-guard";
 
 function PatientsContent() {
   const { kpis, isLoading: kpisLoading } = usePatientKpis();
   const {
-    patients,
     filteredPatients,
     totalFiltered,
     search,
@@ -66,7 +65,7 @@ function PatientsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">
-              {kpisLoading ? "—" : kpis?.totalPatients ?? 0}
+              {kpisLoading ? "—" : (kpis?.totalPatients ?? 0)}
             </p>
           </CardContent>
         </Card>
@@ -77,7 +76,7 @@ function PatientsContent() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">
-              {kpisLoading ? "—" : kpis?.activePatients ?? 0}
+              {kpisLoading ? "—" : (kpis?.activePatients ?? 0)}
             </p>
           </CardContent>
         </Card>
@@ -129,4 +128,3 @@ export default function PatientsPage() {
     </RouteGuard>
   );
 }
-

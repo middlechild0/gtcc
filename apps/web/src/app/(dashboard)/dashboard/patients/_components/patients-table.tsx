@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@visyx/ui/button";
+import { Input } from "@visyx/ui/input";
 import {
   Select,
   SelectContent,
@@ -8,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@visyx/ui/select";
-import { Input } from "@visyx/ui/input";
 import {
   Table,
   TableBody,
@@ -18,8 +18,8 @@ import {
   TableRow,
 } from "@visyx/ui/table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Patient } from "../_utils/patient-types";
 import { maskEmail } from "../_utils/mask-email";
+import type { Patient } from "../_utils/patient-types";
 
 type PaginationState = {
   page: number;
@@ -204,4 +204,3 @@ function SkeletonRow() {
     </TableRow>
   );
 }
-
