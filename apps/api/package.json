@@ -42,6 +42,7 @@
     "date-fns": "catalog:",
     "hono": "catalog:",
     "hono-rate-limiter": "0.4.2",
+    "drizzle-orm": "^0.45.0",
     "jose": "catalog:",
     "nanoid": "catalog:",
     "parse-duration": "^2.1.4",
