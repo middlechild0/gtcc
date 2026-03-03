@@ -47,6 +47,7 @@
     "nanoid": "catalog:",
     "parse-duration": "^2.1.4",
     "pino": "catalog:",
+    "react": "catalog:",
     "resend": "catalog:",
     "snakecase-keys": "^9.0.2",
     "stripe": "^20.1.0",
