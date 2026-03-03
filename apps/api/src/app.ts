@@ -2,9 +2,13 @@ import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import * as Sentry from "@sentry/bun";
 import { logger } from "@visyx/logger";
+import { checkHealth as checkCacheHealth } from "@visyx/cache/health";
+import { checkHealth as checkDbHealth } from "@visyx/db/utils/health";
+import { checkEmailHealth } from "@visyx/email/utils/health";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import type { Context } from "./rest/types";
+import { checkSupabaseHealth } from "./utils/health";
 import { createTRPCContext } from "./trpc/init";
 import { appRouter } from "./trpc/routers/_app";
 import { httpLogger } from "./utils/logger";
@@ -26,6 +30,7 @@ app.use(
         "http://localhost:3000",
       ]),
       "https://www.visyx.africa",
+      "https://visyx.gitahi.cc",
     ].filter((v, i, a) => a.indexOf(v) === i),
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowHeaders: [
@@ -76,11 +81,53 @@ app.use(
 app.get("/favicon.ico", (c) => c.body(null, 204));
 app.get("/robots.txt", (c) => c.body(null, 204));
 
-app.get("/health", (c) => c.json({ status: "ok" }, 200));
-app.get("/health/ready", (c) => c.json({ status: "ok" }, 200));
-app.get("/health/dependencies", (c) =>
-  c.json({ status: "ok", dependencies: [] }, 200),
-);
+app.get("/health", async (c) => {
+  const wrap = async (fn: () => Promise<void>) => {
+    try {
+      await fn();
+      return { ok: true as const };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
+      return { ok: false as const, error: message };
+    }
+  };
+
+  const [db, cache, supabase, email] = await Promise.all([
+    wrap(() => checkDbHealth()),
+    wrap(() => checkCacheHealth()),
+    wrap(async () => {
+      const result = await checkSupabaseHealth();
+      if (!result.ok) throw new Error(result.error);
+    }),
+    wrap(async () => {
+      const result = await checkEmailHealth();
+      if (!result.ok) throw new Error(result.error);
+    }),
+  ]);
+
+  const checks = { db, cache, supabase, email };
+  const allOk = Object.values(checks).every((result) => result.ok);
+  const status = allOk ? "ok" : "degraded";
+
+  return c.json({ status, checks }, allOk ? 200 : 503);
+});
+
+app.get("/health/ready", async (c) => {
+  const url = new URL(c.req.url);
+  url.pathname = "/health";
+  const res = await app.fetch(new Request(url.toString()));
+  const body = await res.json();
+  return c.json(body, { status: res.status as 200 | 503 });
+});
+
+app.get("/health/dependencies", async (c) => {
+  const url = new URL(c.req.url);
+  url.pathname = "/health";
+  const res = await app.fetch(new Request(url.toString()));
+  const body = (await res.json()) as unknown;
+  return c.json(body, { status: res.status as 200 | 503 });
+});
 
 app.doc("/openapi", {
   openapi: "3.1.0",
