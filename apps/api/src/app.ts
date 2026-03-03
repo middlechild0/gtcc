@@ -1,16 +1,16 @@
 import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import * as Sentry from "@sentry/bun";
-import { logger } from "@visyx/logger";
 import { checkHealth as checkCacheHealth } from "@visyx/cache/health";
 import { checkHealth as checkDbHealth } from "@visyx/db/utils/health";
 import { checkEmailHealth } from "@visyx/email/utils/health";
+import { logger } from "@visyx/logger";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import type { Context } from "./rest/types";
-import { checkSupabaseHealth } from "./utils/health";
 import { createTRPCContext } from "./trpc/init";
 import { appRouter } from "./trpc/routers/_app";
+import { checkSupabaseHealth } from "./utils/health";
 import { httpLogger } from "./utils/logger";
 
 const app = new OpenAPIHono<Context>();
@@ -88,7 +88,11 @@ app.get("/health", async (c) => {
       return { ok: true as const };
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "Unknown error";
       return { ok: false as const, error: message };
     }
   };

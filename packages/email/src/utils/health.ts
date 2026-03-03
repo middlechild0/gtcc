@@ -1,6 +1,6 @@
 import * as React from "react";
-import { InviteEmail } from "../emails/invite";
-import { render } from "../render";
+import { InviteEmail } from "../../emails/invite";
+import { render } from "../../render";
 
 type HealthResult = { ok: true } | { ok: false; error: string };
 
@@ -25,8 +25,11 @@ export async function checkEmailHealth(): Promise<HealthResult> {
     return { ok: true };
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown email error";
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : "Unknown email error";
     return { ok: false, error: message };
   }
 }
-
