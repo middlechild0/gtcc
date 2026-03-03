@@ -9,7 +9,7 @@ RUN mkdir -p /temp/prod
 COPY package.json bun.lock turbo.json /temp/prod/
 COPY apps /temp/prod/apps/
 COPY packages /temp/prod/packages/
-RUN cd /temp/prod && bun install --frozen-lockfile
+RUN cd /temp/prod && bun install
 
 # copy to final image
 FROM base AS release
