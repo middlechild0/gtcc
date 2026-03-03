@@ -15,6 +15,13 @@
       "when": 1772155423064,
       "tag": "0001_last_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772251100000,
+      "tag": "0002_patients_table",
+      "breakpoints": true
     }
   ]
 }

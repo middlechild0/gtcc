@@ -28,11 +28,6 @@ const DashboardFooter = React.forwardRef<HTMLElement, DashboardFooterProps>(
         )}
         {...props}
       >
-        <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {children}
-          </div>
-        </div>
         {bottomBar != null && (
           <div className="border-t border-sidebar-border">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
