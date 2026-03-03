@@ -26,6 +26,8 @@
     "@visyx/ui": "workspace:*",
     "@visyx/utils": "workspace:*",
     "date-fns": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "react-email": "5.2.5",
     "resend": "^6.9.2",
     "responsive-react-email": "^0.0.5"
