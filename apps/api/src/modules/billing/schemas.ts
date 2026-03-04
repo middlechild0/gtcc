@@ -42,3 +42,10 @@ export const GetInvoiceSchema = z.object({
 });
 
 export type GetInvoiceInput = z.infer<typeof GetInvoiceSchema>;
+
+export const GenerateReceiptSchema = z.object({
+  invoiceId: z.string().uuid("Invalid invoice ID format"),
+  format: z.enum(["html", "pdf"]).default("html"),
+});
+
+export type GenerateReceiptInput = z.infer<typeof GenerateReceiptSchema>;

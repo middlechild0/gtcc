@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@visyx/ui/table";
-import { Download } from "lucide-react";
+import { Download, Eye, Printer } from "lucide-react";
 import type { CashierInvoice } from "../_utils/types";
 
 type PaginationState = {
@@ -45,6 +45,8 @@ type InvoicesTableProps = {
   onToDateChange: (value: string) => void;
   onDownload: () => void;
   onViewDetails: (invoiceId: string) => void;
+  onPrintReceipt: (invoiceId: string) => void;
+  onDownloadReceipt: (invoiceId: string) => void;
   pagination: PaginationState;
 };
 
@@ -79,6 +81,8 @@ export function InvoicesTable(props: InvoicesTableProps) {
     onToDateChange,
     onDownload,
     onViewDetails,
+    onPrintReceipt,
+    onDownloadReceipt,
     pagination,
   } = props;
 
@@ -143,20 +147,20 @@ export function InvoicesTable(props: InvoicesTableProps) {
               <TableHead>Amount</TableHead>
               <TableHead>Payment Type</TableHead>
               <TableHead>Created At</TableHead>
-              <TableHead className="w-[120px]">Actions</TableHead>
+              <TableHead className="w-[200px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && invoices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-sm">
+                <TableCell colSpan={6} className="py-10 text-center text-sm">
                   Loading invoices...
                 </TableCell>
               </TableRow>
             ) : invoices.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="py-10 text-center text-muted-foreground text-sm"
                 >
                   No invoices found.
@@ -173,14 +177,38 @@ export function InvoicesTable(props: InvoicesTableProps) {
                   <TableCell>{invoice.paymentType.join(", ") || "—"}</TableCell>
                   <TableCell>{formatDate(invoice.createdAt)}</TableCell>
                   <TableCell>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onViewDetails(invoice.id)}
-                    >
-                      Details
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onViewDetails(invoice.id)}
+                        title="View details"
+                      >
+                        <Eye className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onPrintReceipt(invoice.id)}
+                        title="Print receipt"
+                      >
+                        <Printer className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onDownloadReceipt(invoice.id)}
+                        title="Download receipt (PDF)"
+                      >
+                        <Download className="size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
