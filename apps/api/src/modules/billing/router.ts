@@ -1,9 +1,13 @@
-import { db } from "@visyx/db/client";
-import { invoices } from "@visyx/db/schema";
 import { protectedProcedure, router } from "../../trpc/init";
 import { hasPermission } from "../../trpc/middleware/withPermission";
 import { insuranceRouter } from "./insurance/router";
-import { CreateInvoiceSchema } from "./schemas";
+import {
+  CreateInvoiceSchema,
+  ExportInvoicesCsvSchema,
+  GetInvoiceSchema,
+  ListInvoicesSchema,
+} from "./schemas";
+import { billingService } from "./service";
 
 export const billingRouter = router({
   // Mount the insurance sub-router under billing
@@ -13,22 +17,24 @@ export const billingRouter = router({
     .use(hasPermission("billing:create_invoice"))
     .input(CreateInvoiceSchema)
     .mutation(async ({ input, ctx }) => {
-      const _result = await db
-        .insert(invoices)
-        .values({
-          patientId: String(input.patientId),
-          amount: String(input.amount),
-          paymentType: input.paymentType,
-          createdBy: ctx.authUserId,
-          createdAt: new Date(),
-        })
-        .returning();
-      return { success: true, message: "Invoice created" };
+      return billingService.createInvoice({
+        input,
+        authUserId: ctx.authUserId,
+      });
     }),
 
   listInvoices: protectedProcedure
     .use(hasPermission("billing:view_invoices"))
-    .query(async ({ ctx }) => {
-      return [];
-    }),
+    .input(ListInvoicesSchema)
+    .query(async ({ input }) => billingService.listInvoices(input)),
+
+  getInvoiceById: protectedProcedure
+    .use(hasPermission("billing:view_invoices"))
+    .input(GetInvoiceSchema)
+    .query(async ({ input }) => billingService.getInvoiceById(input)),
+
+  exportInvoicesCsv: protectedProcedure
+    .use(hasPermission("billing:view_invoices"))
+    .input(ExportInvoicesCsvSchema)
+    .mutation(async ({ input }) => billingService.exportInvoicesCsv(input)),
 });

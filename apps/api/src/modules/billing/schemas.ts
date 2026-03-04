@@ -16,3 +16,29 @@ export const CreateInvoiceSchema = z.object({
     "At least one payment type required",
   ),
 });
+
+export type CreateInvoiceInput = z.infer<typeof CreateInvoiceSchema>;
+
+export const ListInvoicesSchema = z.object({
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(10),
+  search: z.string().optional(),
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
+});
+
+export type ListInvoicesInput = z.infer<typeof ListInvoicesSchema>;
+
+export const ExportInvoicesCsvSchema = z.object({
+  search: z.string().optional(),
+  fromDate: z.string().optional(),
+  toDate: z.string().optional(),
+});
+
+export type ExportInvoicesCsvInput = z.infer<typeof ExportInvoicesCsvSchema>;
+
+export const GetInvoiceSchema = z.object({
+  id: z.string().uuid("Invalid invoice ID format"),
+});
+
+export type GetInvoiceInput = z.infer<typeof GetInvoiceSchema>;

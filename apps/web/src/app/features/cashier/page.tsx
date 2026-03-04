@@ -1,141 +1,123 @@
 "use client";
 
-import {
-  Box,
-  Button,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { useState } from "react";
-import { trpc } from "@/utils/trpc";
+import { RouteGuard } from "@/app/auth/components/route-guard";
 import DashboardLayout from "../../(dashboard)/layout";
+import { CashierForm } from "./_components/cashier-form";
+import { InvoiceDetailsCard } from "./_components/invoice-details-card";
+import { InvoicesTable } from "./_components/invoices-table";
+import { useCashierData } from "./_hooks/use-cashier-data";
+import { useCashierForm } from "./_hooks/use-cashier-form";
+import { useInvoiceDetails } from "./_hooks/use-invoice-details";
+import { useInvoicesList } from "./_hooks/use-invoices-list";
+import { paymentTypes } from "./_utils/constants";
 
 export default function CashierPage() {
-  const [patientId, setPatientId] = useState("");
-  const [charges, setCharges] = useState("");
-  const [item, setItem] = useState("");
-  const [paymentType, setPaymentType] = useState("");
+  const { patients, items, isPatientsLoading, isItemsLoading, loadError } =
+    useCashierData();
 
-  //Passed data most of it should be handle by the doctor check on it
-  const patients = [];
-  const items = [];
-  const paymentTypes = [
-    { id: "frontdesk", label: "Frontdesk (Cash/Mobile/Bank)" },
-    { id: "insurance", label: "Insurance" },
-  ];
+  const {
+    patientId,
+    charges,
+    item,
+    paymentType,
+    errors,
+    isSubmitting,
+    setPatientId,
+    setCharges,
+    setItem,
+    setPaymentType,
+    submit,
+  } = useCashierForm();
 
-  const createInvoice = trpc.billing.createInvoice.useMutation();
+  const {
+    invoices,
+    isLoading: isInvoicesLoading,
+    isFetching: isInvoicesFetching,
+    isExporting: isInvoicesExporting,
+    error: invoicesError,
+    search,
+    fromDate,
+    toDate,
+    onSearchChange,
+    onFromDateChange,
+    onToDateChange,
+    selectedInvoiceId,
+    setSelectedInvoiceId,
+    onDownload,
+    pagination,
+  } = useInvoicesList();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    createInvoice.mutate({
-      patientId,
-      amount: Number(charges),
-      paymentType: [paymentType],
-      // If you want to include item, add it to your backend schema and mutation
-      // item,
-    });
+  const {
+    invoice: selectedInvoice,
+    isLoading: isInvoiceDetailsLoading,
+    error: invoiceDetailsError,
+  } = useInvoiceDetails({
+    invoiceId: selectedInvoiceId,
+  });
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    submit();
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <Box
-          component="form"
-          className="space-y-4"
-          onSubmit={handleSubmit}
-          sx={{
-            maxWidth: 400,
-            mx: "auto",
-            p: 3,
-            borderRadius: 2,
-            boxShadow: 2,
-            bgcolor: "background.paper",
-          }}
-        >
-          <div>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Patient
-            </Typography>
-            <Select
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              required
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="" disabled>
-                Select patient
-              </MenuItem>
-              {patients.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Charges
-            </Typography>
-            <TextField
-              type="number"
-              value={charges}
-              onChange={(e) => setCharges(e.target.value)}
-              placeholder="Enter charges"
-              required
-              fullWidth
+      <RouteGuard required="billing:create_invoice">
+        <div className="space-y-6">
+          <CashierForm
+            patients={patients}
+            items={items}
+            paymentTypes={paymentTypes}
+            patientId={patientId}
+            charges={charges}
+            item={item}
+            paymentType={paymentType}
+            errors={errors}
+            isPatientsLoading={isPatientsLoading}
+            isItemsLoading={isItemsLoading}
+            isSubmitting={isSubmitting}
+            loadErrorMessage={
+              loadError
+                ? `Failed to load cashier data: ${loadError.message}`
+                : undefined
+            }
+            onPatientChange={setPatientId}
+            onChargesChange={setCharges}
+            onItemChange={setItem}
+            onPaymentTypeChange={setPaymentType}
+            onSubmit={handleSubmit}
+          />
+
+          <RouteGuard required="billing:view_invoices" fallback={null}>
+            <InvoicesTable
+              invoices={invoices}
+              isLoading={isInvoicesLoading}
+              isFetching={isInvoicesFetching}
+              isExporting={isInvoicesExporting}
+              error={invoicesError}
+              search={search}
+              fromDate={fromDate}
+              toDate={toDate}
+              onSearchChange={onSearchChange}
+              onFromDateChange={onFromDateChange}
+              onToDateChange={onToDateChange}
+              onDownload={onDownload}
+              onViewDetails={setSelectedInvoiceId}
+              pagination={pagination}
             />
-          </div>
-          <div>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Item Bought
-            </Typography>
-            <Select
-              value={item}
-              onChange={(e) => setItem(e.target.value)}
-              required
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="" disabled>
-                Select item
-              </MenuItem>
-              {items.map((i) => (
-                <MenuItem key={i.id} value={i.id}>
-                  {i.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Payment Type
-            </Typography>
-            <Select
-              value={paymentType}
-              onChange={(e) => setPaymentType(e.target.value)}
-              required
-              displayEmpty
-              fullWidth
-            >
-              <MenuItem value="" disabled>
-                Select payment type
-              </MenuItem>
-              {paymentTypes.map((pt) => (
-                <MenuItem key={pt.id} value={pt.id}>
-                  {pt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </div>
-          <Button type="submit" variant="contained" fullWidth>
-            Confirm Payment
-          </Button>
-        </Box>
-      </div>
+
+            <InvoiceDetailsCard
+              invoice={selectedInvoice}
+              isLoading={isInvoiceDetailsLoading}
+              errorMessage={
+                invoiceDetailsError
+                  ? `Failed to load invoice details: ${invoiceDetailsError.message}`
+                  : undefined
+              }
+            />
+          </RouteGuard>
+        </div>
+      </RouteGuard>
     </DashboardLayout>
   );
 }
