@@ -34,8 +34,10 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  date,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -43,6 +45,22 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+export const genderEnum = pgEnum("gender_enum", ["MALE", "FEMALE", "OTHER"]);
+export const maritalStatusEnum = pgEnum("marital_status_enum", [
+  "SINGLE",
+  "MARRIED",
+  "DIVORCED",
+  "WIDOWED",
+  "SEPARATED",
+  "OTHER"
+]);
+export const bloodGroupEnum = pgEnum("blood_group_enum", [
+  "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "UNKNOWN"
+]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // USER PROFILES
@@ -73,6 +91,7 @@ export const userProfiles = pgTable("user_profiles", {
 
 export const branches = pgTable("branches", {
   id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(), // e.g. "NYR"
   name: text("name").notNull(), // e.g. "Great Batian - Nyeri Town"
   address: text("address"),
   phone: text("phone"),
@@ -92,11 +111,139 @@ export const patients = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
   /** Unique human-readable id, e.g. PAT-000001 */
   patientNumber: text("patient_number").notNull().unique(),
+
+  // Basic Information
+  salutation: text("salutation"),
   firstName: text("first_name").notNull(),
+  middleName: text("middle_name"),
   lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
+  gender: genderEnum("gender"),
+  maritalStatus: maritalStatusEnum("marital_status"),
+  bloodGroup: bloodGroupEnum("blood_group"),
+
+  // Contact & Address
   email: text("email"),
   phone: text("phone"),
+  country: text("country").default("Kenya").notNull(),
+  address: text("address"),
+
+  // IDs
+  passportNumber: text("passport_number"),
+  nationalId: text("national_id"),
+  nhifNumber: text("nhif_number"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT BRANCH PROFILES
+// Links a patient to a branch. Solves "registered once but active in specific branches".
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const patientBranchProfiles = pgTable("patient_branch_profiles", {
+  id: serial("id").primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  branchId: integer("branch_id")
+    .notNull()
+    .references(() => branches.id, { onDelete: "cascade" }),
+
+  // Indicates if this was the branch where the patient was originally registered
+  isRegistrationBranch: boolean("is_registration_branch").default(true).notNull(),
+
+  // Status of the patient within this specific branch context
   isActive: boolean("is_active").default(true).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  unq: unique().on(t.patientId, t.branchId)
+}));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT KIN (Emergency Contact)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const patientKins = pgTable("patient_kins", {
+  id: serial("id").primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+
+  isPrimary: boolean("is_primary").default(false).notNull(),
+
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  relationship: text("relationship"),
+  phone: text("phone"),
+  email: text("email"),
+  nationalId: text("national_id"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT GUARANTOR (Financial Contact)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const patientGuarantors = pgTable("patient_guarantors", {
+  id: serial("id").primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+
+  isPrimary: boolean("is_primary").default(false).notNull(),
+
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  relationship: text("relationship"),
+  phone: text("phone"),
+  email: text("email"),
+  nationalId: text("national_id"),
+  employer: text("employer"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INSURANCE PROVIDERS (Master List)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const insuranceProviders = pgTable("insurance_providers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  email: text("email"),
+  phone: text("phone"),
+  address: text("address"),
+  isActive: boolean("is_active").default(true).notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATIENT INSURANCES (Patient Policies)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const patientInsurances = pgTable("patient_insurances", {
+  id: serial("id").primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  providerId: integer("provider_id")
+    .notNull()
+    .references(() => insuranceProviders.id, { onDelete: "cascade" }),
+
+  memberNumber: text("member_number").notNull(),
+  principalName: text("principal_name"), // If patient is a dependent
+  principalRelationship: text("principal_relationship"),
+  isActive: boolean("is_active").default(true).notNull(),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -275,6 +422,7 @@ export const branchesRelations = relations(branches, ({ many }) => ({
   staff: many(staff),
   staffPermissions: many(staffPermissions),
   auditLogs: many(auditLogs),
+  patientProfiles: many(patientBranchProfiles),
 }));
 
 export const permissionsRelations = relations(permissions, ({ many }) => ({
@@ -352,3 +500,68 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [branches.id],
   }),
 }));
+
+export const patientsRelations = relations(patients, ({ many, one }) => ({
+  branchProfiles: many(patientBranchProfiles),
+  insurances: many(patientInsurances),
+  kin: one(patientKins, {
+    fields: [patients.id],
+    references: [patientKins.patientId],
+  }),
+  guarantor: one(patientGuarantors, {
+    fields: [patients.id],
+    references: [patientGuarantors.patientId],
+  }),
+}));
+
+export const patientBranchProfilesRelations = relations(
+  patientBranchProfiles,
+  ({ one }) => ({
+    patient: one(patients, {
+      fields: [patientBranchProfiles.patientId],
+      references: [patients.id],
+    }),
+    branch: one(branches, {
+      fields: [patientBranchProfiles.branchId],
+      references: [branches.id],
+    }),
+  }),
+);
+
+export const patientKinsRelations = relations(patientKins, ({ one }) => ({
+  patient: one(patients, {
+    fields: [patientKins.patientId],
+    references: [patients.id],
+  }),
+}));
+
+export const patientGuarantorsRelations = relations(
+  patientGuarantors,
+  ({ one }) => ({
+    patient: one(patients, {
+      fields: [patientGuarantors.patientId],
+      references: [patients.id],
+    }),
+  }),
+);
+
+export const insuranceProvidersRelations = relations(
+  insuranceProviders,
+  ({ many }) => ({
+    patientInsurances: many(patientInsurances),
+  }),
+);
+
+export const patientInsurancesRelations = relations(
+  patientInsurances,
+  ({ one }) => ({
+    patient: one(patients, {
+      fields: [patientInsurances.patientId],
+      references: [patients.id],
+    }),
+    provider: one(insuranceProviders, {
+      fields: [patientInsurances.providerId],
+      references: [insuranceProviders.id],
+    }),
+  }),
+);
