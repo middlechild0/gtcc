@@ -24,6 +24,7 @@ type PatientRow = Record<string, unknown> & {
   lastName?: string;
   date_of_birth?: string | Date | null;
   dateOfBirth?: string | Date | null;
+  age?: number | null;
   gender?: string | null;
   marital_status?: string | null;
   maritalStatus?: string | null;
@@ -62,7 +63,9 @@ function toPatientListItem(row: PatientRow) {
     firstName: get<string>(row, "firstName", "first_name")!,
     middleName: get<string | null>(row, "middleName", "middle_name") ?? null,
     lastName: get<string>(row, "lastName", "last_name")!,
-    dateOfBirth: get<string | Date | null>(row, "dateOfBirth", "date_of_birth") ?? null,
+    dateOfBirth:
+      get<string | Date | null>(row, "dateOfBirth", "date_of_birth") ?? null,
+    age: get<number | null>(row, "age", "age") ?? null,
     gender: get<string | null>(row, "gender", "gender") ?? null,
     maritalStatus: get<string | null>(row, "maritalStatus", "marital_status") ?? null,
     bloodGroup: get<string | null>(row, "bloodGroup", "blood_group") ?? null,
@@ -155,6 +158,20 @@ export class PatientService {
     const patientNumber = `${safeBranchCode}-${String(Number(nextVal)).padStart(6, "0")}`;
 
     // Execute everything in a transaction because of related table dependencies
+    const today = new Date();
+    const derivedAge =
+      input.age ??
+      (input.dateOfBirth
+        ? Math.max(
+            0,
+            Math.min(
+              150,
+              today.getFullYear() -
+                new Date(input.dateOfBirth.split("T")[0]).getFullYear(),
+            ),
+          )
+        : null);
+
     const patientRow = await db.transaction(async (tx) => {
       // 1. Create Patient
       const [created] = await tx
@@ -166,6 +183,7 @@ export class PatientService {
           middleName: input.middleName,
           lastName: input.lastName,
           dateOfBirth: input.dateOfBirth ? input.dateOfBirth.split("T")[0] : undefined,
+          age: derivedAge,
           gender: input.gender as any, // Cast to mapped enum correctly later down ORM stack
           maritalStatus: input.maritalStatus as any,
           bloodGroup: input.bloodGroup as any,

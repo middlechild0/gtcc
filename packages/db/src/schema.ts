@@ -118,6 +118,7 @@ export const patients = pgTable("patients", {
   middleName: text("middle_name"),
   lastName: text("last_name").notNull(),
   dateOfBirth: date("date_of_birth"),
+  age: integer("age"),
   gender: genderEnum("gender"),
   maritalStatus: maritalStatusEnum("marital_status"),
   bloodGroup: bloodGroupEnum("blood_group"),

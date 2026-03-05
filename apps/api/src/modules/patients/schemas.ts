@@ -7,6 +7,7 @@ export const CreatePatientSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1, "Last name is required"),
   dateOfBirth: z.string().optional(), // ISO date string or YYYY-MM-DD
+  age: z.number().int().min(0, "Age is required").max(150, "Age must be realistic"),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   maritalStatus: z.enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED", "SEPARATED", "OTHER"]).optional(),
   bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "UNKNOWN"]).optional(),
