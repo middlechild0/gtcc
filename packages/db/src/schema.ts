@@ -38,13 +38,13 @@ import {
   integer,
   jsonb,
   pgEnum,
+  pgSequence,
   pgTable,
   serial,
   text,
   timestamp,
   unique,
   uuid,
-  pgSequence,
 } from "drizzle-orm/pg-core";
 
 // ─────────────────────────────────────────────────────────────────────────────

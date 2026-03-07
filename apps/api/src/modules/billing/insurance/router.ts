@@ -1,6 +1,9 @@
 import { protectedProcedure, router } from "../../../trpc/init";
 import { hasPermission } from "../../../trpc/middleware/withPermission";
-import { CreateInsuranceProviderSchema, UpdateInsuranceProviderSchema } from "./schemas";
+import {
+  CreateInsuranceProviderSchema,
+  UpdateInsuranceProviderSchema,
+} from "./schemas";
 import { insuranceService } from "./service";
 
 export const insuranceRouter = router({

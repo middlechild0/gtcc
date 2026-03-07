@@ -10,11 +10,7 @@ interface SpinnerProps {
   style?: React.CSSProperties;
 }
 
-export const Spinner = ({
-  className,
-  size = 20,
-  style,
-}: SpinnerProps) => {
+export const Spinner = ({ className, size = 20, style }: SpinnerProps) => {
   return (
     <svg
       fill="none"

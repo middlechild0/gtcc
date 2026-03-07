@@ -20,7 +20,6 @@ import {
 } from "@visyx/ui/table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatAge } from "@/lib/age-formatter";
-import { maskEmail } from "../_utils/mask-email";
 import type { Patient } from "../_utils/patient-types";
 
 type PaginationState = {

@@ -11,9 +11,10 @@ export type CreateInsuranceProviderInput = z.infer<
   typeof CreateInsuranceProviderSchema
 >;
 
-export const UpdateInsuranceProviderSchema = CreateInsuranceProviderSchema.partial().extend({
-  id: z.number().int().positive(),
-});
+export const UpdateInsuranceProviderSchema =
+  CreateInsuranceProviderSchema.partial().extend({
+    id: z.number().int().positive(),
+  });
 
 export type UpdateInsuranceProviderInput = z.infer<
   typeof UpdateInsuranceProviderSchema

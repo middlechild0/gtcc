@@ -19,7 +19,7 @@ export function formatAge(dateOfBirth?: string | Date | null): string {
   const dob =
     typeof dateOfBirth === "string" ? new Date(dateOfBirth) : dateOfBirth;
 
-  if (isNaN(dob.getTime())) return "Unknown";
+  if (Number.isNaN(dob.getTime())) return "Unknown";
 
   const now = new Date();
   const years = differenceInYears(now, dob);

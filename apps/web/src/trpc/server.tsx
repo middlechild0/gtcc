@@ -31,7 +31,7 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
         url: `${API_BASE_URL}/trpc`,
         transformer: superjson,
         async headers() {
-          const [supabase, cookieStore, headersList] = await Promise.all([
+          const [supabase, cookieStore, _headersList] = await Promise.all([
             createClient(),
             cookies(),
             headers(),
@@ -111,7 +111,7 @@ export function batchPrefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
  */
 export async function getTRPCClient(options?: { forcePrimary?: boolean }) {
   // Parallelize independent async calls
-  const [supabase, cookieStore, headersList] = await Promise.all([
+  const [supabase, cookieStore, _headersList] = await Promise.all([
     createClient(),
     cookies(),
     headers(),

@@ -1,7 +1,5 @@
 "use client";
 
-import type { RouterOutputs } from "@/trpc/client";
-
 export type Patient = {
   id: string;
   patientNumber: string | null;

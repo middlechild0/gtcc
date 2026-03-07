@@ -1,7 +1,10 @@
 import { db } from "@visyx/db/client";
 import { insuranceProviders } from "@visyx/db/schema";
 import { asc, eq } from "drizzle-orm";
-import type { CreateInsuranceProviderInput, UpdateInsuranceProviderInput } from "./schemas";
+import type {
+  CreateInsuranceProviderInput,
+  UpdateInsuranceProviderInput,
+} from "./schemas";
 
 export const insuranceService = {
   async listProviders() {
@@ -45,4 +48,3 @@ export const insuranceService = {
     return provider;
   },
 };
-
