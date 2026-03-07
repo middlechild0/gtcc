@@ -130,6 +130,16 @@ export const routes: RouteConfig[] = [
     showInSearch: true,
     icon: User,
   },
+  {
+    id: "insurance-providers-list",
+    path: "/dashboard/settings/insurance-providers",
+    label: "Insurance Providers",
+    breadcrumbLabel: "Insurance Providers",
+    group: "settings",
+    parentId: "settings-root",
+    permissions: "billing:manage_insurance_providers",
+    showInSearch: true,
+  },
 ];
 
 const routesById = new Map(routes.map((r) => [r.id, r]));

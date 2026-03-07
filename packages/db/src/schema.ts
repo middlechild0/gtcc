@@ -44,6 +44,7 @@ import {
   timestamp,
   unique,
   uuid,
+  pgSequence,
 } from "drizzle-orm/pg-core";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,6 +115,11 @@ export const branches = pgTable("branches", {
 // Core patient records (non-staff). Separate from userProfiles so that
 // patients do not need login accounts.
 // ─────────────────────────────────────────────────────────────────────────────
+
+export const patientNumberSeq = pgSequence("patient_number_seq", {
+  startWith: 1,
+  increment: 1,
+});
 
 export const patients = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
