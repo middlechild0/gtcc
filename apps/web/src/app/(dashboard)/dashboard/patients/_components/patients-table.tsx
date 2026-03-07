@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
 import { Input } from "@visyx/ui/input";
 import {
@@ -18,6 +19,7 @@ import {
   TableRow,
 } from "@visyx/ui/table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatAge } from "@/lib/age-formatter";
 import { maskEmail } from "../_utils/mask-email";
 import type { Patient } from "../_utils/patient-types";
 
@@ -84,8 +86,10 @@ export function PatientsTable({
             <TableHead>Patient #</TableHead>
             <TableHead>First name</TableHead>
             <TableHead>Last name</TableHead>
-            <TableHead>Email</TableHead>
+            <TableHead>Age</TableHead>
             <TableHead>Phone</TableHead>
+            <TableHead>National ID</TableHead>
+            <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -98,7 +102,7 @@ export function PatientsTable({
           ) : patients.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={7}
                 className="py-10 text-center text-muted-foreground text-sm"
               >
                 {emptyMessage}
@@ -116,11 +120,19 @@ export function PatientsTable({
                 <TableCell className="font-medium">
                   {patient.lastName}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {maskEmail(patient.email)}
+                <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                  {formatAge(patient.dateOfBirth)}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {patient.phone ?? "—"}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {patient.nationalId ?? "—"}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={patient.isActive ? "default" : "secondary"}>
+                    {patient.isActive ? "Active" : "Inactive"}
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))
@@ -196,10 +208,16 @@ function SkeletonRow() {
         <div className="h-4 w-24 rounded bg-muted" />
       </TableCell>
       <TableCell>
-        <div className="h-4 w-32 rounded bg-muted" />
+        <div className="h-4 w-16 rounded bg-muted" />
       </TableCell>
       <TableCell>
         <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-6 w-16 rounded-full bg-muted" />
       </TableCell>
     </TableRow>
   );

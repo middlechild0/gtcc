@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { PatientForm } from "../_components/patient-form";
@@ -13,7 +13,7 @@ export default function NewPatientPage() {
   const { branches, activeBranchId } = useBranch();
 
   const initialBranchId = useMemo(
-    () => activeBranchId ?? (branches[0]?.id ?? 0),
+    () => activeBranchId ?? branches[0]?.id ?? 0,
     [activeBranchId, branches],
   );
 

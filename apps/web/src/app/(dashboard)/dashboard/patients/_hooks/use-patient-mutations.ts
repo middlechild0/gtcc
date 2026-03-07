@@ -10,7 +10,7 @@ export function usePatientMutations() {
     onSuccess: async () => {
       await Promise.all([
         utils.patients.list.invalidate(),
-        utils.patients.kpis.invalidate(),
+        utils.patients.getKpis.invalidate(),
       ]);
       toast.success("Patient registered");
     },

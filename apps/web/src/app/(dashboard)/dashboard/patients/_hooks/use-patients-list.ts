@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
 import { trpc } from "@/trpc/client";
 import type { Patient } from "../_utils/patient-types";
 import { useDebouncedValue } from "./use-debounced-value";
@@ -16,14 +17,20 @@ export function usePatientsList() {
   const [search, setSearchState] = useState(searchParams?.get("q") ?? "");
   const debouncedSearch = useDebouncedValue(search, 300);
 
+  const { activeBranchId } = useBranch();
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const { data, isLoading, error, refetch } = trpc.patients.list.useQuery({
-    page,
-    limit: pageSize,
-    search: debouncedSearch.trim() || undefined,
-  });
+  const { data, isLoading, error, refetch } = trpc.patients.list.useQuery(
+    {
+      branchId: activeBranchId || 0,
+      page,
+      limit: pageSize,
+      search: debouncedSearch.trim() || undefined,
+    },
+    { enabled: !!activeBranchId },
+  );
 
   useEffect(() => {
     setPage(1);

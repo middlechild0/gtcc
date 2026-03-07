@@ -1,11 +1,11 @@
 import { db } from "@visyx/db/client";
 import {
   branches,
-  patients,
   patientBranchProfiles,
-  patientKins,
   patientGuarantors,
   patientInsurances,
+  patientKins,
+  patients,
 } from "@visyx/db/schema";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { CreatePatientInput, ListPatientsInput } from "./schemas";
@@ -67,13 +67,15 @@ function toPatientListItem(row: PatientRow) {
       get<string | Date | null>(row, "dateOfBirth", "date_of_birth") ?? null,
     age: get<number | null>(row, "age", "age") ?? null,
     gender: get<string | null>(row, "gender", "gender") ?? null,
-    maritalStatus: get<string | null>(row, "maritalStatus", "marital_status") ?? null,
+    maritalStatus:
+      get<string | null>(row, "maritalStatus", "marital_status") ?? null,
     bloodGroup: get<string | null>(row, "bloodGroup", "blood_group") ?? null,
     email: get<string | null>(row, "email", "email") ?? null,
     phone: get<string | null>(row, "phone", "phone") ?? null,
     country: get<string | null>(row, "country", "country") ?? "Kenya",
     address: get<string | null>(row, "address", "address") ?? null,
-    passportNumber: get<string | null>(row, "passportNumber", "passport_number") ?? null,
+    passportNumber:
+      get<string | null>(row, "passportNumber", "passport_number") ?? null,
     nationalId: get<string | null>(row, "nationalId", "national_id") ?? null,
     nhifNumber: get<string | null>(row, "nhifNumber", "nhif_number") ?? null,
     // Note: isActive is now branch-specific for true active status, but we may return it here for legacy or global level.
@@ -85,10 +87,9 @@ function toPatientListItem(row: PatientRow) {
 
 export class PatientService {
   /**
-   * Fetch paginated patient list with optional search.
-   * Returns items for the requested page and total count matching the filter.
+   * Fetch a paginated lists of patients.
    */
-  async getPatients(input: ListPatientsInput) {
+  async getPatients(input: ListPatientsInput & { branchId: number }) {
     const { page, limit, search } = input;
     // We removed global isActive from schema in plan, but wait, we kept it in schema?
     // Wait, the schema modify step actually kept global isActive on the patient? Looking at the schema.ts:
@@ -96,6 +97,13 @@ export class PatientService {
     // Actually going back to the DB schema diff, I missed deleting isActive. Let's just drop that eq() check or keep if it exists.
     // For now we will rely on patientBranchProfiles if we wanted branch-specific, but let's query patients table directly for the global list.
     const conditions = [];
+
+    // NOTE: In the future, we may want to ensure that `branchId` is passed, but for now we'll assume it's enforced higher up or added here
+    // Branch scoping: We must join with patientBranchProfiles
+    const branchScopeQuery = eq(
+      patientBranchProfiles.branchId,
+      input.branchId || 0,
+    );
 
     if (search?.trim()) {
       const term = `%${search.trim()}%`;
@@ -106,20 +114,55 @@ export class PatientService {
           ilike(patients.patientNumber, term),
           ilike(patients.email, term),
           ilike(patients.phone, term),
+          ilike(patients.nationalId, term),
+          // We can also search insurance member numbers if we join, but skipping for now or adding a subquery
         )!,
       );
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause =
+      conditions.length > 0
+        ? and(...conditions, branchScopeQuery)
+        : branchScopeQuery;
 
+    // Using inner join to enforce branch scoping
     const [countResult, results] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)::int` })
         .from(patients)
+        .innerJoin(
+          patientBranchProfiles,
+          eq(patients.id, patientBranchProfiles.patientId),
+        )
         .where(whereClause),
       db
-        .select()
+        .select({
+          id: patients.id,
+          patientNumber: patients.patientNumber,
+          salutation: patients.salutation,
+          firstName: patients.firstName,
+          middleName: patients.middleName,
+          lastName: patients.lastName,
+          dateOfBirth: patients.dateOfBirth,
+          gender: patients.gender,
+          maritalStatus: patients.maritalStatus,
+          bloodGroup: patients.bloodGroup,
+          email: patients.email,
+          phone: patients.phone,
+          country: patients.country,
+          address: patients.address,
+          passportNumber: patients.passportNumber,
+          nationalId: patients.nationalId,
+          nhifNumber: patients.nhifNumber,
+          createdAt: patients.createdAt,
+          updatedAt: patients.updatedAt,
+          isActive: patientBranchProfiles.isActive,
+        })
         .from(patients)
+        .innerJoin(
+          patientBranchProfiles,
+          eq(patients.id, patientBranchProfiles.patientId),
+        )
         .where(whereClause)
         .orderBy(desc(patients.createdAt))
         .limit(limit)
@@ -131,6 +174,40 @@ export class PatientService {
     return {
       items: results.map((r) => toPatientListItem(r as PatientRow)),
       total,
+    };
+  }
+
+  /**
+   * Fetch a single patient by ID. Used for the edit/view page.
+   */
+  async getPatient(id: string) {
+    const [patient] = await db
+      .select()
+      .from(patients)
+      .where(eq(patients.id, id));
+
+    if (!patient) {
+      throw new Error(`Patient with ID ${id} not found`);
+    }
+
+    // We could fetch relations here (kin, guarantor, insurance)
+    const [kin, guarantors, insurances] = await Promise.all([
+      db.select().from(patientKins).where(eq(patientKins.patientId, id)),
+      db
+        .select()
+        .from(patientGuarantors)
+        .where(eq(patientGuarantors.patientId, id)),
+      db
+        .select()
+        .from(patientInsurances)
+        .where(eq(patientInsurances.patientId, id)),
+    ]);
+
+    return {
+      ...toPatientListItem(patient as PatientRow),
+      kin,
+      guarantor: guarantors,
+      insurance: insurances[0] || null, // Assuming one primary insurance for UI simplicity though DB is normalized
     };
   }
 
@@ -149,30 +226,45 @@ export class PatientService {
     }
     const safeBranchCode = branchRec.code || "UNK";
 
-    const seqResult = await db.execute(
-      sql`SELECT nextval('patient_number_seq') as nextval`,
-    );
-    const nextvalRow = (seqResult as { rows: { nextval?: unknown }[] }).rows[0];
-    const nextVal =
-      nextvalRow?.nextval != null ? String(nextvalRow.nextval) : "1";
-    const patientNumber = `${safeBranchCode}-${String(Number(nextVal)).padStart(6, "0")}`;
+    // Deduplication Check
+    const dupConditions = [];
+    if (input.nationalId) {
+      dupConditions.push(eq(patients.nationalId, input.nationalId));
+    }
+    if (input.phone) {
+      // Check phone + last name exactly
+      dupConditions.push(
+        and(
+          eq(patients.phone, input.phone),
+          ilike(patients.lastName, input.lastName),
+        )!,
+      );
+    }
 
-    // Execute everything in a transaction because of related table dependencies
-    const today = new Date();
-    const derivedAge =
-      input.age ??
-      (input.dateOfBirth
-        ? Math.max(
-            0,
-            Math.min(
-              150,
-              today.getFullYear() -
-                new Date(input.dateOfBirth.split("T")[0]).getFullYear(),
-            ),
-          )
-        : null);
+    if (dupConditions.length > 0) {
+      const [existing] = await db
+        .select({ id: patients.id, patientNumber: patients.patientNumber })
+        .from(patients)
+        .where(or(...dupConditions));
+
+      if (existing) {
+        throw new Error(
+          `Potential duplicate found: Patient ${existing.patientNumber} matches these details.`,
+        );
+      }
+    }
 
     const patientRow = await db.transaction(async (tx) => {
+      // Sequence generation inside transaction
+      const seqResult = await tx.execute(
+        sql`SELECT nextval('patient_number_seq') as nextval`,
+      );
+      const nextvalRow = (seqResult as { rows: { nextval?: unknown }[] })
+        .rows[0];
+      const nextVal =
+        nextvalRow?.nextval != null ? String(nextvalRow.nextval) : "1";
+      const patientNumber = `${safeBranchCode}-${String(Number(nextVal)).padStart(6, "0")}`;
+
       // 1. Create Patient
       const [created] = await tx
         .insert(patients)
@@ -182,8 +274,9 @@ export class PatientService {
           firstName: input.firstName,
           middleName: input.middleName,
           lastName: input.lastName,
-          dateOfBirth: input.dateOfBirth ? input.dateOfBirth.split("T")[0] : undefined,
-          age: derivedAge,
+          dateOfBirth: input.dateOfBirth
+            ? input.dateOfBirth.split("T")[0]
+            : undefined,
           gender: input.gender as any, // Cast to mapped enum correctly later down ORM stack
           maritalStatus: input.maritalStatus as any,
           bloodGroup: input.bloodGroup as any,
@@ -221,7 +314,7 @@ export class PatientService {
             phone: k.phone,
             email: k.email === "" ? null : k.email,
             nationalId: k.nationalId,
-          }))
+          })),
         );
       }
 
@@ -238,7 +331,7 @@ export class PatientService {
             email: g.email === "" ? null : g.email,
             nationalId: g.nationalId,
             employer: g.employer,
-          }))
+          })),
         );
       }
 
@@ -250,6 +343,9 @@ export class PatientService {
           memberNumber: input.insurance.memberNumber,
           principalName: input.insurance.principalName,
           principalRelationship: input.insurance.principalRelationship,
+          expiresAt: input.insurance.expiresAt
+            ? input.insurance.expiresAt.split("T")[0]
+            : undefined,
           isActive: true,
         });
       }
@@ -262,21 +358,42 @@ export class PatientService {
 
   /**
    * KPI counts: total and active patients from the DB.
-   * Note: Active patients must now be determined dynamically per branch,
-   * but for global metrics we just return total patients from the `patients` table.
+   * Scoped to the active branch.
    */
-  async getKpis() {
-    const [row] = await db
-      .select({
-        total: sql<number>`count(*)::int`,
-      })
-      .from(patients);
+  async getKpis(branchId: number) {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    const totalPatients = row?.total ?? 0;
+    const [totalRow, activeRow, newRow] = await Promise.all([
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(patientBranchProfiles)
+        .where(eq(patientBranchProfiles.branchId, branchId)),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(patientBranchProfiles)
+        .where(
+          and(
+            eq(patientBranchProfiles.branchId, branchId),
+            eq(patientBranchProfiles.isActive, true),
+          ),
+        ),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(patientBranchProfiles)
+        .innerJoin(patients, eq(patients.id, patientBranchProfiles.patientId))
+        .where(
+          and(
+            eq(patientBranchProfiles.branchId, branchId),
+            sql`${patients.createdAt} >= ${firstDayOfMonth.toISOString()}`,
+          ),
+        ),
+    ]);
 
     return {
-      totalPatients,
-      activePatients: totalPatients, // Global fallback
+      totalPatients: totalRow[0]?.total ?? 0,
+      activePatients: activeRow[0]?.total ?? 0,
+      newRegistrationsMonth: newRow[0]?.total ?? 0,
     };
   }
 }

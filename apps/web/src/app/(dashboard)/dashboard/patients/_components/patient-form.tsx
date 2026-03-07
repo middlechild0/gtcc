@@ -13,17 +13,16 @@ import { Input } from "@visyx/ui/input";
 import { Label } from "@visyx/ui/label";
 import { SubmitButton } from "@visyx/ui/submit-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@visyx/ui/tabs";
-import { trpc, type RouterInputs } from "@/trpc/client";
-import { useHasPermission } from "@/app/auth/components/permission-gate";
-import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
+import { isPast, parseISO } from "date-fns";
+import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import {
-  useFieldArray,
-  useForm,
-  type FieldErrors,
-} from "react-hook-form";
-import { z, type ZodType } from "zod";
+import { useEffect, useState } from "react";
+import { type FieldErrors, useFieldArray, useForm } from "react-hook-form";
+import { type ZodType, z } from "zod";
+import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
+import { useHasPermission } from "@/app/auth/components/permission-gate";
+import { formatAge } from "@/lib/age-formatter";
+import { type RouterInputs, trpc } from "@/trpc/client";
 
 const EAST_AFRICAN_COUNTRIES = [
   "Kenya",
@@ -42,18 +41,13 @@ type PatientFormValues = CreatePatientInput & {
   // UI-only helpers can go here later if needed
 };
 
-const patientFormSchema: ZodType<PatientFormValues> = z.object({
+const patientFormSchema = z.object({
   // Basic
   salutation: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional(),
   lastName: z.string().min(1, "Last name is required"),
   dateOfBirth: z.string().optional(),
-  age: z
-    .number({ invalid_type_error: "Age is required" })
-    .int("Age must be a whole number")
-    .min(0, "Age is required")
-    .max(150, "Age must be realistic"),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   maritalStatus: z
     .enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED", "SEPARATED", "OTHER"])
@@ -63,13 +57,11 @@ const patientFormSchema: ZodType<PatientFormValues> = z.object({
     .optional(),
 
   // Contact
-  email: z.union([z.literal(""), z.string().email("Invalid email address")]).optional(),
+  email: z
+    .union([z.literal(""), z.string().email("Invalid email address")])
+    .optional(),
   phone: z.string().optional(),
-  country: z
-    .enum(EAST_AFRICAN_COUNTRIES, {
-      invalid_type_error: "Country is required",
-    })
-    .default("Kenya"),
+  country: z.string().default("Kenya"),
   address: z.string().optional(),
 
   // IDs
@@ -89,7 +81,9 @@ const patientFormSchema: ZodType<PatientFormValues> = z.object({
         lastName: z.string().min(1, "Last name is required"),
         relationship: z.string().optional(),
         phone: z.string().optional(),
-        email: z.union([z.literal(""), z.string().email("Invalid email address")]).optional(),
+        email: z
+          .union([z.literal(""), z.string().email("Invalid email address")])
+          .optional(),
         nationalId: z.string().optional(),
       }),
     )
@@ -104,7 +98,9 @@ const patientFormSchema: ZodType<PatientFormValues> = z.object({
         lastName: z.string().min(1, "Last name is required"),
         relationship: z.string().optional(),
         phone: z.string().optional(),
-        email: z.union([z.literal(""), z.string().email("Invalid email address")]).optional(),
+        email: z
+          .union([z.literal(""), z.string().email("Invalid email address")])
+          .optional(),
         nationalId: z.string().optional(),
         employer: z.string().optional(),
       }),
@@ -118,6 +114,7 @@ const patientFormSchema: ZodType<PatientFormValues> = z.object({
       memberNumber: z.string().min(1, "Member number is required"),
       principalName: z.string().optional(),
       principalRelationship: z.string().optional(),
+      expiresAt: z.string().optional(),
     })
     .optional(),
 });
@@ -129,7 +126,10 @@ type PatientFormProps = {
   cancelHref: string;
 };
 
-function tabHasErrors(tab: string, errors: FieldErrors<PatientFormValues>): boolean {
+function tabHasErrors(
+  tab: string,
+  errors: FieldErrors<PatientFormValues>,
+): boolean {
   const keys = new Set(Object.keys(errors));
 
   if (tab === "basic") {
@@ -139,7 +139,6 @@ function tabHasErrors(tab: string, errors: FieldErrors<PatientFormValues>): bool
       keys.has("middleName") ||
       keys.has("lastName") ||
       keys.has("dateOfBirth") ||
-      keys.has("age") ||
       keys.has("gender") ||
       keys.has("maritalStatus") ||
       keys.has("bloodGroup") ||
@@ -174,16 +173,19 @@ function tabHasErrors(tab: string, errors: FieldErrors<PatientFormValues>): bool
   return false;
 }
 
+const TABS_ORDER = ["basic", "ids", "kin", "guarantor", "insurance"] as const;
+type TabType = (typeof TABS_ORDER)[number];
+
 export function PatientForm({
   defaultValues,
   onSubmit,
   submitting,
   cancelHref,
 }: PatientFormProps) {
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState<TabType>("basic");
   const { branches, activeBranchId } = useBranch();
   const { allowed: canUseInsurance } = useHasPermission(
-    "billing:view_insurance_providers",
+    "billing:manage_insurance_providers",
   );
   const { data: providers } = trpc.billing.insurance.listProviders.useQuery(
     undefined,
@@ -219,8 +221,56 @@ export function PatientForm({
   });
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await onSubmit(values);
+    await onSubmit(values as unknown as CreatePatientInput);
   });
+
+  const handleTabChange = async (value: string) => {
+    const nextTabIndex = TABS_ORDER.indexOf(value as TabType);
+    const currentIndex = TABS_ORDER.indexOf(activeTab);
+
+    // Only validate if moving forward
+    if (nextTabIndex > currentIndex) {
+      // Validate current tab before moving forward
+      let isValid = true;
+      if (activeTab === "basic") {
+        isValid = await form.trigger([
+          "firstName",
+          "lastName",
+          "branchId",
+          "email",
+          "salutation",
+          "middleName",
+          "dateOfBirth",
+          "gender",
+          "maritalStatus",
+          "bloodGroup",
+          "phone",
+          "country",
+          "address",
+        ]);
+      } else if (activeTab === "ids") {
+        isValid = await form.trigger([
+          "nationalId",
+          "passportNumber",
+          "nhifNumber",
+        ]);
+      } else if (activeTab === "kin") {
+        isValid = await form.trigger(["kin"]);
+      } else if (activeTab === "guarantor") {
+        isValid = await form.trigger(["guarantor"]);
+      }
+
+      if (!isValid) return; // Prevent navigation if invalid
+    }
+
+    setActiveTab(value as TabType);
+  };
+
+  const currentDob = form.watch("dateOfBirth");
+  const currentExpiry = form.watch("insurance.expiresAt");
+  const isInsuranceExpired = currentExpiry
+    ? isPast(parseISO(currentExpiry))
+    : false;
 
   return (
     <Card>
@@ -236,28 +286,26 @@ export function PatientForm({
             </div>
           ) : null}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-2 w-full justify-start rounded-md border border-border bg-background/60 px-1">
-              {["basic", "ids", "kin", "guarantor", "insurance"].map(
-                (tab) => {
-                  const hasError = tabHasErrors(tab, form.formState.errors);
-                  const labelMap: Record<string, string> = {
-                    basic: "Basic information",
-                    ids: "IDs",
-                    kin: "Next of kin",
-                    guarantor: "Guarantor",
-                    insurance: "Insurance",
-                  };
-                  return (
-                    <TabsTrigger key={tab} value={tab} className="gap-1 px-4">
-                      <span>{labelMap[tab]}</span>
-                      {hasError ? (
-                        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-destructive" />
-                      ) : null}
-                    </TabsTrigger>
-                  );
-                },
-              )}
+              {["basic", "ids", "kin", "guarantor", "insurance"].map((tab) => {
+                const hasError = tabHasErrors(tab, form.formState.errors);
+                const labelMap: Record<string, string> = {
+                  basic: "Basic information",
+                  ids: "IDs",
+                  kin: "Next of kin",
+                  guarantor: "Guarantor",
+                  insurance: "Insurance",
+                };
+                return (
+                  <TabsTrigger key={tab} value={tab} className="gap-1 px-4">
+                    <span>{labelMap[tab]}</span>
+                    {hasError ? (
+                      <span className="ml-1 h-1.5 w-1.5 rounded-full bg-destructive" />
+                    ) : null}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4">
@@ -370,27 +418,14 @@ export function PatientForm({
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="age">
-                    Age (years) <span className="text-destructive">*</span>
+                  <Label htmlFor="dateOfBirth">
+                    Date of birth
+                    <span className="ml-2 text-xs text-muted-foreground font-normal">
+                      {currentDob ? `(Age: ${formatAge(currentDob)})` : ""}
+                    </span>
                   </Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    min={0}
-                    max={150}
-                    placeholder="e.g. 34"
-                    {...form.register("age", { valueAsNumber: true })}
-                  />
-                  {form.formState.errors.age ? (
-                    <p className="text-destructive text-xs">
-                      {form.formState.errors.age.message}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of birth</Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
@@ -600,7 +635,8 @@ export function PatientForm({
               </div>
               {kinFields.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No emergency contacts added. Add at least one for high‑risk cases.
+                  No emergency contacts added. Add at least one for high‑risk
+                  cases.
                 </p>
               ) : null}
               <div className="space-y-4">
@@ -610,15 +646,15 @@ export function PatientForm({
                     className="rounded-md border border-border p-3 space-y-3"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-medium">
-                        Contact {index + 1}
-                      </p>
+                      <p className="text-xs font-medium">Contact {index + 1}</p>
                       <div className="flex items-center gap-2">
                         <label className="flex items-center gap-1 text-xs">
                           <input
                             type="checkbox"
                             className="h-3 w-3"
-                            {...form.register(`kin.${index}.isPrimary` as const)}
+                            {...form.register(
+                              `kin.${index}.isPrimary` as const,
+                            )}
                           />
                           Primary
                         </label>
@@ -637,9 +673,7 @@ export function PatientForm({
                       <div className="space-y-1">
                         <Label className="text-xs">First name</Label>
                         <Input
-                          {...form.register(
-                            `kin.${index}.firstName` as const,
-                          )}
+                          {...form.register(`kin.${index}.firstName` as const)}
                         />
                         {form.formState.errors.kin?.[index]?.firstName ? (
                           <p className="text-destructive text-[10px]">
@@ -775,8 +809,8 @@ export function PatientForm({
                         {form.formState.errors.guarantor?.[index]?.lastName ? (
                           <p className="text-destructive text-[10px]">
                             {
-                              form.formState.errors.guarantor?.[index]
-                                ?.lastName?.message
+                              form.formState.errors.guarantor?.[index]?.lastName
+                                ?.message
                             }
                           </p>
                         ) : null}
@@ -815,89 +849,132 @@ export function PatientForm({
 
             {canUseInsurance ? (
               <TabsContent value="insurance" className="space-y-4">
-                <p className="text-sm font-medium">Insurance details (Kenya)</p>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="insurance.providerId">
-                      Insurance provider{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <select
-                      id="insurance.providerId"
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      {...form.register("insurance.providerId", {
-                        valueAsNumber: true,
-                      })}
-                    >
-                      <option value={0}>Select provider</option>
-                      {(providers ?? []).map((provider: any) => (
-                        <option key={provider.id} value={provider.id}>
-                          {provider.name}
-                        </option>
-                      ))}
-                    </select>
-                    {form.formState.errors.insurance?.providerId ? (
-                      <p className="text-destructive text-xs">
-                        {form.formState.errors.insurance?.providerId?.message}
-                      </p>
-                    ) : null}
+                <div className="space-y-4 rounded-md border border-border p-4">
+                  <p className="text-sm font-medium">Primary Insurance</p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="insurance.providerId">
+                        Provider <span className="text-destructive">*</span>
+                      </Label>
+                      <select
+                        id="insurance.providerId"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        {...form.register("insurance.providerId", {
+                          valueAsNumber: true,
+                        })}
+                      >
+                        <option value={0}>Select provider</option>
+                        {(providers ?? []).map((provider: any) => (
+                          <option key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </option>
+                        ))}
+                      </select>
+                      {form.formState.errors.insurance?.providerId ? (
+                        <p className="text-destructive text-xs">
+                          {form.formState.errors.insurance?.providerId?.message}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="insurance.memberNumber">
+                        Member / Card Number{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="insurance.memberNumber"
+                        {...form.register("insurance.memberNumber")}
+                      />
+                      {form.formState.errors.insurance?.memberNumber ? (
+                        <p className="text-destructive text-xs">
+                          {
+                            form.formState.errors.insurance?.memberNumber
+                              ?.message
+                          }
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="insurance.memberNumber">
-                      Member / card number{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="insurance.memberNumber"
-                      {...form.register("insurance.memberNumber")}
-                    />
-                    {form.formState.errors.insurance?.memberNumber ? (
-                      <p className="text-destructive text-xs">
-                        {form.formState.errors.insurance?.memberNumber?.message}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="insurance.principalName">
-                      Principal name (if patient is a dependant)
-                    </Label>
-                    <Input
-                      id="insurance.principalName"
-                      {...form.register("insurance.principalName")}
-                    />
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="insurance.principalName">
+                        Principal Name
+                      </Label>
+                      <Input
+                        id="insurance.principalName"
+                        placeholder="If dependent"
+                        {...form.register("insurance.principalName")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="insurance.principalRelationship">
+                        Relationship
+                      </Label>
+                      <Input
+                        id="insurance.principalRelationship"
+                        placeholder="e.g. Spouse"
+                        {...form.register("insurance.principalRelationship")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="insurance.expiresAt">Expiry Date</Label>
+                      <Input
+                        id="insurance.expiresAt"
+                        type="date"
+                        {...form.register("insurance.expiresAt")}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="insurance.principalRelationship">
-                      Relationship to principal
-                    </Label>
-                    <Input
-                      id="insurance.principalRelationship"
-                      {...form.register("insurance.principalRelationship")}
-                    />
-                  </div>
+
+                  {isInsuranceExpired && (
+                    <div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <p>
+                        This insurance policy appears to have expired. Please
+                        verify with the patient or provider.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             ) : (
               <TabsContent value="insurance" className="space-y-2">
                 <p className="text-sm font-medium">Insurance</p>
                 <p className="text-xs text-muted-foreground">
-                  You do not have permission to view insurance providers. Contact
-                  an administrator if you need access.
+                  You do not have permission to view insurance providers.
+                  Contact an administrator if you need access.
                 </p>
               </TabsContent>
             )}
           </Tabs>
         </CardContent>
-        <CardFooter className="flex items-center justify-between gap-2">
-          <Button type="button" variant="outline" asChild disabled={submitting}>
+        <CardFooter className="justify-between border-t bg-muted/20 px-6 py-4">
+          <Button variant="outline" asChild>
             <Link href={cancelHref}>Cancel</Link>
           </Button>
-          <SubmitButton type="submit" isSubmitting={Boolean(submitting)}>
-            Register patient
-          </SubmitButton>
+
+          <div className="flex items-center gap-2">
+            {activeTab !== "insurance" && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  const currentIndex = TABS_ORDER.indexOf(activeTab);
+                  if (currentIndex < TABS_ORDER.length - 1) {
+                    handleTabChange(TABS_ORDER[currentIndex + 1]!);
+                  }
+                }}
+              >
+                Next step
+              </Button>
+            )}
+            {activeTab === "insurance" && (
+              <SubmitButton isSubmitting={submitting ?? false}>
+                {submitting ? "Saving..." : "Save patient"}
+              </SubmitButton>
+            )}
+          </div>
         </CardFooter>
       </form>
     </Card>

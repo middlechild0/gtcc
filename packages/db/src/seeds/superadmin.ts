@@ -24,7 +24,9 @@ export async function seed() {
   const authResult = await db.execute<{
     id: string;
     email: string;
-  }>(sql`select id, email from auth.users where email = ${SUPERADMIN_EMAIL} limit 1`);
+  }>(
+    sql`select id, email from auth.users where email = ${SUPERADMIN_EMAIL} limit 1`,
+  );
 
   const authUser = authResult.rows[0];
 
@@ -68,4 +70,3 @@ export async function seed() {
     `Superadmin profile ensured for ${SUPERADMIN_EMAIL} with user_profiles.id=${profile.id}`,
   );
 }
-

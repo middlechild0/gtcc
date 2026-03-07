@@ -56,10 +56,18 @@ export const maritalStatusEnum = pgEnum("marital_status_enum", [
   "DIVORCED",
   "WIDOWED",
   "SEPARATED",
-  "OTHER"
+  "OTHER",
 ]);
 export const bloodGroupEnum = pgEnum("blood_group_enum", [
-  "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "UNKNOWN"
+  "A+",
+  "A-",
+  "B+",
+  "B-",
+  "AB+",
+  "AB-",
+  "O+",
+  "O-",
+  "UNKNOWN",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -118,7 +126,6 @@ export const patients = pgTable("patients", {
   middleName: text("middle_name"),
   lastName: text("last_name").notNull(),
   dateOfBirth: date("date_of_birth"),
-  age: integer("age"),
   gender: genderEnum("gender"),
   maritalStatus: maritalStatusEnum("marital_status"),
   bloodGroup: bloodGroupEnum("blood_group"),
@@ -131,8 +138,11 @@ export const patients = pgTable("patients", {
 
   // IDs
   passportNumber: text("passport_number"),
-  nationalId: text("national_id"),
+  nationalId: text("national_id").unique(),
   nhifNumber: text("nhif_number"),
+
+  // Merge strategy
+  mergedIntoId: uuid("merged_into_id"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -143,26 +153,32 @@ export const patients = pgTable("patients", {
 // Links a patient to a branch. Solves "registered once but active in specific branches".
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const patientBranchProfiles = pgTable("patient_branch_profiles", {
-  id: serial("id").primaryKey(),
-  patientId: uuid("patient_id")
-    .notNull()
-    .references(() => patients.id, { onDelete: "cascade" }),
-  branchId: integer("branch_id")
-    .notNull()
-    .references(() => branches.id, { onDelete: "cascade" }),
+export const patientBranchProfiles = pgTable(
+  "patient_branch_profiles",
+  {
+    id: serial("id").primaryKey(),
+    patientId: uuid("patient_id")
+      .notNull()
+      .references(() => patients.id, { onDelete: "cascade" }),
+    branchId: integer("branch_id")
+      .notNull()
+      .references(() => branches.id, { onDelete: "cascade" }),
 
-  // Indicates if this was the branch where the patient was originally registered
-  isRegistrationBranch: boolean("is_registration_branch").default(true).notNull(),
+    // Indicates if this was the branch where the patient was originally registered
+    isRegistrationBranch: boolean("is_registration_branch")
+      .default(true)
+      .notNull(),
 
-  // Status of the patient within this specific branch context
-  isActive: boolean("is_active").default(true).notNull(),
+    // Status of the patient within this specific branch context
+    isActive: boolean("is_active").default(true).notNull(),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (t) => ({
-  unq: unique().on(t.patientId, t.branchId)
-}));
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    unq: unique().on(t.patientId, t.branchId),
+  }),
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PATIENT KIN (Emergency Contact)
@@ -244,6 +260,7 @@ export const patientInsurances = pgTable("patient_insurances", {
   principalName: text("principal_name"), // If patient is a dependent
   principalRelationship: text("principal_relationship"),
   isActive: boolean("is_active").default(true).notNull(),
+  expiresAt: date("expires_at"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -505,13 +522,15 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
 export const patientsRelations = relations(patients, ({ many, one }) => ({
   branchProfiles: many(patientBranchProfiles),
   insurances: many(patientInsurances),
-  kin: one(patientKins, {
-    fields: [patients.id],
-    references: [patientKins.patientId],
+  kin: many(patientKins),
+  guarantor: many(patientGuarantors),
+  mergedInto: one(patients, {
+    fields: [patients.mergedIntoId],
+    references: [patients.id],
+    relationName: "mergedInto",
   }),
-  guarantor: one(patientGuarantors, {
-    fields: [patients.id],
-    references: [patientGuarantors.patientId],
+  mergedFrom: many(patients, {
+    relationName: "mergedInto",
   }),
 }));
 

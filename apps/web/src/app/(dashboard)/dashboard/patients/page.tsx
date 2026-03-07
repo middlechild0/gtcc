@@ -57,7 +57,7 @@ function PatientsContent() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Total patients</CardTitle>
@@ -77,6 +77,17 @@ function PatientsContent() {
           <CardContent>
             <p className="text-3xl font-semibold">
               {kpisLoading ? "—" : (kpis?.activePatients ?? 0)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">New Registrations</CardTitle>
+            <CardDescription>Patients registered this month.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold">
+              {kpisLoading ? "—" : ((kpis as any)?.newRegistrationsMonth ?? 0)}
             </p>
           </CardContent>
         </Card>
