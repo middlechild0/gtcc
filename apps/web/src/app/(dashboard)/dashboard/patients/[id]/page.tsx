@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { ArrowLeft, Edit, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
+import { useAuth } from "@/app/auth/_hooks/use-auth";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { trpc } from "@/trpc/client";
 
@@ -23,6 +24,7 @@ export default function PatientDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { hasPermission } = useAuth();
   const { data: patient, isLoading } = trpc.patients.get.useQuery({ id });
 
   if (isLoading) {
@@ -69,12 +71,14 @@ export default function PatientDetailsPage({
               Back to Patients
             </Link>
           </Button>
-          <Button asChild size="sm">
-            <Link href={`/dashboard/patients/${patient.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Profile
-            </Link>
-          </Button>
+          {hasPermission("patients:edit") && (
+            <Button asChild size="sm">
+              <Link href={`/dashboard/patients/${patient.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Profile
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Profile Card Header */}

@@ -56,9 +56,10 @@ type PatientsTableProps = {
   search: string;
   onSearchChange: (value: string) => void;
   pagination?: PaginationState;
-  totalFiltered: number;
+  totalFiltered?: number;
   onEdit?: (patient: Patient) => void;
   onView?: (patient: Patient) => void;
+  canDeactivate?: boolean;
 };
 
 export function PatientsTable({
@@ -69,9 +70,10 @@ export function PatientsTable({
   search,
   onSearchChange,
   pagination,
-  totalFiltered,
+  totalFiltered = 0,
   onEdit,
   onView,
+  canDeactivate,
 }: PatientsTableProps) {
   const { deactivatePatient, isDeactivating } = usePatientActions();
 
@@ -179,22 +181,24 @@ export function PatientsTable({
                           Edit Profile
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        disabled={isDeactivating || !patient.isActive}
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to deactivate this patient from the current branch?",
-                            )
-                          ) {
-                            deactivatePatient(patient.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Deactivate
-                      </DropdownMenuItem>
+                      {canDeactivate && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={isDeactivating || !patient.isActive}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Are you sure you want to deactivate this patient from the current branch?",
+                              )
+                            ) {
+                              deactivatePatient(patient.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Deactivate
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

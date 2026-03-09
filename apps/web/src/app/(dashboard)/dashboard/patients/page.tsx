@@ -16,10 +16,12 @@ import { PatientsHeader } from "@/app/(dashboard)/dashboard/patients/_components
 import { PatientsTable } from "@/app/(dashboard)/dashboard/patients/_components/patients-table";
 import { usePatientKpis } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patient-kpis";
 import { usePatientsList } from "@/app/(dashboard)/dashboard/patients/_hooks/use-patients-list";
+import { useAuth } from "@/app/auth/_hooks/use-auth";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 
 function PatientsContent() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
   const { kpis, isLoading: kpisLoading } = usePatientKpis();
   const {
     filteredPatients,
@@ -39,12 +41,14 @@ function PatientsContent() {
         description="Manage and view patient records."
         actions={
           <>
-            <Button asChild>
-              <Link href="/dashboard/patients/new">
-                <Plus className="mr-2 size-4" />
-                New patient
-              </Link>
-            </Button>
+            {hasPermission("patients:create") && (
+              <Button asChild>
+                <Link href="/dashboard/patients/new">
+                  <Plus className="mr-2 size-4" />
+                  New patient
+                </Link>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="icon"
@@ -118,12 +122,17 @@ function PatientsContent() {
             onSearchChange={setSearch}
             pagination={pagination}
             totalFiltered={totalFiltered}
-            onEdit={(patient) => {
-              router.push(`/dashboard/patients/${patient.id}/edit`);
-            }}
+            onEdit={
+              hasPermission("patients:edit")
+                ? (patient) => {
+                    router.push(`/dashboard/patients/${patient.id}/edit`);
+                  }
+                : undefined
+            }
             onView={(patient) => {
               router.push(`/dashboard/patients/${patient.id}`);
             }}
+            canDeactivate={hasPermission("patients:delete")}
           />
         </CardContent>
       </Card>
