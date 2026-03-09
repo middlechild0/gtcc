@@ -273,6 +273,217 @@ export const patientInsurances = pgTable("patient_insurances", {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// QUEUE & VISIT TYPES (Dynamic Routing Configurations)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const departments = pgTable("departments", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Reception", "Triage", "Doctor"
+  code: text("code").notNull().unique(), // e.g., "RECEPTION", "DOCTOR", "OPTICIAN"
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const visitTypes = pgTable("visit_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Complete Eye Exam", "Frame Repair"
+  workflowSteps: jsonb("workflow_steps").notNull(), // e.g. ["RECEPTION", "TRIAGE", "DOCTOR", "OPTICIAN", "CASHIER"]
+  baseFee: integer("base_fee"),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VISITS (The Queue)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const visitPriorityEnum = pgEnum("visit_priority", ["NORMAL", "URGENT"]);
+export const visitStatusEnum = pgEnum("visit_status", [
+  "WAITING",
+  "IN_PROGRESS",
+  "DONE",
+  "ON_HOLD",
+]);
+export const paymentModeEnum = pgEnum("payment_mode", [
+  "CASH",
+  "MPESA",
+  "INSURANCE",
+  "CARD",
+]);
+
+export const visits = pgTable("visits", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  branchId: integer("branch_id")
+    .notNull()
+    .references(() => branches.id, { onDelete: "cascade" }),
+  visitTypeId: integer("visit_type_id")
+    .notNull()
+    .references(() => visitTypes.id),
+
+  ticketNumber: text("ticket_number").notNull(),
+  priority: visitPriorityEnum("priority").default("NORMAL").notNull(),
+
+  // Current Location in the clinic
+  currentDepartmentId: integer("current_department_id")
+    .notNull()
+    .references(() => departments.id),
+  status: visitStatusEnum("status").default("WAITING").notNull(),
+
+  registeredAt: timestamp("registered_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FINANCIAL RECORDS (Invoices & Payments)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const invoiceStatusEnum = pgEnum("invoice_status", [
+  "DRAFT",
+  "ISSUED",
+  "PAID",
+  "VOIDED",
+]);
+
+export const invoices = pgTable("invoices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  totalAmount: integer("total_amount").default(0).notNull(),
+  amountPaid: integer("amount_paid").default(0).notNull(),
+  status: invoiceStatusEnum("status").default("DRAFT").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const invoiceLineItems = pgTable("invoice_line_items", {
+  id: serial("id").primaryKey(),
+  invoiceId: uuid("invoice_id")
+    .notNull()
+    .references(() => invoices.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  amount: integer("amount").notNull(),
+  departmentSource: text("department_source"), // Internal reference for reporting where the charge came from
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  invoiceId: uuid("invoice_id")
+    .notNull()
+    .references(() => invoices.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  paymentMode: paymentModeEnum("payment_mode").notNull(),
+  receiptNumber: text("receipt_number"), // e.g. Mpesa Transaction ID
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLINICAL RECORDS (Children of Visits)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const preTests = pgTable("pre_tests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .unique()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  // Using uuid referencing userProfiles instead of staff id for easier auth access
+  // if standard technicians are doing triage
+  performedById: uuid("performed_by_id").references(() => userProfiles.userId),
+  autoRefractionData: jsonb("auto_refraction_data"),
+  intraOcularPressure: jsonb("intra_ocular_pressure"),
+  visualAcuity: jsonb("visual_acuity"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/**
+ * Note: `assigned_doctor_id` is linked here so it accurately states which
+ * doctor saw the patient in the consultation room.
+ */
+export const consultations = pgTable("consultations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .unique()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  assignedDoctorId: uuid("assigned_doctor_id").references(
+    () => userProfiles.userId,
+  ),
+  chiefComplaint: text("chief_complaint"),
+  clinicalNotes: text("clinical_notes"),
+  diagnosis: text("diagnosis"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const opticalPrescriptions = pgTable("optical_prescriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  // Right Eye
+  odSphere: text("od_sphere"),
+  odCylinder: text("od_cylinder"),
+  odAxis: text("od_axis"),
+  // Left Eye
+  osSphere: text("os_sphere"),
+  osCylinder: text("os_cylinder"),
+  osAxis: text("os_axis"),
+  pupillaryDistance: text("pupillary_distance"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const contactLensFittings = pgTable("contact_lens_fittings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  baseCurve: text("base_curve"),
+  diameter: text("diameter"),
+  brand: text("brand"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const orderStatusEnum = pgEnum("order_status", [
+  "PENDING_LAB",
+  "IN_LAB",
+  "READY_FOR_COLLECTION",
+  "DISPATCHED",
+]);
+
+export const dispensingOrders = pgTable("dispensing_orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .unique()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  assignedOpticianId: uuid("assigned_optician_id").references(
+    () => userProfiles.userId,
+  ),
+  lensType: text("lens_type"),
+  frameModel: text("frame_model"),
+  isExternalRx: boolean("is_external_rx").default(false).notNull(),
+  status: orderStatusEnum("status").default("PENDING_LAB").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const repairs = pgTable("repairs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitId: uuid("visit_id")
+    .notNull()
+    .unique()
+    .references(() => visits.id, { onDelete: "cascade" }),
+  issueDescription: text("issue_description"),
+  partsReplaced: text("parts_replaced"),
+  costEstimate: integer("cost_estimate"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PERMISSIONS MASTER LIST
 // Seeded once at deployment. Never created at runtime by users.
 // Keys follow the format: module:action
@@ -431,6 +642,144 @@ export const auditLogs = pgTable("audit_logs", {
 // RELATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
+export const departmentsRelations = relations(departments, ({ many }) => ({
+  visits: many(visits),
+}));
+
+export const visitTypesRelations = relations(visitTypes, ({ many }) => ({
+  visits: many(visits),
+}));
+
+export const visitsRelations = relations(visits, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [visits.patientId],
+    references: [patients.id],
+  }),
+  branch: one(branches, {
+    fields: [visits.branchId],
+    references: [branches.id],
+  }),
+  visitType: one(visitTypes, {
+    fields: [visits.visitTypeId],
+    references: [visitTypes.id],
+  }),
+  currentDepartment: one(departments, {
+    fields: [visits.currentDepartmentId],
+    references: [departments.id],
+  }),
+  invoice: one(invoices, {
+    fields: [visits.id],
+    references: [invoices.visitId],
+  }),
+  preTest: one(preTests, {
+    fields: [visits.id],
+    references: [preTests.visitId],
+  }),
+  consultation: one(consultations, {
+    fields: [visits.id],
+    references: [consultations.visitId],
+  }),
+  opticalPrescriptions: many(opticalPrescriptions),
+  contactLensFittings: many(contactLensFittings),
+  dispensingOrder: one(dispensingOrders, {
+    fields: [visits.id],
+    references: [dispensingOrders.visitId],
+  }),
+  repair: one(repairs, {
+    fields: [visits.id],
+    references: [repairs.visitId],
+  }),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+  visit: one(visits, {
+    fields: [invoices.visitId],
+    references: [visits.id],
+  }),
+  lineItems: many(invoiceLineItems),
+  payments: many(payments),
+}));
+
+export const invoiceLineItemsRelations = relations(
+  invoiceLineItems,
+  ({ one }) => ({
+    invoice: one(invoices, {
+      fields: [invoiceLineItems.invoiceId],
+      references: [invoices.id],
+    }),
+  }),
+);
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [payments.invoiceId],
+    references: [invoices.id],
+  }),
+}));
+
+export const preTestsRelations = relations(preTests, ({ one }) => ({
+  visit: one(visits, {
+    fields: [preTests.visitId],
+    references: [visits.id],
+  }),
+  performedBy: one(userProfiles, {
+    fields: [preTests.performedById],
+    references: [userProfiles.userId],
+  }),
+}));
+
+export const consultationsRelations = relations(consultations, ({ one }) => ({
+  visit: one(visits, {
+    fields: [consultations.visitId],
+    references: [visits.id],
+  }),
+  assignedDoctor: one(userProfiles, {
+    fields: [consultations.assignedDoctorId],
+    references: [userProfiles.userId],
+  }),
+}));
+
+export const opticalPrescriptionsRelations = relations(
+  opticalPrescriptions,
+  ({ one }) => ({
+    visit: one(visits, {
+      fields: [opticalPrescriptions.visitId],
+      references: [visits.id],
+    }),
+  }),
+);
+
+export const contactLensFittingsRelations = relations(
+  contactLensFittings,
+  ({ one }) => ({
+    visit: one(visits, {
+      fields: [contactLensFittings.visitId],
+      references: [visits.id],
+    }),
+  }),
+);
+
+export const dispensingOrdersRelations = relations(
+  dispensingOrders,
+  ({ one }) => ({
+    visit: one(visits, {
+      fields: [dispensingOrders.visitId],
+      references: [visits.id],
+    }),
+    assignedOptician: one(userProfiles, {
+      fields: [dispensingOrders.assignedOpticianId],
+      references: [userProfiles.userId],
+    }),
+  }),
+);
+
+export const repairsRelations = relations(repairs, ({ one }) => ({
+  visit: one(visits, {
+    fields: [repairs.visitId],
+    references: [visits.id],
+  }),
+}));
+
 export const userProfilesRelations = relations(
   userProfiles,
   ({ one, many }) => ({
@@ -530,6 +879,7 @@ export const patientsRelations = relations(patients, ({ many, one }) => ({
   insurances: many(patientInsurances),
   kin: many(patientKins),
   guarantor: many(patientGuarantors),
+  visits: many(visits),
   mergedInto: one(patients, {
     fields: [patients.mergedIntoId],
     references: [patients.id],

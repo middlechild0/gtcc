@@ -110,6 +110,32 @@ const PERMISSIONS = [
     description: "Upload and manage files attached to patient records",
   },
 
+  // Queue Management
+  {
+    key: "queue:view",
+    module: "queue",
+    label: "View Clinical Queue",
+    description: "View the patient queue for different departments",
+  },
+  {
+    key: "queue:manage",
+    module: "queue",
+    label: "Progress Queue",
+    description: "Start visits, call patients, and advance the workflow",
+  },
+  {
+    key: "queue:transfer",
+    module: "queue",
+    label: "Transfer Patients",
+    description: "Manually bypass the standard clinical workflow by transferring patients to other departments",
+  },
+  {
+    key: "queue:cancel",
+    module: "queue",
+    label: "Cancel Visits",
+    description: "Cancel active visits and void associated empty invoices",
+  },
+
   // Billing, Payments & Insurance
   {
     key: "billing:create_invoice",
@@ -279,118 +305,126 @@ const PERMISSION_GROUPS: {
   description: string;
   permissions: PermissionKey[];
 }[] = [
-  {
-    name: "Doctor",
-    description:
-      "Clinical staff who perform consultations and write prescriptions.",
-    permissions: [
-      "patients:view",
-      "patients:create",
-      "patients:edit",
-      "clinical:create_consultation",
-      "clinical:view_consultations",
-      "clinical:create_prescription",
-      "clinical:view_prescriptions",
-      "clinical:manage_attachments",
-      "inventory:view",
-    ],
-  },
-  {
-    name: "Receptionist",
-    description:
-      "Front-desk staff who register patients. No billing or clinical write access.",
-    permissions: [
-      "patients:view",
-      "patients:create",
-      "patients:edit",
-      "clinical:view_consultations",
-      "clinical:view_prescriptions",
-      "branches:view",
-    ],
-  },
-  {
-    name: "Cashier",
-    description: "Handles invoicing, payment collection, and receipt issuance.",
-    permissions: [
-      "patients:view",
-      "billing:create_invoice",
-      "billing:view_invoices",
-      "billing:record_payment",
-      "billing:issue_receipt",
-      "billing:apply_discount",
-      "billing:view_insurance_claims",
-      "billing:create_insurance_claim",
-      "inventory:view",
-    ],
-  },
-  {
-    name: "Insurance Officer",
-    description:
-      "Manages insurance claims, provider setup, and aging follow-ups.",
-    permissions: [
-      "patients:view",
-      "billing:view_invoices",
-      "billing:manage_insurance_providers",
-      "billing:create_insurance_claim",
-      "billing:view_insurance_claims",
-      "billing:update_claim_status",
-      "billing:view_aging_reports",
-    ],
-  },
-  {
-    name: "Storekeeper",
-    description:
-      "Manages product catalog, stock levels, purchase orders, and suppliers.",
-    permissions: [
-      "inventory:view",
-      "inventory:manage_products",
-      "inventory:record_stock_movement",
-      "inventory:manage_purchase_orders",
-      "inventory:manage_suppliers",
-      "inventory:view_valuation",
-    ],
-  },
-  {
-    name: "Accountant",
-    description:
-      "Full accounting access: ledger, reports, receivables, payables, and exports.",
-    permissions: [
-      "accounting:view_dashboard",
-      "accounting:view_reports",
-      "accounting:export_reports",
-      "accounting:view_ledger",
-      "accounting:manage_ledger",
-      "accounting:view_accounts_receivable",
-      "accounting:view_accounts_payable",
-      "billing:view_invoices",
-      "billing:view_insurance_claims",
-      "billing:view_aging_reports",
-      "inventory:view_valuation",
-    ],
-  },
-  {
-    name: "Branch Manager",
-    description:
-      "Oversight role. Read access across all modules, limited write access.",
-    permissions: [
-      "patients:view",
-      "clinical:view_consultations",
-      "clinical:view_prescriptions",
-      "billing:view_invoices",
-      "billing:view_insurance_claims",
-      "billing:view_aging_reports",
-      "billing:apply_discount",
-      "inventory:view",
-      "inventory:view_valuation",
-      "accounting:view_dashboard",
-      "accounting:view_reports",
-      "accounting:export_reports",
-      "accounting:view_accounts_receivable",
-      "accounting:view_accounts_payable",
-      "branches:view",
-    ],
-  },
-];
+    {
+      name: "Doctor",
+      description:
+        "Clinical staff who perform consultations and write prescriptions.",
+      permissions: [
+        "patients:view",
+        "patients:create",
+        "patients:edit",
+        "queue:view",
+        "queue:manage",
+        "clinical:create_consultation",
+        "clinical:view_consultations",
+        "clinical:create_prescription",
+        "clinical:view_prescriptions",
+        "clinical:manage_attachments",
+        "inventory:view",
+      ],
+    },
+    {
+      name: "Receptionist",
+      description:
+        "Front-desk staff who register patients. No billing or clinical write access.",
+      permissions: [
+        "patients:view",
+        "patients:create",
+        "patients:edit",
+        "queue:view",
+        "queue:manage",
+        "queue:transfer",
+        "queue:cancel",
+        "clinical:view_consultations",
+        "clinical:view_prescriptions",
+        "branches:view",
+      ],
+    },
+    {
+      name: "Cashier",
+      description: "Handles invoicing, payment collection, and receipt issuance.",
+      permissions: [
+        "patients:view",
+        "queue:view",
+        "queue:manage",
+        "billing:create_invoice",
+        "billing:view_invoices",
+        "billing:record_payment",
+        "billing:issue_receipt",
+        "billing:apply_discount",
+        "billing:view_insurance_claims",
+        "billing:create_insurance_claim",
+        "inventory:view",
+      ],
+    },
+    {
+      name: "Insurance Officer",
+      description:
+        "Manages insurance claims, provider setup, and aging follow-ups.",
+      permissions: [
+        "patients:view",
+        "billing:view_invoices",
+        "billing:manage_insurance_providers",
+        "billing:create_insurance_claim",
+        "billing:view_insurance_claims",
+        "billing:update_claim_status",
+        "billing:view_aging_reports",
+      ],
+    },
+    {
+      name: "Storekeeper",
+      description:
+        "Manages product catalog, stock levels, purchase orders, and suppliers.",
+      permissions: [
+        "inventory:view",
+        "inventory:manage_products",
+        "inventory:record_stock_movement",
+        "inventory:manage_purchase_orders",
+        "inventory:manage_suppliers",
+        "inventory:view_valuation",
+      ],
+    },
+    {
+      name: "Accountant",
+      description:
+        "Full accounting access: ledger, reports, receivables, payables, and exports.",
+      permissions: [
+        "accounting:view_dashboard",
+        "accounting:view_reports",
+        "accounting:export_reports",
+        "accounting:view_ledger",
+        "accounting:manage_ledger",
+        "accounting:view_accounts_receivable",
+        "accounting:view_accounts_payable",
+        "billing:view_invoices",
+        "billing:view_insurance_claims",
+        "billing:view_aging_reports",
+        "inventory:view_valuation",
+      ],
+    },
+    {
+      name: "Branch Manager",
+      description:
+        "Oversight role. Read access across all modules, limited write access.",
+      permissions: [
+        "patients:view",
+        "clinical:view_consultations",
+        "clinical:view_prescriptions",
+        "billing:view_invoices",
+        "billing:view_insurance_claims",
+        "billing:view_aging_reports",
+        "billing:apply_discount",
+        "inventory:view",
+        "inventory:view_valuation",
+        "accounting:view_dashboard",
+        "accounting:view_reports",
+        "accounting:export_reports",
+        "accounting:view_accounts_receivable",
+        "accounting:view_accounts_payable",
+        "branches:view",
+      ],
+    },
+  ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEED FUNCTION
@@ -452,4 +486,13 @@ export async function seed() {
   }
 
   console.log("Seeding complete.");
+}
+
+if (require.main === module) {
+  seed()
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }

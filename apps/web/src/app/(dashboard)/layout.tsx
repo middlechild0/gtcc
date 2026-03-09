@@ -12,6 +12,7 @@ import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
 import { ZeroPermissionBanner } from "./dashboard/_components/zero-permission-banner";
 import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
+import { useQueueSubscription } from "./dashboard/_hooks/use-queue-subscription";
 import { useBranch } from "./dashboard/branch-context";
 import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
 
@@ -40,6 +41,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user } = useSession();
   const settingsMenuItems = useSettingsMenuItems(searchableRoutes);
+
+  useQueueSubscription();
 
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;

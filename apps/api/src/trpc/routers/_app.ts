@@ -5,6 +5,7 @@ import { branchesRouter } from "../../modules/branches/router";
 import { inventoryRouter } from "../../modules/inventory/router";
 import { patientsRouter } from "../../modules/patients/router";
 import { staffRouter } from "../../modules/staff/router";
+import { queueRouter } from "../../modules/queue/router";
 import { publicProcedure, router } from "../init";
 import { authRouter } from "./auth";
 
@@ -21,6 +22,7 @@ export const appRouter = router({
   accounting: accountingRouter,
   staff: staffRouter,
   branches: branchesRouter,
+  queue: queueRouter,
 });
 
 export type AppRouter = typeof appRouter;

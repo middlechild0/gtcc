@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Users } from "lucide-react";
+import { LayoutDashboard, User, Users, ListOrdered } from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
@@ -57,6 +57,28 @@ export const routes: RouteConfig[] = [
     parentId: "patients-list",
     permissions: "patients:create",
     showInSearch: true,
+  },
+
+  {
+    id: "queue-overview",
+    path: "/dashboard/queue",
+    label: "Live Queue",
+    group: "main",
+    showInSidebar: true,
+    showInSearch: true,
+    permissions: "queue:view",
+    icon: ListOrdered,
+  },
+  {
+    id: "queue-department",
+    path: "/dashboard/queue/[id]",
+    label: "Department Queue",
+    breadcrumbLabel: "Department Queue",
+    group: "main",
+    parentId: "queue-overview",
+    permissions: "queue:view",
+    showInSearch: false,
+    showInSidebar: false,
   },
 
   {

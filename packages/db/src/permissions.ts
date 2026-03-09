@@ -255,6 +255,32 @@ export const PERMISSIONS = [
     label: "View Accounts Payable",
     description: "View what the clinic owes suppliers",
   },
+
+  // Queue Operations
+  {
+    key: "queue:view",
+    module: "queue",
+    label: "View Queue",
+    description: "View active queue waitlists and statuses",
+  },
+  {
+    key: "queue:manage",
+    module: "queue",
+    label: "Manage Queue",
+    description: "Call patients and advance their workflow",
+  },
+  {
+    key: "queue:transfer",
+    module: "queue",
+    label: "Transfer Patient",
+    description: "Transfer a patient between departments manually",
+  },
+  {
+    key: "queue:cancel",
+    module: "queue",
+    label: "Cancel Visit",
+    description: "Cancel an active patient visit",
+  },
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];

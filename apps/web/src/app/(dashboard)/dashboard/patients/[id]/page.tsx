@@ -17,6 +17,7 @@ import { use } from "react";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { trpc } from "@/trpc/client";
+import { StartVisitDialog } from "./_components/start-visit-dialog";
 
 export default function PatientDetailsPage({
   params,
@@ -72,12 +73,15 @@ export default function PatientDetailsPage({
             </Link>
           </Button>
           {hasPermission("patients:edit") && (
-            <Button asChild size="sm">
-              <Link href={`/dashboard/patients/${patient.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/dashboard/patients/${patient.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </Link>
+              </Button>
+              <StartVisitDialog patientId={patient.id} patientName={fullName} />
+            </div>
           )}
         </div>
 
