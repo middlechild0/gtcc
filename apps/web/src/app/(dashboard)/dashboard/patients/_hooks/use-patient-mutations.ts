@@ -19,7 +19,21 @@ export function usePatientMutations() {
     },
   });
 
+  const update = trpc.patients.update.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.patients.list.invalidate(),
+        utils.patients.get.invalidate(),
+      ]);
+      toast.success("Patient updated successfully");
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Failed to update patient");
+    },
+  });
+
   return {
     create,
+    update,
   };
 }

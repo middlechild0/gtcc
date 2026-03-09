@@ -2,6 +2,14 @@
 
 import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@visyx/ui/dropdown-menu";
 import { Input } from "@visyx/ui/input";
 import {
   Select,
@@ -18,8 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from "@visyx/ui/table";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Eye,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
 import { formatAge } from "@/lib/age-formatter";
+import { usePatientActions } from "../_hooks/use-patient-actions";
 import type { Patient } from "../_utils/patient-types";
 
 type PaginationState = {
@@ -41,6 +57,8 @@ type PatientsTableProps = {
   onSearchChange: (value: string) => void;
   pagination?: PaginationState;
   totalFiltered: number;
+  onEdit?: (patient: Patient) => void;
+  onView?: (patient: Patient) => void;
 };
 
 export function PatientsTable({
@@ -52,7 +70,11 @@ export function PatientsTable({
   onSearchChange,
   pagination,
   totalFiltered,
+  onEdit,
+  onView,
 }: PatientsTableProps) {
+  const { deactivatePatient, isDeactivating } = usePatientActions();
+
   if (error) {
     return (
       <div className="p-4 text-sm text-destructive">
@@ -89,6 +111,7 @@ export function PatientsTable({
             <TableHead>Phone</TableHead>
             <TableHead>National ID</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,7 +124,7 @@ export function PatientsTable({
           ) : patients.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={8}
                 className="py-10 text-center text-muted-foreground text-sm"
               >
                 {emptyMessage}
@@ -132,6 +155,48 @@ export function PatientsTable({
                   <Badge variant={patient.isActive ? "default" : "secondary"}>
                     {patient.isActive ? "Active" : "Inactive"}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {onView && (
+                        <DropdownMenuItem onClick={() => onView(patient)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                      )}
+                      {onEdit && (
+                        <DropdownMenuItem onClick={() => onEdit(patient)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Profile
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        disabled={isDeactivating || !patient.isActive}
+                        onClick={() => {
+                          if (
+                            confirm(
+                              "Are you sure you want to deactivate this patient from the current branch?",
+                            )
+                          ) {
+                            deactivatePatient(patient.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Deactivate
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
@@ -217,6 +282,9 @@ function SkeletonRow() {
       </TableCell>
       <TableCell>
         <div className="h-6 w-16 rounded-full bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-8 w-8 rounded bg-muted" />
       </TableCell>
     </TableRow>
   );

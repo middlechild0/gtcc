@@ -10,6 +10,7 @@ import {
 } from "@visyx/ui/card";
 import { Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { PatientsHeader } from "@/app/(dashboard)/dashboard/patients/_components/patients-header";
 import { PatientsTable } from "@/app/(dashboard)/dashboard/patients/_components/patients-table";
@@ -18,6 +19,7 @@ import { usePatientsList } from "@/app/(dashboard)/dashboard/patients/_hooks/use
 import { RouteGuard } from "@/app/auth/components/route-guard";
 
 function PatientsContent() {
+  const router = useRouter();
   const { kpis, isLoading: kpisLoading } = usePatientKpis();
   const {
     filteredPatients,
@@ -116,6 +118,12 @@ function PatientsContent() {
             onSearchChange={setSearch}
             pagination={pagination}
             totalFiltered={totalFiltered}
+            onEdit={(patient) => {
+              router.push(`/dashboard/patients/${patient.id}/edit`);
+            }}
+            onView={(patient) => {
+              router.push(`/dashboard/patients/${patient.id}`);
+            }}
           />
         </CardContent>
       </Card>

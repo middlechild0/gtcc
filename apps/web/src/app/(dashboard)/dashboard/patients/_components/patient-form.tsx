@@ -110,8 +110,8 @@ const patientFormSchema = z.object({
   // Insurance
   insurance: z
     .object({
-      providerId: z.number().int().positive(),
-      memberNumber: z.string().min(1, "Member number is required"),
+      providerId: z.number().int().optional(),
+      memberNumber: z.string().optional(),
       principalName: z.string().optional(),
       principalRelationship: z.string().optional(),
       expiresAt: z.string().optional(),

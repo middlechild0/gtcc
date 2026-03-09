@@ -8,7 +8,12 @@ import {
   patients,
 } from "@visyx/db/schema";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
-import type { CreatePatientInput, ListPatientsInput } from "./schemas";
+import type {
+  CreatePatientInput,
+  DeactivatePatientInput,
+  ListPatientsInput,
+  UpdatePatientInput,
+} from "./schemas";
 
 /** Raw row from Drizzle (may have snake_case or camelCase keys depending on driver/casing). */
 type PatientRow = Record<string, unknown> & {
@@ -53,7 +58,6 @@ function get<T>(row: PatientRow, camel: string, snake: string): T | undefined {
   return (r[camel] ?? r[snake]) as T | undefined;
 }
 
-/** Normalize row to API shape so patientNumber is always present regardless of Drizzle result keys. */
 function toPatientListItem(row: PatientRow) {
   return {
     id: get<string>(row, "id", "id")!,
@@ -78,7 +82,6 @@ function toPatientListItem(row: PatientRow) {
       get<string | null>(row, "passportNumber", "passport_number") ?? null,
     nationalId: get<string | null>(row, "nationalId", "national_id") ?? null,
     nhifNumber: get<string | null>(row, "nhifNumber", "nhif_number") ?? null,
-    // Note: isActive is now branch-specific for true active status, but we may return it here for legacy or global level.
     isActive: get<boolean>(row, "isActive", "is_active") ?? true,
     createdAt: get<Date>(row, "createdAt", "created_at")!,
     updatedAt: get<Date>(row, "updatedAt", "updated_at")!,
@@ -86,20 +89,10 @@ function toPatientListItem(row: PatientRow) {
 }
 
 export class PatientService {
-  /**
-   * Fetch a paginated lists of patients.
-   */
   async getPatients(input: ListPatientsInput & { branchId: number }) {
     const { page, limit, search } = input;
-    // We removed global isActive from schema in plan, but wait, we kept it in schema?
-    // Wait, the schema modify step actually kept global isActive on the patient? Looking at the schema.ts:
-    // It seems I removed reading it from there in the new version.
-    // Actually going back to the DB schema diff, I missed deleting isActive. Let's just drop that eq() check or keep if it exists.
-    // For now we will rely on patientBranchProfiles if we wanted branch-specific, but let's query patients table directly for the global list.
     const conditions = [];
 
-    // NOTE: In the future, we may want to ensure that `branchId` is passed, but for now we'll assume it's enforced higher up or added here
-    // Branch scoping: We must join with patientBranchProfiles
     const branchScopeQuery = eq(
       patientBranchProfiles.branchId,
       input.branchId || 0,
@@ -115,7 +108,6 @@ export class PatientService {
           ilike(patients.email, term),
           ilike(patients.phone, term),
           ilike(patients.nationalId, term),
-          // We can also search insurance member numbers if we join, but skipping for now or adding a subquery
         )!,
       );
     }
@@ -125,7 +117,6 @@ export class PatientService {
         ? and(...conditions, branchScopeQuery)
         : branchScopeQuery;
 
-    // Using inner join to enforce branch scoping
     const [countResult, results] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)::int` })
@@ -177,9 +168,6 @@ export class PatientService {
     };
   }
 
-  /**
-   * Fetch a single patient by ID. Used for the edit/view page.
-   */
   async getPatient(id: string) {
     const [patient] = await db
       .select()
@@ -190,7 +178,6 @@ export class PatientService {
       throw new Error(`Patient with ID ${id} not found`);
     }
 
-    // We could fetch relations here (kin, guarantor, insurance)
     const [kin, guarantors, insurances] = await Promise.all([
       db.select().from(patientKins).where(eq(patientKins.patientId, id)),
       db
@@ -207,14 +194,10 @@ export class PatientService {
       ...toPatientListItem(patient as PatientRow),
       kin,
       guarantor: guarantors,
-      insurance: insurances[0] || null, // Assuming one primary insurance for UI simplicity though DB is normalized
+      insurance: insurances[0] || null,
     };
   }
 
-  /**
-   * Create a new patient record with a unique patient number (PAT-000001, …).
-   * Also binds them to the registration branch and optionally inserts kin, guarantor, and insurance.
-   */
   async createPatient(input: CreatePatientInput) {
     const [branchRec] = await db
       .select({ code: branches.code })
@@ -224,15 +207,11 @@ export class PatientService {
     if (!branchRec) {
       throw new Error(`Branch with ID ${input.branchId} not found`);
     }
-    const safeBranchCode = branchRec.code || "UNK";
-
-    // Deduplication Check
     const dupConditions = [];
     if (input.nationalId) {
       dupConditions.push(eq(patients.nationalId, input.nationalId));
     }
     if (input.phone) {
-      // Check phone + last name exactly
       dupConditions.push(
         and(
           eq(patients.phone, input.phone),
@@ -255,7 +234,6 @@ export class PatientService {
     }
 
     const patientRow = await db.transaction(async (tx) => {
-      // Sequence generation inside transaction
       const seqResult = await tx.execute(
         sql`SELECT nextval('patient_number_seq') as nextval`,
       );
@@ -263,9 +241,8 @@ export class PatientService {
         .rows[0];
       const nextVal =
         nextvalRow?.nextval != null ? String(nextvalRow.nextval) : "1";
-      const patientNumber = `${safeBranchCode}-${String(Number(nextVal)).padStart(6, "0")}`;
+      const patientNumber = String(Number(nextVal)).padStart(6, "0");
 
-      // 1. Create Patient
       const [created] = await tx
         .insert(patients)
         .values({
@@ -336,7 +313,11 @@ export class PatientService {
       }
 
       // 5. Insurance
-      if (input.insurance) {
+      if (
+        input.insurance &&
+        input.insurance.providerId &&
+        input.insurance.memberNumber
+      ) {
         await tx.insert(patientInsurances).values({
           patientId: created.id,
           providerId: input.insurance.providerId,
@@ -357,9 +338,133 @@ export class PatientService {
   }
 
   /**
-   * KPI counts: total and active patients from the DB.
-   * Scoped to the active branch.
+   * Update an existing patient record and their relations.
    */
+  async updatePatient(input: UpdatePatientInput) {
+    if (!input.id) throw new Error("Patient ID is required for update");
+
+    const patientRow = await db.transaction(async (tx) => {
+      // 1. Update Core Patient Details
+      const [updated] = await tx
+        .update(patients)
+        .set({
+          salutation: input.salutation,
+          firstName: input.firstName,
+          middleName: input.middleName,
+          lastName: input.lastName,
+          dateOfBirth: input.dateOfBirth
+            ? input.dateOfBirth.split("T")[0]
+            : undefined,
+          gender: input.gender as any,
+          maritalStatus: input.maritalStatus as any,
+          bloodGroup: input.bloodGroup as any,
+          email: input.email === "" ? null : input.email,
+          phone: input.phone,
+          country: input.country,
+          address: input.address,
+          passportNumber: input.passportNumber,
+          nationalId: input.nationalId,
+          nhifNumber: input.nhifNumber,
+          updatedAt: new Date(),
+        })
+        .where(eq(patients.id, input.id))
+        .returning();
+
+      if (!updated) {
+        throw new Error("Failed to update patient record");
+      }
+
+      // 2. Emergency Contact (Kin) Replace Pattern
+      if (input.kin) {
+        await tx.delete(patientKins).where(eq(patientKins.patientId, input.id));
+        if (input.kin.length > 0) {
+          await tx.insert(patientKins).values(
+            input.kin.map((k) => ({
+              patientId: input.id,
+              isPrimary: k.isPrimary ?? false,
+              firstName: k.firstName,
+              lastName: k.lastName,
+              relationship: k.relationship,
+              phone: k.phone,
+              email: k.email === "" ? null : k.email,
+              nationalId: k.nationalId,
+            })),
+          );
+        }
+      }
+
+      if (input.guarantor) {
+        await tx
+          .delete(patientGuarantors)
+          .where(eq(patientGuarantors.patientId, input.id));
+        if (input.guarantor.length > 0) {
+          await tx.insert(patientGuarantors).values(
+            input.guarantor.map((g) => ({
+              patientId: input.id,
+              isPrimary: g.isPrimary ?? false,
+              firstName: g.firstName,
+              lastName: g.lastName,
+              relationship: g.relationship,
+              phone: g.phone,
+              email: g.email === "" ? null : g.email,
+              nationalId: g.nationalId,
+              employer: g.employer,
+            })),
+          );
+        }
+      }
+
+      if (input.insurance !== undefined) {
+        await tx
+          .delete(patientInsurances)
+          .where(eq(patientInsurances.patientId, input.id));
+        if (
+          input.insurance &&
+          input.insurance.providerId &&
+          input.insurance.memberNumber
+        ) {
+          await tx.insert(patientInsurances).values({
+            patientId: input.id,
+            providerId: input.insurance.providerId,
+            memberNumber: input.insurance.memberNumber,
+            principalName: input.insurance.principalName,
+            principalRelationship: input.insurance.principalRelationship,
+            expiresAt: input.insurance.expiresAt
+              ? input.insurance.expiresAt.split("T")[0]
+              : undefined,
+            isActive: true,
+          });
+        }
+      }
+
+      return updated;
+    });
+
+    return toPatientListItem(patientRow as PatientRow);
+  }
+
+  async deactivatePatient(input: DeactivatePatientInput) {
+    const [updated] = await db
+      .update(patientBranchProfiles)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(patientBranchProfiles.patientId, input.id),
+          eq(patientBranchProfiles.branchId, input.branchId),
+        ),
+      )
+      .returning();
+
+    if (!updated) {
+      throw new Error("Failed to deactivate patient in this branch");
+    }
+
+    return { success: true };
+  }
+
   async getKpis(branchId: number) {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);

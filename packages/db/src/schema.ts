@@ -143,9 +143,9 @@ export const patients = pgTable("patients", {
   address: text("address"),
 
   // IDs
-  passportNumber: text("passport_number"),
+  passportNumber: text("passport_number").unique(),
   nationalId: text("national_id").unique(),
-  nhifNumber: text("nhif_number"),
+  nhifNumber: text("nhif_number").unique(),
 
   // Merge strategy
   mergedIntoId: uuid("merged_into_id"),

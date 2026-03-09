@@ -140,10 +140,7 @@ export class StaffService {
 
     // 3. Send custom welcome email via locally linked @visyx/email
     try {
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.APP_URL ||
-        "https://app.visyx.co.ke";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
       const loginLink = `${appUrl}/auth/sign-in`;
 
       const html = await render(

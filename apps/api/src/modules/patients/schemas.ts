@@ -65,8 +65,8 @@ export const CreatePatientSchema = z.object({
   // Insurance
   insurance: z
     .object({
-      providerId: z.number().int().positive(),
-      memberNumber: z.string().min(1, "Member number is required"),
+      providerId: z.number().int().optional(),
+      memberNumber: z.string().optional(),
       principalName: z.string().optional(),
       principalRelationship: z.string().optional(),
       expiresAt: z.string().optional(), // YYYY-MM-DD
@@ -87,3 +87,18 @@ export type ListPatientsInput = z.infer<typeof ListPatientsSchema>;
 export const GetPatientSchema = z.object({
   id: z.string().uuid(),
 });
+
+export const UpdatePatientSchema = CreatePatientSchema.partial().extend({
+  id: z.string().uuid("Patient ID is required for update"),
+  // Optionally, we might want to ensure branchId is not required during an update,
+  // but it's already optional due to .partial()
+});
+
+export type UpdatePatientInput = z.infer<typeof UpdatePatientSchema>;
+
+export const DeactivatePatientSchema = z.object({
+  id: z.string().uuid("Patient ID is required for deactivation"),
+  branchId: z.number().int().positive("Branch ID is required"),
+});
+
+export type DeactivatePatientInput = z.infer<typeof DeactivatePatientSchema>;
