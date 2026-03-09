@@ -160,6 +160,9 @@ export class QueueService {
 
             // 2. Determine initial department
             const firstStepCode = steps[0];
+            if (!firstStepCode) {
+                throw new Error("Initial department code is missing from workflow");
+            }
             const [initialDept] = await tx
                 .select()
                 .from(departments)
