@@ -72,6 +72,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SettingsMenu
               items={settingsMenuItems}
               searchPlaceholder="Search pages and settings"
+              align="end"
+              alignOffset={-56}
             />
           }
           className="border-sidebar-border bg-sidebar text-sidebar-foreground"
