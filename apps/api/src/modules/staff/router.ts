@@ -61,6 +61,20 @@ export const staffRouter = router({
       );
     }),
 
+  updateSelf: protectedProcedure
+    .use(withAuditLog("staff:self_updated", "staff"))
+    .input(UpdateStaffSchema.omit({ id: true }))
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.staff?.id) {
+        throw new Error("You are not linked to a staff record.");
+      }
+      return staffService.updateStaffProfile(
+        { ...input, id: ctx.staff.id },
+        ctx.isSuperuser,
+        ctx.staff.id,
+      );
+    }),
+
   deactivate: protectedProcedure
     .use(hasPermission("auth:manage_staff"))
     .use(withAuditLog("staff:deactivated", "staff"))

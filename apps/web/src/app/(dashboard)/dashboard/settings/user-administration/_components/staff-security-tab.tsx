@@ -191,38 +191,6 @@ export function StaffSecurityTab() {
           </div>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Two-factor authentication</CardTitle>
-          <CardDescription>
-            Add an extra layer of security with 2FA.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Two-factor authentication isn&apos;t available yet. When enabled,
-            you&apos;ll be able to protect accounts with an authenticator app
-            or SMS code.
-          </p>
-          <Button variant="outline" className="mt-4" disabled>
-            Enable 2FA (coming soon)
-          </Button>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Active sessions</CardTitle>
-          <CardDescription>
-            View and revoke active sessions for this user.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            We&apos;ll soon show a list of this user&apos;s active sessions so
-            you can revoke them if needed.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
