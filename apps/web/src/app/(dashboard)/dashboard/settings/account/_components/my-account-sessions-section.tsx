@@ -101,7 +101,7 @@ export function MyAccountSessionsSection({
           <Button
             type="button"
             variant="outline"
-            disabled={loading || !user || signingOutOthers}
+            disabled={loading || !user || !user.email || signingOutOthers}
             onClick={() => {
               void handleSignOutOtherSessions();
             }}

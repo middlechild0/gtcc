@@ -94,6 +94,7 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
           )}
         </div>
         <div className="flex items-center gap-2">
+          {actions}
           {user != null && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -144,7 +145,6 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {actions}
         </div>
         {children}
       </header>

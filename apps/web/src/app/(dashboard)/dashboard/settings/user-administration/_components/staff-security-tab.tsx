@@ -79,6 +79,7 @@ export function StaffSecurityTab() {
           <CardTitle>Password</CardTitle>
           <CardDescription>
             Change the user&apos;s password directly or send them a reset link.
+            These actions are recorded in the audit log.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

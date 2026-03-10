@@ -157,6 +157,10 @@ export function MyAccountProfileForm({
                 </option>
               ))}
             </select>
+            <p className="text-muted-foreground text-xs">
+              Primary branch is managed by your administrator. Contact them if
+              this looks incorrect.
+            </p>
           </div>
         ) : null}
 
