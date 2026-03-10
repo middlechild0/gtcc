@@ -7,6 +7,7 @@ import {
   ChangeStaffPasswordSchema,
   CreatePermissionGroupSchema,
   DeactivateStaffSchema,
+  DeletePermissionGroupSchema,
   GetPermissionGroupSchema,
   GetStaffSchema,
   GrantPermissionSchema,
@@ -195,6 +196,14 @@ export const staffRouter = router({
     .input(ListPermissionGroupsSchema)
     .query(async ({ input }) => {
       return staffService.listPermissionGroups(input);
+    }),
+
+  deleteGroup: protectedProcedure
+    .use(hasPermission("auth:manage_permission_groups"))
+    .use(withAuditLog("permission_group:deleted", "permission_group"))
+    .input(DeletePermissionGroupSchema)
+    .mutation(async ({ input }) => {
+      return staffService.deletePermissionGroup(input.id);
     }),
 
   // ─────────────────────────────────────────────────────────────────────────────

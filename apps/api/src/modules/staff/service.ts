@@ -808,6 +808,22 @@ export class StaffService {
 
     return await query;
   }
+
+  async deletePermissionGroup(id: number) {
+    const [deleted] = await db
+      .delete(permissionGroups)
+      .where(eq(permissionGroups.id, id))
+      .returning();
+
+    if (!deleted) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Group not found" });
+    }
+
+    // permissionGroupItems cascade-deletes automatically.
+    // staffPermissions.appliedFromGroupId is SET NULL via FK constraint —
+    // staff members keep all their individual permission rows.
+    return deleted;
+  }
 }
 
 export const staffService = new StaffService();

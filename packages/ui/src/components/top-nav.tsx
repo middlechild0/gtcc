@@ -118,7 +118,11 @@ const TopNav = React.forwardRef<HTMLElement, TopNavProps>(
                   <ChevronDown className="size-4 shrink-0 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="w-56"
+              >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col gap-1">
                     <p className="text-sm font-medium">{user.name}</p>

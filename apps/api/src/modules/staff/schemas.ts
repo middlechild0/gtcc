@@ -111,6 +111,10 @@ export const GetPermissionGroupSchema = z.object({
   id: z.number().int().positive(),
 });
 
+export const DeletePermissionGroupSchema = z.object({
+  id: z.number().int().positive(),
+});
+
 export const ListPermissionGroupsSchema = z.object({
   includeInactive: z.boolean().default(false).optional(),
 });
@@ -152,6 +156,9 @@ export type UpdatePermissionGroupInput = z.infer<
   typeof UpdatePermissionGroupSchema
 >;
 export type GetPermissionGroupInput = z.infer<typeof GetPermissionGroupSchema>;
+export type DeletePermissionGroupInput = z.infer<
+  typeof DeletePermissionGroupSchema
+>;
 export type ListPermissionGroupsInput = z.infer<
   typeof ListPermissionGroupsSchema
 >;

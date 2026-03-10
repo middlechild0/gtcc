@@ -143,6 +143,16 @@ export const routes: RouteConfig[] = [
     showInSearch: false,
   },
   {
+    id: "permission-groups",
+    path: "/dashboard/settings/user-administration/permission-groups",
+    label: "Permission Groups",
+    breadcrumbLabel: "Permission Groups",
+    group: "settings",
+    parentId: "user-admin-list",
+    permissions: "auth:manage_permission_groups",
+    showInSearch: true,
+  },
+  {
     id: "account-settings",
     path: "/dashboard/settings/account",
     label: "My Account",

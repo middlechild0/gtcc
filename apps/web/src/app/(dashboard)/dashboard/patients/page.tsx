@@ -23,7 +23,9 @@ function PatientsContent() {
   const router = useRouter();
   const { hasPermission } = useAuth();
   const canViewKpis = hasPermission("patients:view_kpis");
-  const { kpis, isLoading: kpisLoading } = usePatientKpis();
+  const { kpis, isLoading: kpisLoading } = usePatientKpis({
+    enabled: canViewKpis,
+  });
   const {
     filteredPatients,
     totalFiltered,

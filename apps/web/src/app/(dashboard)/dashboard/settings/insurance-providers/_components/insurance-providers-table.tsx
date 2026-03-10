@@ -55,8 +55,8 @@ export function InsuranceProvidersTable() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-[480px]">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>

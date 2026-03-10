@@ -35,18 +35,19 @@ export function StaffTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Job title</TableHead>
-          <TableHead>Branch</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="w-[100px] text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-[720px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Job title</TableHead>
+            <TableHead>Branch</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[100px] text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
         {isLoading && staff.length === 0 ? (
           <>
             <SkeletonRow />
@@ -90,8 +91,9 @@ export function StaffTable({
             </TableRow>
           ))
         )}
-      </TableBody>
-    </Table>
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

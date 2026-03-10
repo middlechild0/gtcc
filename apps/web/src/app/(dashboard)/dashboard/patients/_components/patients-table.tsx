@@ -103,21 +103,22 @@ export function PatientsTable({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Patient #</TableHead>
-            <TableHead>First name</TableHead>
-            <TableHead>Last name</TableHead>
-            <TableHead>Age</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>National ID</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[800px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Patient #</TableHead>
+              <TableHead>First name</TableHead>
+              <TableHead>Last name</TableHead>
+              <TableHead>Age</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>National ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {isLoading && patients.length === 0 ? (
             <>
               <SkeletonRow />
@@ -239,8 +240,9 @@ export function PatientsTable({
               </TableRow>
             ))
           )}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </div>
       {pagination && totalFiltered > 0 && (
         <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
