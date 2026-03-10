@@ -111,6 +111,7 @@ export function PatientsTable({
             <TableHead>Last name</TableHead>
             <TableHead>Age</TableHead>
             <TableHead>Phone</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>National ID</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-[50px]"></TableHead>
@@ -126,7 +127,7 @@ export function PatientsTable({
           ) : patients.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={8}
+                colSpan={9}
                 className="py-10 text-center text-muted-foreground text-sm"
               >
                 {emptyMessage}
@@ -136,7 +137,17 @@ export function PatientsTable({
             patients.map((patient) => (
               <TableRow key={patient.id} className="hover:bg-muted/50">
                 <TableCell className="font-mono text-sm tabular-nums">
-                  {patient.patientNumber ?? "—"}
+                  {patient.patientNumber ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.patientNumber}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">
                   {patient.firstName}
@@ -148,7 +159,30 @@ export function PatientsTable({
                   {formatAge(patient.dateOfBirth)}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {patient.phone ?? "—"}
+                  {patient.phone ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.phone}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {patient.email ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.email}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {patient.nationalId ?? "—"}
@@ -280,6 +314,9 @@ function SkeletonRow() {
       </TableCell>
       <TableCell>
         <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-32 rounded bg-muted" />
       </TableCell>
       <TableCell>
         <div className="h-4 w-28 rounded bg-muted" />

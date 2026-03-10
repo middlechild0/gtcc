@@ -22,6 +22,7 @@ import { RouteGuard } from "@/app/auth/components/route-guard";
 function PatientsContent() {
   const router = useRouter();
   const { hasPermission } = useAuth();
+  const canViewKpis = hasPermission("patients:view_kpis");
   const { kpis, isLoading: kpisLoading } = usePatientKpis();
   const {
     filteredPatients,
@@ -63,41 +64,43 @@ function PatientsContent() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Total patients</CardTitle>
-            <CardDescription>All patients in this workspace.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
-              {kpisLoading ? "—" : (kpis?.totalPatients ?? 0)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Active patients</CardTitle>
-            <CardDescription>Currently active patient records.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
-              {kpisLoading ? "—" : (kpis?.activePatients ?? 0)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">New Registrations</CardTitle>
-            <CardDescription>Patients registered this month.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
-              {kpisLoading ? "—" : ((kpis as any)?.newRegistrationsMonth ?? 0)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {canViewKpis && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Total patients</CardTitle>
+              <CardDescription>All patients in this workspace.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">
+                {kpisLoading ? "—" : (kpis?.totalPatients ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Active patients</CardTitle>
+              <CardDescription>Currently active patient records.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">
+                {kpisLoading ? "—" : (kpis?.activePatients ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">New Registrations</CardTitle>
+              <CardDescription>Patients registered this month.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">
+                {kpisLoading ? "—" : ((kpis as any)?.newRegistrationsMonth ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

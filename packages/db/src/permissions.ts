@@ -51,6 +51,12 @@ export const PERMISSIONS = [
     description: "Search and view patient profiles and visit history",
   },
   {
+    key: "patients:view_kpis",
+    module: "patients",
+    label: "View Patient KPIs",
+    description: "View aggregated patient counts and KPI metrics",
+  },
+  {
     key: "patients:create",
     module: "patients",
     label: "Register Patients",

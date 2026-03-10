@@ -36,7 +36,7 @@ export const patientsRouter = router({
     }),
 
   getKpis: protectedProcedure
-    .use(hasPermission("patients:view"))
+    .use(hasPermission("patients:view_kpis"))
     .input(z.object({ branchId: z.number().int().positive() }))
     .query(async ({ input }) => {
       return patientService.getKpis(input.branchId);

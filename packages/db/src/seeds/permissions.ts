@@ -62,6 +62,12 @@ const PERMISSIONS = [
     description: "Search and view patient profiles and visit history",
   },
   {
+    key: "patients:view_kpis",
+    module: "patients",
+    label: "View Patient KPIs",
+    description: "View aggregated patient counts and KPI metrics",
+  },
+  {
     key: "patients:create",
     module: "patients",
     label: "Register Patients",
@@ -408,6 +414,7 @@ const PERMISSION_GROUPS: {
         "Oversight role. Read access across all modules, limited write access.",
       permissions: [
         "patients:view",
+        "patients:view_kpis",
         "clinical:view_consultations",
         "clinical:view_prescriptions",
         "billing:view_invoices",
