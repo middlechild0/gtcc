@@ -95,7 +95,7 @@ export default function UserAdministrationDetailPage() {
 
   if (isLoading || !staff) {
     return (
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-8 w-44" />
           <Skeleton className="h-4 w-64" />
@@ -127,7 +127,7 @@ export default function UserAdministrationDetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <StaffDetailHeader staff={staff} />
 
       <Tabs defaultValue="details" className="w-full">

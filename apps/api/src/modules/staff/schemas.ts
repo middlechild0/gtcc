@@ -47,6 +47,15 @@ export const ReactivateStaffSchema = z.object({
   id: z.number().int().positive(),
 });
 
+export const ChangeStaffPasswordSchema = z.object({
+  staffId: z.number().int().positive(),
+  newPassword: z.string().min(6, "Use at least 6 characters."),
+});
+
+export const SendStaffPasswordResetSchema = z.object({
+  staffId: z.number().int().positive(),
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PERMISSION ASSIGNMENT SCHEMAS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,6 +133,10 @@ export type GetStaffInput = z.infer<typeof GetStaffSchema>;
 export type ListStaffInput = z.infer<typeof ListStaffSchema>;
 export type DeactivateStaffInput = z.infer<typeof DeactivateStaffSchema>;
 export type ReactivateStaffInput = z.infer<typeof ReactivateStaffSchema>;
+export type ChangeStaffPasswordInput = z.infer<typeof ChangeStaffPasswordSchema>;
+export type SendStaffPasswordResetInput = z.infer<
+  typeof SendStaffPasswordResetSchema
+>;
 
 export type GrantPermissionInput = z.infer<typeof GrantPermissionSchema>;
 export type RevokePermissionInput = z.infer<typeof RevokePermissionSchema>;

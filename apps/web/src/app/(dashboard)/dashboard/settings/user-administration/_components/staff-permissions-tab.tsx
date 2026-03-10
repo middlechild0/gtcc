@@ -2,6 +2,7 @@
 
 import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
+import { Input } from "@visyx/ui/input";
 import {
   Card,
   CardContent,
@@ -22,7 +23,7 @@ import {
   SelectValue,
 } from "@visyx/ui/select";
 import { Switch } from "@visyx/ui/switch";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, AlertCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { NoPermission } from "@/app/auth/components/no-permission";
@@ -66,6 +67,7 @@ export function StaffPermissionsTab({
     Record<number, Record<string, boolean>>
   >({});
   const initialDesiredRef = useRef<Record<number, Record<string, boolean>>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const scopeKeys = useMemo(() => ["global", ...branchOptions.map((b) => String(b.id))], [branchOptions]);
 
@@ -92,14 +94,23 @@ export function StaffPermissionsTab({
   }, [permissionsCatalog, staff?.permissions, scopeKeys]);
 
   const permissionsByModule = useMemo(() => {
-    const rows = permissionsCatalog ?? [];
+    let rows = permissionsCatalog ?? [];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      rows = rows.filter(p =>
+        p.label.toLowerCase().includes(q) ||
+        p.key.toLowerCase().includes(q)
+      );
+    }
+
     const grouped = new Map<string, typeof rows>();
     for (const p of rows) {
       const key = p.module ?? "other";
       grouped.set(key, [...(grouped.get(key) ?? []), p]);
     }
     return [...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [permissionsCatalog]);
+  }, [permissionsCatalog, searchQuery]);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>("none");
   const [groupTargetScope, setGroupTargetScope] = useState<string>("global");
@@ -299,9 +310,20 @@ export function StaffPermissionsTab({
         )}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={expandAll}>Expand All</Button>
-            <Button variant="ghost" size="sm" onClick={collapseAll}>Collapse All</Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative max-w-sm w-full sm:w-[250px]">
+              <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </div>
+              <Input
+                placeholder="Search permissions..."
+                className="pl-9 h-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button variant="ghost" size="sm" onClick={expandAll} className="hidden sm:inline-flex">Expand All</Button>
+            <Button variant="ghost" size="sm" onClick={collapseAll} className="hidden sm:inline-flex">Collapse All</Button>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -337,6 +359,17 @@ export function StaffPermissionsTab({
                     const activeScopes = getBadges(perm.id);
                     const isGlobal = Boolean(desiredGranted[perm.id]?.["global"]);
 
+                    // Check if this row has unsaved changes compared to the database baseline
+                    let hasUnsavedChanges = false;
+                    for (const key of scopeKeys) {
+                      const initialVal = Boolean(initialDesiredRef.current[perm.id]?.[key]);
+                      const currentVal = Boolean(desiredGranted[perm.id]?.[key]);
+                      if (initialVal !== currentVal) {
+                        hasUnsavedChanges = true;
+                        break;
+                      }
+                    }
+
                     return (
                       <Collapsible
                         key={perm.id}
@@ -345,11 +378,14 @@ export function StaffPermissionsTab({
                       >
                         <div className="flex flex-col">
                           <CollapsibleTrigger asChild>
-                            <div className="flex items-center justify-between gap-4 p-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                            <div className={`flex items-center justify-between gap-4 p-3 hover:bg-muted/50 cursor-pointer transition-colors ${hasUnsavedChanges ? "bg-amber-500/5 dark:bg-amber-500/10" : ""}`}>
                               <div className="min-w-0 flex flex-col gap-1.5">
-                                <div className="text-sm font-medium">
+                                <div className="text-sm font-medium flex items-center gap-2">
+                                  {hasUnsavedChanges && (
+                                    <div title="Unsaved changes" className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                  )}
                                   {perm.label}
-                                  <span className="text-muted-foreground text-xs ml-2 font-normal hidden sm:inline-block">({perm.key})</span>
+                                  <span className="text-muted-foreground text-xs font-normal hidden sm:inline-block">({perm.key})</span>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5 min-h-[20px] items-center">
                                   {activeScopes.length === 0 ? (

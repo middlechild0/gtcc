@@ -4,6 +4,7 @@ import { hasPermission } from "../../trpc/middleware/withPermission";
 import {
   ApplyGroupSchema,
   BulkUpdatePermissionsSchema,
+  ChangeStaffPasswordSchema,
   CreatePermissionGroupSchema,
   DeactivateStaffSchema,
   GetPermissionGroupSchema,
@@ -15,6 +16,7 @@ import {
   ListStaffSchema,
   ReactivateStaffSchema,
   RevokePermissionSchema,
+  SendStaffPasswordResetSchema,
   UpdatePermissionGroupSchema,
   UpdateStaffSchema,
 } from "./schemas";
@@ -73,6 +75,26 @@ export const staffRouter = router({
     .input(ReactivateStaffSchema)
     .mutation(async ({ input, ctx }) => {
       return staffService.reactivateStaff(input.id, ctx.staff?.id);
+    }),
+
+  changePassword: protectedProcedure
+    .use(hasPermission("auth:manage_staff"))
+    .use(withAuditLog("staff:password_changed", "staff"))
+    .input(ChangeStaffPasswordSchema)
+    .mutation(async ({ input, ctx }) => {
+      return staffService.changeStaffPassword(
+        input,
+        ctx.staff?.id,
+        ctx.isSuperuser,
+      );
+    }),
+
+  sendPasswordReset: protectedProcedure
+    .use(hasPermission("auth:manage_staff"))
+    .use(withAuditLog("staff:password_reset_link_sent", "staff"))
+    .input(SendStaffPasswordResetSchema)
+    .mutation(async ({ input, ctx }) => {
+      return staffService.sendStaffPasswordReset(input, ctx.staff?.id);
     }),
 
   // ─────────────────────────────────────────────────────────────────────────────
