@@ -114,22 +114,31 @@ export function StartVisitDialog({ patientId, patientName }: StartVisitDialogPro
                     Start Visit
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Start Visit for {patientName}</DialogTitle>
-                    <DialogDescription>
-                        Add this patient to the active clinic queue. A draft invoice will be automatically generated.
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[520px]">
+                <div className="space-y-6 p-6 sm:p-8">
+                    <DialogHeader className="space-y-1">
+                        <DialogTitle className="text-base font-semibold">
+                            Start visit for <span className="font-bold">{patientName}</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-sm">
+                            Add this patient to the active clinic queue. A draft invoice will be created
+                            automatically and can be completed after the consultation.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+                    <Form {...form}>
+                        <form
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            className="space-y-6 pt-2"
+                        >
                         <FormField
                             control={form.control}
                             name="visitTypeId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Visit Type</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                                        Visit type
+                                    </FormLabel>
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
@@ -176,7 +185,9 @@ export function StartVisitDialog({ patientId, patientName }: StartVisitDialogPro
                             name="priority"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Queue Priority</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                                        Queue priority
+                                    </FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -193,24 +204,25 @@ export function StartVisitDialog({ patientId, patientName }: StartVisitDialogPro
                             )}
                         />
 
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                type="button"
-                                onClick={() => setOpen(false)}
-                                disabled={startVisitMut.isPending}
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" disabled={startVisitMut.isPending || !visitTypes?.length}>
-                                {startVisitMut.isPending && (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                )}
-                                Confirm Visit
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
+                            <DialogFooter className="gap-2 pt-2">
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={() => setOpen(false)}
+                                    disabled={startVisitMut.isPending}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={startVisitMut.isPending || !visitTypes?.length}>
+                                    {startVisitMut.isPending && (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    )}
+                                    Confirm Visit
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </div>
             </DialogContent>
         </Dialog>
     );
