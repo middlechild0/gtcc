@@ -4,8 +4,10 @@ import { hasPermission } from "../../trpc/middleware/withPermission";
 import {
   ApplyGroupSchema,
   BulkUpdatePermissionsSchema,
+  ChangeStaffPasswordSchema,
   CreatePermissionGroupSchema,
   DeactivateStaffSchema,
+  DeletePermissionGroupSchema,
   GetPermissionGroupSchema,
   GetStaffSchema,
   GrantPermissionSchema,
@@ -15,6 +17,7 @@ import {
   ListStaffSchema,
   ReactivateStaffSchema,
   RevokePermissionSchema,
+  SendStaffPasswordResetSchema,
   UpdatePermissionGroupSchema,
   UpdateStaffSchema,
 } from "./schemas";
@@ -59,6 +62,20 @@ export const staffRouter = router({
       );
     }),
 
+  updateSelf: protectedProcedure
+    .use(withAuditLog("staff:self_updated", "staff"))
+    .input(UpdateStaffSchema.omit({ id: true }))
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.staff?.id) {
+        throw new Error("You are not linked to a staff record.");
+      }
+      return staffService.updateStaffProfile(
+        { ...input, id: ctx.staff.id },
+        ctx.isSuperuser,
+        ctx.staff.id,
+      );
+    }),
+
   deactivate: protectedProcedure
     .use(hasPermission("auth:manage_staff"))
     .use(withAuditLog("staff:deactivated", "staff"))
@@ -73,6 +90,26 @@ export const staffRouter = router({
     .input(ReactivateStaffSchema)
     .mutation(async ({ input, ctx }) => {
       return staffService.reactivateStaff(input.id, ctx.staff?.id);
+    }),
+
+  changePassword: protectedProcedure
+    .use(hasPermission("auth:manage_staff"))
+    .use(withAuditLog("staff:password_changed", "staff"))
+    .input(ChangeStaffPasswordSchema)
+    .mutation(async ({ input, ctx }) => {
+      return staffService.changeStaffPassword(
+        input,
+        ctx.staff?.id,
+        ctx.isSuperuser,
+      );
+    }),
+
+  sendPasswordReset: protectedProcedure
+    .use(hasPermission("auth:manage_staff"))
+    .use(withAuditLog("staff:password_reset_link_sent", "staff"))
+    .input(SendStaffPasswordResetSchema)
+    .mutation(async ({ input, ctx }) => {
+      return staffService.sendStaffPasswordReset(input, ctx.staff?.id);
     }),
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -159,6 +196,14 @@ export const staffRouter = router({
     .input(ListPermissionGroupsSchema)
     .query(async ({ input }) => {
       return staffService.listPermissionGroups(input);
+    }),
+
+  deleteGroup: protectedProcedure
+    .use(hasPermission("auth:manage_permission_groups"))
+    .use(withAuditLog("permission_group:deleted", "permission_group"))
+    .input(DeletePermissionGroupSchema)
+    .mutation(async ({ input }) => {
+      return staffService.deletePermissionGroup(input.id);
     }),
 
   // ─────────────────────────────────────────────────────────────────────────────

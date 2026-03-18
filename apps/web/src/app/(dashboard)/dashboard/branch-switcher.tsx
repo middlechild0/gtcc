@@ -6,6 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@visyx/ui/select";
+import { useSidebar } from "@visyx/ui/sidebar";
 import { useMemo } from "react";
 import { useBranch } from "./branch-context";
 
@@ -16,11 +17,17 @@ import { useBranch } from "./branch-context";
 export function BranchSwitcher() {
   const { branches, activeBranchId, setActiveBranchId, isLoading, error } =
     useBranch();
+  const { state } = useSidebar();
 
   const activeBranch = useMemo(
     () => branches.find((b) => b.id === activeBranchId) ?? null,
     [branches, activeBranchId],
   );
+
+  // In icon-collapsed mode, hide the full branch control to avoid overflow
+  if (state === "collapsed") {
+    return null;
+  }
 
   if (isLoading) {
     return (

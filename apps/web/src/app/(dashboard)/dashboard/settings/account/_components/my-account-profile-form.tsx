@@ -148,8 +148,7 @@ export function MyAccountProfileForm({
               id="primaryBranch"
               className="h-9 w-full rounded-md border bg-background px-3 text-sm"
               value={primaryBranchId}
-              onChange={(e) => setPrimaryBranchId(e.target.value)}
-              disabled={disabled}
+              disabled
             >
               <option value="none">None</option>
               {branchOptions.map((b) => (
@@ -158,6 +157,10 @@ export function MyAccountProfileForm({
                 </option>
               ))}
             </select>
+            <p className="text-muted-foreground text-xs">
+              Primary branch is managed by your administrator. Contact them if
+              this looks incorrect.
+            </p>
           </div>
         ) : null}
 

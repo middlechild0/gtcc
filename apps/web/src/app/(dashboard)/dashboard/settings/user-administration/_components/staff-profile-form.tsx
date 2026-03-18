@@ -191,6 +191,10 @@ export function StaffProfileForm({
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-muted-foreground text-xs mt-1">
+                Setting a primary branch does not remove access to other branches.
+                You can manage access in the Permissions tab.
+              </p>
             </div>
           ) : null}
 

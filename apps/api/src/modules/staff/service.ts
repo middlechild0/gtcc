@@ -18,12 +18,14 @@ import * as React from "react";
 import type {
   ApplyGroupInput,
   BulkUpdatePermissionsInput,
+  ChangeStaffPasswordInput,
   CreatePermissionGroupInput,
   GrantPermissionInput,
   InviteStaffInput,
   ListPermissionGroupsInput,
   ListStaffInput,
   RevokePermissionInput,
+  SendStaffPasswordResetInput,
   UpdatePermissionGroupInput,
   UpdateStaffInput,
 } from "./schemas";
@@ -140,10 +142,7 @@ export class StaffService {
 
     // 3. Send custom welcome email via locally linked @visyx/email
     try {
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.APP_URL ||
-        "https://app.visyx.co.ke";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
       const loginLink = `${appUrl}/auth/sign-in`;
 
       const html = await render(
@@ -399,6 +398,101 @@ export class StaffService {
     });
 
     return staffRecord;
+  }
+
+  async changeStaffPassword(
+    input: ChangeStaffPasswordInput,
+    actorStaffId?: number,
+    actorIsSuperuser?: boolean,
+  ) {
+    if (actorStaffId === input.staffId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You cannot change your own password from this screen.",
+      });
+    }
+
+    if (!actorIsSuperuser) {
+      // Extra guardrail: only superusers can directly set another user's password.
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only superusers can directly set staff passwords.",
+      });
+    }
+
+    const [staffRecord] = await db
+      .select({
+        id: staff.id,
+        userId: staff.userId,
+      })
+      .from(staff)
+      .where(eq(staff.id, input.staffId))
+      .limit(1);
+
+    if (!staffRecord) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Staff not found" });
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
+      staffRecord.userId,
+      {
+        password: input.newPassword,
+      },
+    );
+
+    if (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message || "Failed to update staff password.",
+      });
+    }
+
+    return { success: true };
+  }
+
+  async sendStaffPasswordReset(
+    input: SendStaffPasswordResetInput,
+    actorStaffId?: number,
+  ) {
+    if (actorStaffId === input.staffId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You cannot send a reset for your own account from this screen.",
+      });
+    }
+
+    const [staffRecord] = await db
+      .select({
+        id: staff.id,
+        email: userProfiles.email,
+      })
+      .from(staff)
+      .innerJoin(userProfiles, eq(staff.userId, userProfiles.userId))
+      .where(eq(staff.id, input.staffId))
+      .limit(1);
+
+    if (!staffRecord) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Staff not found" });
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+    const redirectTo = `${appUrl}/auth/callback?next=/auth/update-password`;
+
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(
+      staffRecord.email,
+      {
+        redirectTo,
+      },
+    );
+
+    if (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message || "Failed to start password reset.",
+      });
+    }
+
+    return { success: true };
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -713,6 +807,22 @@ export class StaffService {
     }
 
     return await query;
+  }
+
+  async deletePermissionGroup(id: number) {
+    const [deleted] = await db
+      .delete(permissionGroups)
+      .where(eq(permissionGroups.id, id))
+      .returning();
+
+    if (!deleted) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Group not found" });
+    }
+
+    // permissionGroupItems cascade-deletes automatically.
+    // staffPermissions.appliedFromGroupId is SET NULL via FK constraint —
+    // staff members keep all their individual permission rows.
+    return deleted;
   }
 }
 

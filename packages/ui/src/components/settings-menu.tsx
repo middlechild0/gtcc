@@ -23,36 +23,16 @@ export interface SettingsMenuProps {
   triggerClassName?: string;
   /** Optional align for the popover (e.g. "end" to align right) */
   align?: "start" | "center" | "end";
+  /** Optional offset to shift the popover relative to its alignment */
+  alignOffset?: number;
 }
 
-const DEFAULT_ITEMS: SettingsMenuItem[] = [
-  { label: "Advanced Configuration", href: "#" },
-  { label: "Booking and Classes", href: "#" },
-  { label: "Club Details", href: "#" },
-  { label: "Custom Fields", href: "#" },
-  { label: "Doors and Readers", href: "#" },
-  { label: "Financial Configuration", href: "#" },
-  { label: "Forms and Waivers", href: "#" },
-  { label: "Integrations", href: "#" },
-  { label: "Measurement Configuration", href: "#" },
-  { label: "Member Portal", href: "#" },
-  { label: "Membership Types", href: "#" },
-  { label: "Products", href: "#" },
-  { label: "Roster and Open Hours", href: "#" },
-  { label: "Task Automation", href: "#" },
-  { label: "Templates", href: "#" },
-  {
-    label: "User Administration",
-    href: "/dashboard/settings/user-administration",
-  },
-  { label: "Workout Configuration", href: "#" },
-];
-
 export function SettingsMenu({
-  items = DEFAULT_ITEMS,
+  items = [],
   searchPlaceholder = "Search Settings",
   triggerClassName,
   align = "end",
+  alignOffset = 0,
 }: SettingsMenuProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -83,6 +63,7 @@ export function SettingsMenu({
       </PopoverTrigger>
       <PopoverContent
         align={align}
+        alignOffset={alignOffset}
         sideOffset={8}
         className="border-sidebar-border bg-sidebar text-sidebar-foreground w-80 p-0 shadow-lg"
       >

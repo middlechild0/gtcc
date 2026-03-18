@@ -1,6 +1,15 @@
 "use client";
 
+import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@visyx/ui/dropdown-menu";
 import { Input } from "@visyx/ui/input";
 import {
   Select,
@@ -17,8 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from "@visyx/ui/table";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { maskEmail } from "../_utils/mask-email";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Eye,
+  MoreHorizontal,
+  Trash2,
+} from "lucide-react";
+import { formatAge } from "@/lib/age-formatter";
+import { usePatientActions } from "../_hooks/use-patient-actions";
 import type { Patient } from "../_utils/patient-types";
 
 type PaginationState = {
@@ -39,7 +56,10 @@ type PatientsTableProps = {
   search: string;
   onSearchChange: (value: string) => void;
   pagination?: PaginationState;
-  totalFiltered: number;
+  totalFiltered?: number;
+  onEdit?: (patient: Patient) => void;
+  onView?: (patient: Patient) => void;
+  canDeactivate?: boolean;
 };
 
 export function PatientsTable({
@@ -50,8 +70,13 @@ export function PatientsTable({
   search,
   onSearchChange,
   pagination,
-  totalFiltered,
+  totalFiltered = 0,
+  onEdit,
+  onView,
+  canDeactivate,
 }: PatientsTableProps) {
+  const { deactivatePatient, isDeactivating } = usePatientActions();
+
   if (error) {
     return (
       <div className="p-4 text-sm text-destructive">
@@ -78,17 +103,22 @@ export function PatientsTable({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Patient #</TableHead>
-            <TableHead>First name</TableHead>
-            <TableHead>Last name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[800px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Patient #</TableHead>
+              <TableHead>First name</TableHead>
+              <TableHead>Last name</TableHead>
+              <TableHead>Age</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>National ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {isLoading && patients.length === 0 ? (
             <>
               <SkeletonRow />
@@ -98,7 +128,7 @@ export function PatientsTable({
           ) : patients.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={9}
                 className="py-10 text-center text-muted-foreground text-sm"
               >
                 {emptyMessage}
@@ -108,7 +138,17 @@ export function PatientsTable({
             patients.map((patient) => (
               <TableRow key={patient.id} className="hover:bg-muted/50">
                 <TableCell className="font-mono text-sm tabular-nums">
-                  {patient.patientNumber ?? "—"}
+                  {patient.patientNumber ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.patientNumber}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">
                   {patient.firstName}
@@ -116,17 +156,93 @@ export function PatientsTable({
                 <TableCell className="font-medium">
                   {patient.lastName}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {maskEmail(patient.email)}
+                <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                  {formatAge(patient.dateOfBirth)}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {patient.phone ?? "—"}
+                  {patient.phone ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.phone}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {patient.email ? (
+                    <button
+                      type="button"
+                      onClick={() => onView?.(patient)}
+                      className="text-primary hover:underline"
+                    >
+                      {patient.email}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {patient.nationalId ?? "—"}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={patient.isActive ? "default" : "secondary"}>
+                    {patient.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {onView && (
+                        <DropdownMenuItem onClick={() => onView(patient)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                      )}
+                      {onEdit && (
+                        <DropdownMenuItem onClick={() => onEdit(patient)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Profile
+                        </DropdownMenuItem>
+                      )}
+                      {canDeactivate && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={isDeactivating || !patient.isActive}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Are you sure you want to deactivate this patient from the current branch?",
+                              )
+                            ) {
+                              deactivatePatient(patient.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Deactivate
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
           )}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </div>
       {pagination && totalFiltered > 0 && (
         <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -196,10 +312,22 @@ function SkeletonRow() {
         <div className="h-4 w-24 rounded bg-muted" />
       </TableCell>
       <TableCell>
+        <div className="h-4 w-16 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
         <div className="h-4 w-32 rounded bg-muted" />
       </TableCell>
       <TableCell>
         <div className="h-4 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-6 w-16 rounded-full bg-muted" />
+      </TableCell>
+      <TableCell>
+        <div className="h-8 w-8 rounded bg-muted" />
       </TableCell>
     </TableRow>
   );

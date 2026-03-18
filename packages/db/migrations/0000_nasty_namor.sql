@@ -89,14 +89,14 @@ CREATE TABLE "user_profiles" (
 	CONSTRAINT "user_profiles_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_user_profiles_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user_profiles"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "public"."branches"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "permission_group_items" ADD CONSTRAINT "permission_group_items_group_id_permission_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."permission_groups"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "permission_group_items" ADD CONSTRAINT "permission_group_items_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff" ADD CONSTRAINT "staff_user_id_user_profiles_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user_profiles"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff" ADD CONSTRAINT "staff_primary_branch_id_branches_id_fk" FOREIGN KEY ("primary_branch_id") REFERENCES "public"."branches"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_staff_id_staff_id_fk" FOREIGN KEY ("staff_id") REFERENCES "public"."staff"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "public"."branches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_applied_from_group_id_permission_groups_id_fk" FOREIGN KEY ("applied_from_group_id") REFERENCES "public"."permission_groups"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_granted_by_id_user_profiles_user_id_fk" FOREIGN KEY ("granted_by_id") REFERENCES "public"."user_profiles"("user_id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_user_profiles_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user_profiles"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "permission_group_items" ADD CONSTRAINT "permission_group_items_group_id_permission_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "permission_groups"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "permission_group_items" ADD CONSTRAINT "permission_group_items_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff" ADD CONSTRAINT "staff_user_id_user_profiles_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "user_profiles"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff" ADD CONSTRAINT "staff_primary_branch_id_branches_id_fk" FOREIGN KEY ("primary_branch_id") REFERENCES "branches"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_staff_id_staff_id_fk" FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_applied_from_group_id_permission_groups_id_fk" FOREIGN KEY ("applied_from_group_id") REFERENCES "permission_groups"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_permissions" ADD CONSTRAINT "staff_permissions_granted_by_id_user_profiles_user_id_fk" FOREIGN KEY ("granted_by_id") REFERENCES "user_profiles"("user_id") ON DELETE set null ON UPDATE no action;

@@ -35,18 +35,19 @@ export function BranchesTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Address</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="w-[100px] text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-[720px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[100px] text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
         {isLoading && branches.length === 0 ? (
           <>
             <SkeletonRow />
@@ -94,8 +95,9 @@ export function BranchesTable({
             </TableRow>
           ))
         )}
-      </TableBody>
-    </Table>
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

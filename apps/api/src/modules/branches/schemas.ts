@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const CreateBranchSchema = z.object({
+  code: z
+    .string()
+    .min(2, "Branch code is required")
+    .max(10, "Code is too long"),
   name: z.string().min(1, "Name is required"),
   address: z.string().optional(),
   phone: z.string().optional(),
@@ -9,6 +13,11 @@ export const CreateBranchSchema = z.object({
 
 export const UpdateBranchSchema = z.object({
   id: z.number().int().positive(),
+  code: z
+    .string()
+    .min(2, "Branch code is required")
+    .max(10, "Code is too long")
+    .optional(),
   name: z.string().min(1, "Name is required").optional(),
   address: z.string().optional(),
   phone: z.string().optional(),

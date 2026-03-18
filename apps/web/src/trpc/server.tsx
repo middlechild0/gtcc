@@ -7,7 +7,6 @@ import {
   type TRPCQueryOptions,
 } from "@trpc/tanstack-react-query";
 import type { AppRouter } from "@visyx/api/trpc/routers/_app";
-import { getLocationHeaders } from "@visyx/location";
 import { createClient } from "@visyx/supabase/server";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
@@ -32,7 +31,7 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
         url: `${API_BASE_URL}/trpc`,
         transformer: superjson,
         async headers() {
-          const [supabase, cookieStore, headersList] = await Promise.all([
+          const [supabase, cookieStore, _headersList] = await Promise.all([
             createClient(),
             cookies(),
             headers(),
@@ -42,13 +41,8 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
             data: { session },
           } = await supabase.auth.getSession();
 
-          const location = getLocationHeaders(headersList);
-
           const result: Record<string, string> = {
             Authorization: `Bearer ${session?.access_token}`,
-            "x-user-timezone": location.timezone,
-            "x-user-locale": location.locale,
-            "x-user-country": location.country,
           };
 
           // Pass force-primary cookie as header to API for replication lag handling
@@ -117,7 +111,7 @@ export function batchPrefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
  */
 export async function getTRPCClient(options?: { forcePrimary?: boolean }) {
   // Parallelize independent async calls
-  const [supabase, cookieStore, headersList] = await Promise.all([
+  const [supabase, cookieStore, _headersList] = await Promise.all([
     createClient(),
     cookies(),
     headers(),
@@ -126,8 +120,6 @@ export async function getTRPCClient(options?: { forcePrimary?: boolean }) {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-
-  const location = getLocationHeaders(headersList);
 
   const shouldForcePrimary =
     options?.forcePrimary ||
@@ -140,9 +132,6 @@ export async function getTRPCClient(options?: { forcePrimary?: boolean }) {
         transformer: superjson,
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
-          "x-user-timezone": location.timezone,
-          "x-user-locale": location.locale,
-          "x-user-country": location.country,
           ...(shouldForcePrimary && {
             "x-force-primary": "true",
           }),
