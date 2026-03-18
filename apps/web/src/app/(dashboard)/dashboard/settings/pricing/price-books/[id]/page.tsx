@@ -105,10 +105,12 @@ export default function PriceBookDetailPage() {
     const entries = Object.entries(draftPrices)
       .map(([id, price]) => {
         const val = Number(price);
-        if (isNaN(val) || val < 0) return null;
+        if (Number.isNaN(val) || val < 0) return null;
         return { billableItemId: Number(id), price: val };
       })
-      .filter((e): e is { billableItemId: number; price: number } => e !== null);
+      .filter(
+        (e): e is { billableItemId: number; price: number } => e !== null,
+      );
 
     if (entries.length === 0) return;
 
@@ -239,11 +241,14 @@ export default function PriceBookDetailPage() {
                   const current =
                     draftPrices[billableItem.id] ??
                     (entry ? String(entry.price) : "");
-                  
+
                   const isChanged = draftPrices[billableItem.id] !== undefined;
 
                   return (
-                    <TableRow key={billableItem.id} className={isChanged ? "bg-muted/30" : undefined}>
+                    <TableRow
+                      key={billableItem.id}
+                      className={isChanged ? "bg-muted/30" : undefined}
+                    >
                       <TableCell className="font-medium">
                         {billableItem.name}
                       </TableCell>
@@ -254,18 +259,18 @@ export default function PriceBookDetailPage() {
                             inputMode="numeric"
                             value={current}
                             onChange={(e) => {
-                                const val = e.target.value;
-                                const original = entry ? String(entry.price) : "";
-                                if (val === original) {
-                                  const newDrafts = { ...draftPrices };
-                                  delete newDrafts[billableItem.id];
-                                  setDraftPrices(newDrafts);
-                                } else {
-                                  setDraftPrices((p) => ({
-                                    ...p,
-                                    [billableItem.id]: val,
-                                  }));
-                                }
+                              const val = e.target.value;
+                              const original = entry ? String(entry.price) : "";
+                              if (val === original) {
+                                const newDrafts = { ...draftPrices };
+                                delete newDrafts[billableItem.id];
+                                setDraftPrices(newDrafts);
+                              } else {
+                                setDraftPrices((p) => ({
+                                  ...p,
+                                  [billableItem.id]: val,
+                                }));
+                              }
                             }}
                             placeholder="0"
                             disabled={!canManage || bulkUpsert.isPending}
@@ -273,16 +278,16 @@ export default function PriceBookDetailPage() {
                           />
                           {isChanged && (
                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                                onClick={() => {
-                                    const newDrafts = { ...draftPrices };
-                                    delete newDrafts[billableItem.id];
-                                    setDraftPrices(newDrafts);
-                                }}
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => {
+                                const newDrafts = { ...draftPrices };
+                                delete newDrafts[billableItem.id];
+                                setDraftPrices(newDrafts);
+                              }}
                             >
-                                <X className="size-4" />
+                              <X className="size-4" />
                             </Button>
                           )}
                         </div>

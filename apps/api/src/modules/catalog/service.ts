@@ -10,7 +10,8 @@ export const CatalogService = {
     search?: string;
   }) {
     const conditions = [];
-    if (input.search) conditions.push(ilike(services.name, `%${input.search}%`));
+    if (input.search)
+      conditions.push(ilike(services.name, `%${input.search}%`));
     if (input.cursor) conditions.push(lt(services.id, input.cursor));
 
     const allServices = await db.query.services.findMany({
@@ -66,7 +67,12 @@ export const CatalogService = {
   async updateService(input: {
     id: number;
     name?: string;
-    category?: "CONSULTATION" | "DIAGNOSTIC" | "OPTICAL" | "PROCEDURE" | "OTHER";
+    category?:
+      | "CONSULTATION"
+      | "DIAGNOSTIC"
+      | "OPTICAL"
+      | "PROCEDURE"
+      | "OTHER";
     description?: string;
     isActive?: boolean;
     vatExempt?: boolean;
@@ -110,7 +116,8 @@ export const CatalogService = {
     search?: string;
   }) {
     const conditions = [];
-    if (input.search) conditions.push(ilike(products.name, `%${input.search}%`));
+    if (input.search)
+      conditions.push(ilike(products.name, `%${input.search}%`));
     if (input.cursor) conditions.push(lt(products.id, input.cursor));
 
     const allProducts = await db.query.products.findMany({
@@ -131,7 +138,14 @@ export const CatalogService = {
   async createProduct(input: {
     name: string;
     sku?: string;
-    category: "FRAME" | "LENS" | "CONTACT_LENS" | "ACCESSORY" | "MEDICATION" | "CONSUMABLE" | "OTHER";
+    category:
+      | "FRAME"
+      | "LENS"
+      | "CONTACT_LENS"
+      | "ACCESSORY"
+      | "MEDICATION"
+      | "CONSUMABLE"
+      | "OTHER";
     description?: string;
     vatExempt: boolean;
   }) {
@@ -160,7 +174,14 @@ export const CatalogService = {
     id: number;
     name?: string;
     sku?: string;
-    category?: "FRAME" | "LENS" | "CONTACT_LENS" | "ACCESSORY" | "MEDICATION" | "CONSUMABLE" | "OTHER";
+    category?:
+      | "FRAME"
+      | "LENS"
+      | "CONTACT_LENS"
+      | "ACCESSORY"
+      | "MEDICATION"
+      | "CONSUMABLE"
+      | "OTHER";
     description?: string;
     isActive?: boolean;
     vatExempt?: boolean;

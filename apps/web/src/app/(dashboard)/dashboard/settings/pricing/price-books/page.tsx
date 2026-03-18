@@ -155,10 +155,13 @@ export default function PriceBooksPage() {
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{typeLabel(b.type)}</TableCell>
                     <TableCell>
-                      {b.branchId ? `Branch #${b.branchId}` : "Global"}
-                      {b.insuranceProviderId
-                        ? ` · Provider #${b.insuranceProviderId}`
-                        : ""}
+                      {b.branch?.name ??
+                        (b.branchId ? `Branch #${b.branchId}` : "Global")}
+                      {b.insuranceProvider?.name
+                        ? ` · ${b.insuranceProvider.name}`
+                        : b.insuranceProviderId
+                          ? ` · Provider #${b.insuranceProviderId}`
+                          : ""}
                     </TableCell>
                     <TableCell>{b.isActive ? "Active" : "Inactive"}</TableCell>
                     <TableCell className="text-right">

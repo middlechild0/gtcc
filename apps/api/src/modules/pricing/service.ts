@@ -121,10 +121,7 @@ export const PricingService = {
       .insert(priceBookEntries)
       .values(input)
       .onConflictDoUpdate({
-        target: [
-          priceBookEntries.priceBookId,
-          priceBookEntries.billableItemId,
-        ],
+        target: [priceBookEntries.priceBookId, priceBookEntries.billableItemId],
         set: { price: input.price, updatedAt: new Date() },
       })
       .returning();
