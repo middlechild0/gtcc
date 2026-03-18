@@ -77,12 +77,8 @@
           "name": "audit_logs_user_id_user_profiles_user_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -90,12 +86,8 @@
           "name": "audit_logs_branch_id_branches_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -169,12 +161,8 @@
           "name": "billable_items_service_id_services_id_fk",
           "tableFrom": "billable_items",
           "tableTo": "services",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -182,12 +170,8 @@
           "name": "billable_items_product_id_products_id_fk",
           "tableFrom": "billable_items",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -272,9 +256,7 @@
         "branches_code_unique": {
           "name": "branches_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -343,12 +325,8 @@
           "name": "consultations_visit_id_visits_id_fk",
           "tableFrom": "consultations",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -356,12 +334,8 @@
           "name": "consultations_assigned_doctor_id_user_profiles_user_id_fk",
           "tableFrom": "consultations",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "assigned_doctor_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["assigned_doctor_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -371,9 +345,7 @@
         "consultations_visit_id_unique": {
           "name": "consultations_visit_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "visit_id"
-          ]
+          "columns": ["visit_id"]
         }
       },
       "policies": {},
@@ -435,12 +407,8 @@
           "name": "contact_lens_fittings_visit_id_visits_id_fk",
           "tableFrom": "contact_lens_fittings",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -488,9 +456,7 @@
         "departments_code_unique": {
           "name": "departments_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -568,12 +534,8 @@
           "name": "dispensing_orders_visit_id_visits_id_fk",
           "tableFrom": "dispensing_orders",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -581,12 +543,8 @@
           "name": "dispensing_orders_assigned_optician_id_user_profiles_user_id_fk",
           "tableFrom": "dispensing_orders",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "assigned_optician_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["assigned_optician_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -596,9 +554,7 @@
         "dispensing_orders_visit_id_unique": {
           "name": "dispensing_orders_visit_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "visit_id"
-          ]
+          "columns": ["visit_id"]
         }
       },
       "policies": {},
@@ -668,9 +624,7 @@
         "insurance_providers_name_unique": {
           "name": "insurance_providers_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -745,12 +699,8 @@
           "name": "invoice_line_item_overrides_line_item_id_invoice_line_items_id_fk",
           "tableFrom": "invoice_line_item_overrides",
           "tableTo": "invoice_line_items",
-          "columnsFrom": [
-            "line_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["line_item_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -758,12 +708,8 @@
           "name": "invoice_line_item_overrides_changed_by_id_user_profiles_user_id_fk",
           "tableFrom": "invoice_line_item_overrides",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "changed_by_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["changed_by_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -771,12 +717,8 @@
           "name": "invoice_line_item_overrides_approved_by_id_user_profiles_user_id_fk",
           "tableFrom": "invoice_line_item_overrides",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "approved_by_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["approved_by_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -874,12 +816,8 @@
           "name": "invoice_line_items_invoice_id_invoices_id_fk",
           "tableFrom": "invoice_line_items",
           "tableTo": "invoices",
-          "columnsFrom": [
-            "invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -887,12 +825,8 @@
           "name": "invoice_line_items_billable_item_id_billable_items_id_fk",
           "tableFrom": "invoice_line_items",
           "tableTo": "billable_items",
-          "columnsFrom": [
-            "billable_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["billable_item_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -963,12 +897,8 @@
           "name": "invoices_visit_id_visits_id_fk",
           "tableFrom": "invoices",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1052,12 +982,8 @@
           "name": "optical_prescriptions_visit_id_visits_id_fk",
           "tableFrom": "optical_prescriptions",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1125,12 +1051,8 @@
           "name": "patient_branch_profiles_patient_id_patients_id_fk",
           "tableFrom": "patient_branch_profiles",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1138,12 +1060,8 @@
           "name": "patient_branch_profiles_branch_id_branches_id_fk",
           "tableFrom": "patient_branch_profiles",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1153,10 +1071,7 @@
         "patient_branch_profiles_patient_id_branch_id_unique": {
           "name": "patient_branch_profiles_patient_id_branch_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "patient_id",
-            "branch_id"
-          ]
+          "columns": ["patient_id", "branch_id"]
         }
       },
       "policies": {},
@@ -1249,12 +1164,8 @@
           "name": "patient_guarantors_patient_id_patients_id_fk",
           "tableFrom": "patient_guarantors",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1339,12 +1250,8 @@
           "name": "patient_insurances_patient_id_patients_id_fk",
           "tableFrom": "patient_insurances",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1352,12 +1259,8 @@
           "name": "patient_insurances_provider_id_insurance_providers_id_fk",
           "tableFrom": "patient_insurances",
           "tableTo": "insurance_providers",
-          "columnsFrom": [
-            "provider_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["provider_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1448,12 +1351,8 @@
           "name": "patient_kins_patient_id_patients_id_fk",
           "tableFrom": "patient_kins",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1603,30 +1502,22 @@
         "patients_patient_number_unique": {
           "name": "patients_patient_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "patient_number"
-          ]
+          "columns": ["patient_number"]
         },
         "patients_passport_number_unique": {
           "name": "patients_passport_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "passport_number"
-          ]
+          "columns": ["passport_number"]
         },
         "patients_national_id_unique": {
           "name": "patients_national_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "national_id"
-          ]
+          "columns": ["national_id"]
         },
         "patients_nhif_number_unique": {
           "name": "patients_nhif_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "nhif_number"
-          ]
+          "columns": ["nhif_number"]
         }
       },
       "policies": {},
@@ -1682,12 +1573,8 @@
           "name": "payments_invoice_id_invoices_id_fk",
           "tableFrom": "payments",
           "tableTo": "invoices",
-          "columnsFrom": [
-            "invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1727,12 +1614,8 @@
           "name": "permission_group_items_group_id_permission_groups_id_fk",
           "tableFrom": "permission_group_items",
           "tableTo": "permission_groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1740,12 +1623,8 @@
           "name": "permission_group_items_permission_id_permissions_id_fk",
           "tableFrom": "permission_group_items",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1755,10 +1634,7 @@
         "permission_group_items_group_id_permission_id_unique": {
           "name": "permission_group_items_group_id_permission_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "group_id",
-            "permission_id"
-          ]
+          "columns": ["group_id", "permission_id"]
         }
       },
       "policies": {},
@@ -1816,9 +1692,7 @@
         "permission_groups_name_unique": {
           "name": "permission_groups_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -1874,9 +1748,7 @@
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -1938,12 +1810,8 @@
           "name": "pre_tests_visit_id_visits_id_fk",
           "tableFrom": "pre_tests",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1951,12 +1819,8 @@
           "name": "pre_tests_performed_by_id_user_profiles_user_id_fk",
           "tableFrom": "pre_tests",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "performed_by_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["performed_by_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1966,9 +1830,7 @@
         "pre_tests_visit_id_unique": {
           "name": "pre_tests_visit_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "visit_id"
-          ]
+          "columns": ["visit_id"]
         }
       },
       "policies": {},
@@ -2024,12 +1886,8 @@
           "name": "price_book_entries_price_book_id_price_books_id_fk",
           "tableFrom": "price_book_entries",
           "tableTo": "price_books",
-          "columnsFrom": [
-            "price_book_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["price_book_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2037,12 +1895,8 @@
           "name": "price_book_entries_billable_item_id_billable_items_id_fk",
           "tableFrom": "price_book_entries",
           "tableTo": "billable_items",
-          "columnsFrom": [
-            "billable_item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["billable_item_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2052,10 +1906,7 @@
         "price_book_entries_price_book_id_billable_item_id_unique": {
           "name": "price_book_entries_price_book_id_billable_item_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "price_book_id",
-            "billable_item_id"
-          ]
+          "columns": ["price_book_id", "billable_item_id"]
         }
       },
       "policies": {},
@@ -2137,12 +1988,8 @@
           "name": "price_books_branch_id_branches_id_fk",
           "tableFrom": "price_books",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2150,12 +1997,8 @@
           "name": "price_books_insurance_provider_id_insurance_providers_id_fk",
           "tableFrom": "price_books",
           "tableTo": "insurance_providers",
-          "columnsFrom": [
-            "insurance_provider_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["insurance_provider_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2251,9 +2094,7 @@
         "products_sku_unique": {
           "name": "products_sku_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "sku"
-          ]
+          "columns": ["sku"]
         }
       },
       "policies": {},
@@ -2309,12 +2150,8 @@
           "name": "repairs_visit_id_visits_id_fk",
           "tableFrom": "repairs",
           "tableTo": "visits",
-          "columnsFrom": [
-            "visit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2324,9 +2161,7 @@
         "repairs_visit_id_unique": {
           "name": "repairs_visit_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "visit_id"
-          ]
+          "columns": ["visit_id"]
         }
       },
       "policies": {},
@@ -2462,12 +2297,8 @@
           "name": "staff_user_id_user_profiles_user_id_fk",
           "tableFrom": "staff",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2475,12 +2306,8 @@
           "name": "staff_primary_branch_id_branches_id_fk",
           "tableFrom": "staff",
           "tableTo": "branches",
-          "columnsFrom": [
-            "primary_branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["primary_branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2490,9 +2317,7 @@
         "staff_user_id_unique": {
           "name": "staff_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -2567,12 +2392,8 @@
           "name": "staff_permissions_staff_id_staff_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "staff",
-          "columnsFrom": [
-            "staff_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["staff_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2580,12 +2401,8 @@
           "name": "staff_permissions_permission_id_permissions_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2593,12 +2410,8 @@
           "name": "staff_permissions_branch_id_branches_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2606,12 +2419,8 @@
           "name": "staff_permissions_applied_from_group_id_permission_groups_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "permission_groups",
-          "columnsFrom": [
-            "applied_from_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["applied_from_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -2619,12 +2428,8 @@
           "name": "staff_permissions_granted_by_id_user_profiles_user_id_fk",
           "tableFrom": "staff_permissions",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "granted_by_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["granted_by_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2634,11 +2439,7 @@
         "staff_permissions_staff_id_permission_id_branch_id_unique": {
           "name": "staff_permissions_staff_id_permission_id_branch_id_unique",
           "nullsNotDistinct": true,
-          "columns": [
-            "staff_id",
-            "permission_id",
-            "branch_id"
-          ]
+          "columns": ["staff_id", "permission_id", "branch_id"]
         }
       },
       "policies": {},
@@ -2696,9 +2497,7 @@
         "tax_rates_name_unique": {
           "name": "tax_rates_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -2782,16 +2581,12 @@
         "user_profiles_user_id_unique": {
           "name": "user_profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "user_profiles_email_unique": {
           "name": "user_profiles_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -2840,12 +2635,8 @@
           "name": "visit_types_default_service_id_services_id_fk",
           "tableFrom": "visit_types",
           "tableTo": "services",
-          "columnsFrom": [
-            "default_service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["default_service_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2947,12 +2738,8 @@
           "name": "visits_patient_id_patients_id_fk",
           "tableFrom": "visits",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2960,12 +2747,8 @@
           "name": "visits_branch_id_branches_id_fk",
           "tableFrom": "visits",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2973,12 +2756,8 @@
           "name": "visits_visit_type_id_visit_types_id_fk",
           "tableFrom": "visits",
           "tableTo": "visit_types",
-          "columnsFrom": [
-            "visit_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["visit_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2986,12 +2765,8 @@
           "name": "visits_price_book_id_price_books_id_fk",
           "tableFrom": "visits",
           "tableTo": "price_books",
-          "columnsFrom": [
-            "price_book_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["price_book_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2999,12 +2774,8 @@
           "name": "visits_current_department_id_departments_id_fk",
           "tableFrom": "visits",
           "tableTo": "departments",
-          "columnsFrom": [
-            "current_department_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["current_department_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3020,44 +2791,22 @@
     "public.billable_item_type": {
       "name": "billable_item_type",
       "schema": "public",
-      "values": [
-        "SERVICE",
-        "PRODUCT"
-      ]
+      "values": ["SERVICE", "PRODUCT"]
     },
     "public.blood_group_enum": {
       "name": "blood_group_enum",
       "schema": "public",
-      "values": [
-        "A+",
-        "A-",
-        "B+",
-        "B-",
-        "AB+",
-        "AB-",
-        "O+",
-        "O-",
-        "UNKNOWN"
-      ]
+      "values": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "UNKNOWN"]
     },
     "public.gender_enum": {
       "name": "gender_enum",
       "schema": "public",
-      "values": [
-        "MALE",
-        "FEMALE",
-        "OTHER"
-      ]
+      "values": ["MALE", "FEMALE", "OTHER"]
     },
     "public.invoice_status": {
       "name": "invoice_status",
       "schema": "public",
-      "values": [
-        "DRAFT",
-        "ISSUED",
-        "PAID",
-        "VOIDED"
-      ]
+      "values": ["DRAFT", "ISSUED", "PAID", "VOIDED"]
     },
     "public.marital_status_enum": {
       "name": "marital_status_enum",
@@ -3074,12 +2823,7 @@
     "public.order_status": {
       "name": "order_status",
       "schema": "public",
-      "values": [
-        "PENDING_LAB",
-        "IN_LAB",
-        "READY_FOR_COLLECTION",
-        "DISPATCHED"
-      ]
+      "values": ["PENDING_LAB", "IN_LAB", "READY_FOR_COLLECTION", "DISPATCHED"]
     },
     "public.override_reason": {
       "name": "override_reason",
@@ -3096,30 +2840,17 @@
     "public.payer_type": {
       "name": "payer_type",
       "schema": "public",
-      "values": [
-        "CASH",
-        "INSURANCE",
-        "CORPORATE"
-      ]
+      "values": ["CASH", "INSURANCE", "CORPORATE"]
     },
     "public.payment_mode": {
       "name": "payment_mode",
       "schema": "public",
-      "values": [
-        "CASH",
-        "MPESA",
-        "INSURANCE",
-        "CARD"
-      ]
+      "values": ["CASH", "MPESA", "INSURANCE", "CARD"]
     },
     "public.price_book_type": {
       "name": "price_book_type",
       "schema": "public",
-      "values": [
-        "CASH",
-        "INSURANCE",
-        "CORPORATE"
-      ]
+      "values": ["CASH", "INSURANCE", "CORPORATE"]
     },
     "public.product_category": {
       "name": "product_category",
@@ -3137,31 +2868,17 @@
     "public.service_category": {
       "name": "service_category",
       "schema": "public",
-      "values": [
-        "CONSULTATION",
-        "DIAGNOSTIC",
-        "OPTICAL",
-        "PROCEDURE",
-        "OTHER"
-      ]
+      "values": ["CONSULTATION", "DIAGNOSTIC", "OPTICAL", "PROCEDURE", "OTHER"]
     },
     "public.visit_priority": {
       "name": "visit_priority",
       "schema": "public",
-      "values": [
-        "NORMAL",
-        "URGENT"
-      ]
+      "values": ["NORMAL", "URGENT"]
     },
     "public.visit_status": {
       "name": "visit_status",
       "schema": "public",
-      "values": [
-        "WAITING",
-        "IN_PROGRESS",
-        "DONE",
-        "ON_HOLD"
-      ]
+      "values": ["WAITING", "IN_PROGRESS", "DONE", "ON_HOLD"]
     }
   },
   "schemas": {},

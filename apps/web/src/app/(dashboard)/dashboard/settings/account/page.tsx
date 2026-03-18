@@ -17,7 +17,6 @@ export default function MyAccountPage() {
     staff,
     isLoading: authLoading,
     hasPermission,
-    isSuperuser,
     refetch,
   } = useAuth();
   const { user, loading: sessionLoading } = useSession();

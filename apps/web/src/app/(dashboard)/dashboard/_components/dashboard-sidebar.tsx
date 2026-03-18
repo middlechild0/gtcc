@@ -1,9 +1,5 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,13 +8,17 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarMenuAction,
 } from "@visyx/ui/sidebar";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { PermissionGate } from "@/app/auth/components/permission-gate";
 import { BranchSwitcher } from "../branch-switcher";
 import type { RouteConfig } from "../routes.config";

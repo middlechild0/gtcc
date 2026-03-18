@@ -48,49 +48,53 @@ export function StaffTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-        {isLoading && staff.length === 0 ? (
-          <>
-            <SkeletonRow />
-            <SkeletonRow />
-            <SkeletonRow />
-          </>
-        ) : staff.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={6}
-              className="py-10 text-center text-muted-foreground text-sm"
-            >
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
-        ) : (
-          staff.map((u) => (
-            <TableRow key={u.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium hover:underline">
-                <Link href={`/dashboard/settings/user-administration/${u.id}`}>
-                  {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
-                </Link>
+          {isLoading && staff.length === 0 ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : staff.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-10 text-center text-muted-foreground text-sm"
+              >
+                {emptyMessage}
               </TableCell>
-              <TableCell className="text-muted-foreground">{u.email}</TableCell>
-              <TableCell>{u.jobTitle || "—"}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {u.primaryBranchName || "—"}
-              </TableCell>
-              <TableCell>
-                <StaffStatusBadge isActive={Boolean(u.isActive)} />
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" asChild>
+            </TableRow>
+          ) : (
+            staff.map((u) => (
+              <TableRow key={u.id} className="hover:bg-muted/50">
+                <TableCell className="font-medium hover:underline">
                   <Link
                     href={`/dashboard/settings/user-administration/${u.id}`}
                   >
-                    View
+                    {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
                   </Link>
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))
-        )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {u.email}
+                </TableCell>
+                <TableCell>{u.jobTitle || "—"}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {u.primaryBranchName || "—"}
+                </TableCell>
+                <TableCell>
+                  <StaffStatusBadge isActive={Boolean(u.isActive)} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href={`/dashboard/settings/user-administration/${u.id}`}
+                    >
+                      View
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

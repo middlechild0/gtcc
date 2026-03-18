@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Users, ListOrdered } from "lucide-react";
+import { LayoutDashboard, ListOrdered, User, Users } from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 

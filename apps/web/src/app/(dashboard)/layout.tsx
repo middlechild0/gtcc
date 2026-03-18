@@ -11,8 +11,8 @@ import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrum
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
 import { ZeroPermissionBanner } from "./dashboard/_components/zero-permission-banner";
-import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
 import { useQueueSubscription } from "./dashboard/_hooks/use-queue-subscription";
+import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
 import { useBranch } from "./dashboard/branch-context";
 import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
 

@@ -31,9 +31,10 @@
  *   This lets you revoke a single permission from a template without chaos.
  */
 
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   integer,
   jsonb,
@@ -45,9 +46,7 @@ import {
   timestamp,
   unique,
   uuid,
-  check,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ENUMS
@@ -283,7 +282,7 @@ export const serviceCategoryEnum = pgEnum("service_category", [
   "DIAGNOSTIC",
   "OPTICAL",
   "PROCEDURE",
-  "OTHER"
+  "OTHER",
 ]);
 
 export const services = pgTable("services", {
@@ -304,7 +303,7 @@ export const productCategoryEnum = pgEnum("product_category", [
   "ACCESSORY",
   "MEDICATION",
   "CONSUMABLE",
-  "OTHER"
+  "OTHER",
 ]);
 
 export const products = pgTable("products", {
@@ -313,12 +312,12 @@ export const products = pgTable("products", {
   sku: text("sku").unique(),
   category: productCategoryEnum("category").notNull(),
   description: text("description"),
-  
+
   // Basic Inventory Tracking (to be expanded later)
   stockLevel: integer("stock_level").default(0).notNull(),
   reorderPoint: integer("reorder_point").default(0).notNull(),
   // supplierId: integer("supplier_id").references(() => suppliers.id), // Future relation
-  
+
   isActive: boolean("is_active").default(true).notNull(),
   vatExempt: boolean("vat_exempt").default(false).notNull(), // Most physical products are VAT applicable
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -327,7 +326,7 @@ export const products = pgTable("products", {
 
 export const billableItemTypeEnum = pgEnum("billable_item_type", [
   "SERVICE",
-  "PRODUCT"
+  "PRODUCT",
 ]);
 
 export const billableItems = pgTable(
@@ -335,9 +334,13 @@ export const billableItems = pgTable(
   {
     id: serial("id").primaryKey(),
     type: billableItemTypeEnum("type").notNull(),
-    serviceId: integer("service_id").references(() => services.id, { onDelete: 'cascade' }),
-    productId: integer("product_id").references(() => products.id, { onDelete: 'cascade' }),
-    
+    serviceId: integer("service_id").references(() => services.id, {
+      onDelete: "cascade",
+    }),
+    productId: integer("product_id").references(() => products.id, {
+      onDelete: "cascade",
+    }),
+
     // Denormalized for rapid invoice display/search
     name: text("name").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
@@ -349,9 +352,9 @@ export const billableItems = pgTable(
     // A billable item must be EXACTLY ONE of either a Service or a Product
     validType: check(
       "valid_billable_item",
-      sql`num_nonnulls(${t.serviceId}, ${t.productId}) = 1`
+      sql`num_nonnulls(${t.serviceId}, ${t.productId}) = 1`,
     ),
-  })
+  }),
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -361,22 +364,27 @@ export const billableItems = pgTable(
 export const priceBookTypeEnum = pgEnum("price_book_type", [
   "CASH",
   "INSURANCE",
-  "CORPORATE"
+  "CORPORATE",
 ]);
 
 export const priceBooks = pgTable("price_books", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // e.g., "Standard Cash 2026", "Jubilee Insurance"
   type: priceBookTypeEnum("type").notNull(),
-  
+
   // Scoping
-  branchId: integer("branch_id").references(() => branches.id, { onDelete: 'cascade' }),
-  insuranceProviderId: integer("insurance_provider_id").references(() => insuranceProviders.id, { onDelete: 'cascade' }),
-  
+  branchId: integer("branch_id").references(() => branches.id, {
+    onDelete: "cascade",
+  }),
+  insuranceProviderId: integer("insurance_provider_id").references(
+    () => insuranceProviders.id,
+    { onDelete: "cascade" },
+  ),
+
   isActive: boolean("is_active").default(true).notNull(),
   effectiveFrom: date("effective_from"),
   effectiveTo: date("effective_to"),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -385,18 +393,22 @@ export const priceBookEntries = pgTable(
   "price_book_entries",
   {
     id: serial("id").primaryKey(),
-    priceBookId: integer("price_book_id").notNull().references(() => priceBooks.id, { onDelete: 'cascade' }),
-    billableItemId: integer("billable_item_id").notNull().references(() => billableItems.id, { onDelete: 'cascade' }),
-    
+    priceBookId: integer("price_book_id")
+      .notNull()
+      .references(() => priceBooks.id, { onDelete: "cascade" }),
+    billableItemId: integer("billable_item_id")
+      .notNull()
+      .references(() => billableItems.id, { onDelete: "cascade" }),
+
     price: integer("price").notNull(), // Exact price for this item in this book
-    
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (t) => ({
     // An item can only have one explicit price per book
     unq: unique().on(t.priceBookId, t.billableItemId),
-  })
+  }),
 );
 
 export const taxRates = pgTable("tax_rates", {
@@ -461,7 +473,7 @@ export const visits = pgTable("visits", {
   visitTypeId: integer("visit_type_id")
     .notNull()
     .references(() => visitTypes.id),
-    
+
   // Pricing & Payer Info (Set at startVisit)
   payerType: payerTypeEnum("payer_type").default("CASH").notNull(),
   priceBookId: integer("price_book_id").references(() => priceBooks.id),
@@ -507,21 +519,23 @@ export const invoiceLineItems = pgTable("invoice_line_items", {
   invoiceId: uuid("invoice_id")
     .notNull()
     .references(() => invoices.id, { onDelete: "cascade" }),
-    
+
   // The catalog item being billed
-  billableItemId: integer("billable_item_id").notNull().references(() => billableItems.id),
+  billableItemId: integer("billable_item_id")
+    .notNull()
+    .references(() => billableItems.id),
   description: text("description").notNull(), // Copied at time of billing for immutable records
-  
+
   // Financial breakdown
   unitPrice: integer("unit_price").notNull(), // From price book explicitly
   quantity: integer("quantity").default(1).notNull(),
   subtotal: integer("subtotal").notNull(), // unitPrice * quantity
   vatAmount: integer("vat_amount").default(0).notNull(), // Calculated based on exact tax rate at time of billing
   total: integer("total").notNull(), // subtotal + vatAmount
-  
+
   isOverridden: boolean("is_overridden").default(false).notNull(),
   departmentSource: text("department_source"), // Internal reference for reporting where the charge came from
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -531,7 +545,7 @@ export const overrideReasonEnum = pgEnum("override_reason", [
   "DOCTOR_DISCRETION",
   "CORRECTION",
   "MANAGEMENT_APPROVAL",
-  "OTHER"
+  "OTHER",
 ]);
 
 export const invoiceLineItemOverrides = pgTable("invoice_line_item_overrides", {
@@ -539,17 +553,19 @@ export const invoiceLineItemOverrides = pgTable("invoice_line_item_overrides", {
   lineItemId: integer("line_item_id")
     .notNull()
     .references(() => invoiceLineItems.id, { onDelete: "cascade" }),
-    
+
   originalPrice: integer("original_price").notNull(),
   newPrice: integer("new_price").notNull(),
-  
+
   reason: overrideReasonEnum("reason").notNull(),
   note: text("note"),
-  
+
   // Audit Trail
-  changedById: uuid("changed_by_id").notNull().references(() => userProfiles.userId),
+  changedById: uuid("changed_by_id")
+    .notNull()
+    .references(() => userProfiles.userId),
   approvedById: uuid("approved_by_id").references(() => userProfiles.userId), // For high-value overrides requiring a manager
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -846,17 +862,20 @@ export const productsRelations = relations(products, ({ one }) => ({
   }),
 }));
 
-export const billableItemsRelations = relations(billableItems, ({ one, many }) => ({
-  service: one(services, {
-    fields: [billableItems.serviceId],
-    references: [services.id],
+export const billableItemsRelations = relations(
+  billableItems,
+  ({ one, many }) => ({
+    service: one(services, {
+      fields: [billableItems.serviceId],
+      references: [services.id],
+    }),
+    product: one(products, {
+      fields: [billableItems.productId],
+      references: [products.id],
+    }),
+    priceBookEntries: many(priceBookEntries),
   }),
-  product: one(products, {
-    fields: [billableItems.productId],
-    references: [products.id],
-  }),
-  priceBookEntries: many(priceBookEntries),
-}));
+);
 
 export const priceBooksRelations = relations(priceBooks, ({ one, many }) => ({
   branch: one(branches, {
@@ -870,16 +889,19 @@ export const priceBooksRelations = relations(priceBooks, ({ one, many }) => ({
   entries: many(priceBookEntries),
 }));
 
-export const priceBookEntriesRelations = relations(priceBookEntries, ({ one }) => ({
-  priceBook: one(priceBooks, {
-    fields: [priceBookEntries.priceBookId],
-    references: [priceBooks.id],
+export const priceBookEntriesRelations = relations(
+  priceBookEntries,
+  ({ one }) => ({
+    priceBook: one(priceBooks, {
+      fields: [priceBookEntries.priceBookId],
+      references: [priceBooks.id],
+    }),
+    billableItem: one(billableItems, {
+      fields: [priceBookEntries.billableItemId],
+      references: [billableItems.id],
+    }),
   }),
-  billableItem: one(billableItems, {
-    fields: [priceBookEntries.billableItemId],
-    references: [billableItems.id],
-  }),
-}));
+);
 
 export const visitTypesRelations = relations(visitTypes, ({ one, many }) => ({
   visits: many(visits),

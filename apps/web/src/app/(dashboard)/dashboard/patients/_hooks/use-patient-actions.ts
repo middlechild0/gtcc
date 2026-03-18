@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
 import { trpc } from "@/trpc/client";

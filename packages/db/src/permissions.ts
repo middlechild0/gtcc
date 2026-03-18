@@ -217,7 +217,8 @@ export const PERMISSIONS = [
     key: "pricing:manage",
     module: "pricing",
     label: "Manage Pricing",
-    description: "Create and edit price books, tax rates, and assign item prices",
+    description:
+      "Create and edit price books, tax rates, and assign item prices",
   },
 
   // Inventory

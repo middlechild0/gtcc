@@ -82,7 +82,9 @@ function PatientsContent() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Active patients</CardTitle>
-              <CardDescription>Currently active patient records.</CardDescription>
+              <CardDescription>
+                Currently active patient records.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold">
@@ -97,7 +99,9 @@ function PatientsContent() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-semibold">
-                {kpisLoading ? "—" : ((kpis as any)?.newRegistrationsMonth ?? 0)}
+                {kpisLoading
+                  ? "—"
+                  : ((kpis as any)?.newRegistrationsMonth ?? 0)}
               </p>
             </CardContent>
           </Card>

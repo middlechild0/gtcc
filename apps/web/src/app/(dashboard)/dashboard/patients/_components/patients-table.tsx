@@ -119,127 +119,127 @@ export function PatientsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-          {isLoading && patients.length === 0 ? (
-            <>
-              <SkeletonRow />
-              <SkeletonRow />
-              <SkeletonRow />
-            </>
-          ) : patients.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={9}
-                className="py-10 text-center text-muted-foreground text-sm"
-              >
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          ) : (
-            patients.map((patient) => (
-              <TableRow key={patient.id} className="hover:bg-muted/50">
-                <TableCell className="font-mono text-sm tabular-nums">
-                  {patient.patientNumber ? (
-                    <button
-                      type="button"
-                      onClick={() => onView?.(patient)}
-                      className="text-primary hover:underline"
-                    >
-                      {patient.patientNumber}
-                    </button>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {patient.firstName}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {patient.lastName}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
-                  {formatAge(patient.dateOfBirth)}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {patient.phone ? (
-                    <button
-                      type="button"
-                      onClick={() => onView?.(patient)}
-                      className="text-primary hover:underline"
-                    >
-                      {patient.phone}
-                    </button>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {patient.email ? (
-                    <button
-                      type="button"
-                      onClick={() => onView?.(patient)}
-                      className="text-primary hover:underline"
-                    >
-                      {patient.email}
-                    </button>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {patient.nationalId ?? "—"}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={patient.isActive ? "default" : "secondary"}>
-                    {patient.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {onView && (
-                        <DropdownMenuItem onClick={() => onView(patient)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                      )}
-                      {onEdit && (
-                        <DropdownMenuItem onClick={() => onEdit(patient)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Profile
-                        </DropdownMenuItem>
-                      )}
-                      {canDeactivate && (
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          disabled={isDeactivating || !patient.isActive}
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Are you sure you want to deactivate this patient from the current branch?",
-                              )
-                            ) {
-                              deactivatePatient(patient.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Deactivate
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {isLoading && patients.length === 0 ? (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            ) : patients.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  className="py-10 text-center text-muted-foreground text-sm"
+                >
+                  {emptyMessage}
                 </TableCell>
               </TableRow>
-            ))
-          )}
+            ) : (
+              patients.map((patient) => (
+                <TableRow key={patient.id} className="hover:bg-muted/50">
+                  <TableCell className="font-mono text-sm tabular-nums">
+                    {patient.patientNumber ? (
+                      <button
+                        type="button"
+                        onClick={() => onView?.(patient)}
+                        className="text-primary hover:underline"
+                      >
+                        {patient.patientNumber}
+                      </button>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {patient.firstName}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {patient.lastName}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                    {formatAge(patient.dateOfBirth)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {patient.phone ? (
+                      <button
+                        type="button"
+                        onClick={() => onView?.(patient)}
+                        className="text-primary hover:underline"
+                      >
+                        {patient.phone}
+                      </button>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {patient.email ? (
+                      <button
+                        type="button"
+                        onClick={() => onView?.(patient)}
+                        className="text-primary hover:underline"
+                      >
+                        {patient.email}
+                      </button>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {patient.nationalId ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={patient.isActive ? "default" : "secondary"}>
+                      {patient.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {onView && (
+                          <DropdownMenuItem onClick={() => onView(patient)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                        )}
+                        {onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(patient)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Profile
+                          </DropdownMenuItem>
+                        )}
+                        {canDeactivate && (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            disabled={isDeactivating || !patient.isActive}
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Are you sure you want to deactivate this patient from the current branch?",
+                                )
+                              ) {
+                                deactivatePatient(patient.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Deactivate
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

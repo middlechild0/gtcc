@@ -1,6 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
+import { createClient } from "@visyx/supabase/client";
 import { Button } from "@visyx/ui/button";
 import {
   Card,
@@ -10,7 +11,6 @@ import {
   CardTitle,
 } from "@visyx/ui/card";
 import { useEffect, useState } from "react";
-import { createClient } from "@visyx/supabase/client";
 import { toast } from "sonner";
 
 type MyAccountSessionsSectionProps = {
@@ -95,8 +95,8 @@ export function MyAccountSessionsSection({
         <CardContent className="space-y-3">
           <p className="text-muted-foreground text-sm">
             You&apos;re currently signed in on this browser. If you&apos;re
-            concerned about security, you can sign out of all your other
-            devices while keeping this session active.
+            concerned about security, you can sign out of all your other devices
+            while keeping this session active.
           </p>
           <Button
             type="button"

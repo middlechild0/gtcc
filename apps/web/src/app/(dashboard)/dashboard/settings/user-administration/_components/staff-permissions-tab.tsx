@@ -2,7 +2,6 @@
 
 import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
-import { Input } from "@visyx/ui/input";
 import {
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@visyx/ui/collapsible";
+import { Input } from "@visyx/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@visyx/ui/select";
 import { Switch } from "@visyx/ui/switch";
-import { ChevronDown, ChevronUp, Search, AlertCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { NoPermission } from "@/app/auth/components/no-permission";
@@ -69,7 +69,10 @@ export function StaffPermissionsTab({
   const initialDesiredRef = useRef<Record<number, Record<string, boolean>>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  const scopeKeys = useMemo(() => ["global", ...branchOptions.map((b) => String(b.id))], [branchOptions]);
+  const scopeKeys = useMemo(
+    () => ["global", ...branchOptions.map((b) => String(b.id))],
+    [branchOptions],
+  );
 
   useEffect(() => {
     if (!permissionsCatalog) return;
@@ -98,9 +101,9 @@ export function StaffPermissionsTab({
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      rows = rows.filter(p =>
-        p.label.toLowerCase().includes(q) ||
-        p.key.toLowerCase().includes(q)
+      rows = rows.filter(
+        (p) =>
+          p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q),
       );
     }
 
@@ -147,7 +150,7 @@ export function StaffPermissionsTab({
       toast.success(
         "Template applied to local preview. Save changes below to commit.",
       );
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to load group details.");
     } finally {
       setApplyingGroupLocal(false);
@@ -202,7 +205,7 @@ export function StaffPermissionsTab({
 
   const expandAll = () => {
     if (!permissionsCatalog) return;
-    const allIds = permissionsCatalog.map(p => p.id);
+    const allIds = permissionsCatalog.map((p) => p.id);
     setOpenRows(new Set(allIds));
   };
 
@@ -211,7 +214,7 @@ export function StaffPermissionsTab({
   const getBadges = (permId: number) => {
     const scopes = desiredGranted[permId] || {};
     const active: string[] = [];
-    if (scopes["global"]) {
+    if (scopes.global) {
       active.push("Global");
       return active;
     }
@@ -246,7 +249,8 @@ export function StaffPermissionsTab({
       <CardHeader>
         <CardTitle>Permissions</CardTitle>
         <CardDescription>
-          Configure what this user can access. Expand a row to toggle access globally or for specific branches.
+          Configure what this user can access. Expand a row to toggle access
+          globally or for specific branches.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
@@ -257,7 +261,8 @@ export function StaffPermissionsTab({
                 Apply a permission group
               </div>
               <p className="text-muted-foreground text-xs">
-                Preview a template by applying it to the desired scope. You must save changes to persist them.
+                Preview a template by applying it to the desired scope. You must
+                save changes to persist them.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -322,8 +327,22 @@ export function StaffPermissionsTab({
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="ghost" size="sm" onClick={expandAll} className="hidden sm:inline-flex">Expand All</Button>
-            <Button variant="ghost" size="sm" onClick={collapseAll} className="hidden sm:inline-flex">Collapse All</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={expandAll}
+              className="hidden sm:inline-flex"
+            >
+              Expand All
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={collapseAll}
+              className="hidden sm:inline-flex"
+            >
+              Collapse All
+            </Button>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -357,13 +376,17 @@ export function StaffPermissionsTab({
                   {perms.map((perm) => {
                     const isOpen = openRows.has(perm.id);
                     const activeScopes = getBadges(perm.id);
-                    const isGlobal = Boolean(desiredGranted[perm.id]?.["global"]);
+                    const isGlobal = Boolean(desiredGranted[perm.id]?.global);
 
                     // Check if this row has unsaved changes compared to the database baseline
                     let hasUnsavedChanges = false;
                     for (const key of scopeKeys) {
-                      const initialVal = Boolean(initialDesiredRef.current[perm.id]?.[key]);
-                      const currentVal = Boolean(desiredGranted[perm.id]?.[key]);
+                      const initialVal = Boolean(
+                        initialDesiredRef.current[perm.id]?.[key],
+                      );
+                      const currentVal = Boolean(
+                        desiredGranted[perm.id]?.[key],
+                      );
                       if (initialVal !== currentVal) {
                         hasUnsavedChanges = true;
                         break;
@@ -378,23 +401,36 @@ export function StaffPermissionsTab({
                       >
                         <div className="flex flex-col">
                           <CollapsibleTrigger asChild>
-                            <div className={`flex items-center justify-between gap-4 p-3 hover:bg-muted/50 cursor-pointer transition-colors ${hasUnsavedChanges ? "bg-amber-500/5 dark:bg-amber-500/10" : ""}`}>
+                            <div
+                              className={`flex items-center justify-between gap-4 p-3 hover:bg-muted/50 cursor-pointer transition-colors ${hasUnsavedChanges ? "bg-amber-500/5 dark:bg-amber-500/10" : ""}`}
+                            >
                               <div className="min-w-0 flex flex-col gap-1.5">
                                 <div className="text-sm font-medium flex items-center gap-2">
                                   {hasUnsavedChanges && (
-                                    <div title="Unsaved changes" className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                    <div
+                                      title="Unsaved changes"
+                                      className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+                                    />
                                   )}
                                   {perm.label}
-                                  <span className="text-muted-foreground text-xs font-normal hidden sm:inline-block">({perm.key})</span>
+                                  <span className="text-muted-foreground text-xs font-normal hidden sm:inline-block">
+                                    ({perm.key})
+                                  </span>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5 min-h-[20px] items-center">
                                   {activeScopes.length === 0 ? (
-                                    <span className="text-xs text-muted-foreground">No access</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      No access
+                                    </span>
                                   ) : (
                                     activeScopes.map((scope) => (
                                       <Badge
                                         key={scope}
-                                        variant={scope === "Global" ? "default" : "secondary"}
+                                        variant={
+                                          scope === "Global"
+                                            ? "default"
+                                            : "secondary"
+                                        }
                                         className="text-[10px] h-[18px] px-1.5 font-medium"
                                       >
                                         {scope}
@@ -418,7 +454,9 @@ export function StaffPermissionsTab({
                                 Configure Scopes
                               </div>
                               <div className="flex items-center justify-between py-1">
-                                <span className="text-sm font-medium">Global (All branches)</span>
+                                <span className="text-sm font-medium">
+                                  Global (All branches)
+                                </span>
                                 <Switch
                                   checked={isGlobal}
                                   onCheckedChange={(next) =>
@@ -426,7 +464,7 @@ export function StaffPermissionsTab({
                                       ...prev,
                                       [perm.id]: {
                                         ...prev[perm.id],
-                                        ["global"]: Boolean(next),
+                                        global: Boolean(next),
                                       },
                                     }))
                                   }
@@ -440,7 +478,9 @@ export function StaffPermissionsTab({
                                     className="flex items-center justify-between py-1 border-t border-border/50"
                                   >
                                     <div className="flex items-center gap-2 pl-4">
-                                      <span className="text-sm text-muted-foreground">Branch: {b.name}</span>
+                                      <span className="text-sm text-muted-foreground">
+                                        Branch: {b.name}
+                                      </span>
                                       {isGlobal && (
                                         <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">
                                           Inherited from Global
@@ -448,7 +488,14 @@ export function StaffPermissionsTab({
                                       )}
                                     </div>
                                     <Switch
-                                      checked={isGlobal || Boolean(desiredGranted[perm.id]?.[String(b.id)])}
+                                      checked={
+                                        isGlobal ||
+                                        Boolean(
+                                          desiredGranted[perm.id]?.[
+                                            String(b.id)
+                                          ],
+                                        )
+                                      }
                                       onCheckedChange={(next) =>
                                         setDesiredGranted((prev) => ({
                                           ...prev,
@@ -458,7 +505,9 @@ export function StaffPermissionsTab({
                                           },
                                         }))
                                       }
-                                      disabled={saving || staffIsAdmin || isGlobal}
+                                      disabled={
+                                        saving || staffIsAdmin || isGlobal
+                                      }
                                     />
                                   </div>
                                 ))}

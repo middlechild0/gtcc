@@ -313,11 +313,7 @@ export class PatientService {
       }
 
       // 5. Insurance
-      if (
-        input.insurance &&
-        input.insurance.providerId &&
-        input.insurance.memberNumber
-      ) {
+      if (input.insurance?.providerId && input.insurance.memberNumber) {
         await tx.insert(patientInsurances).values({
           patientId: created.id,
           providerId: input.insurance.providerId,
@@ -418,11 +414,7 @@ export class PatientService {
         await tx
           .delete(patientInsurances)
           .where(eq(patientInsurances.patientId, input.id));
-        if (
-          input.insurance &&
-          input.insurance.providerId &&
-          input.insurance.memberNumber
-        ) {
+        if (input.insurance?.providerId && input.insurance.memberNumber) {
           await tx.insert(patientInsurances).values({
             patientId: input.id,
             providerId: input.insurance.providerId,

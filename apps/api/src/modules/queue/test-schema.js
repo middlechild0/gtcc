@@ -1,2 +1,2 @@
 const regex = /(async startVisit\({[^}]+}\)\s*\{)([\s\S]*?)(\s*\}\);?\s*\})/m;
-const match = "some fake file".match(regex);
+const _match = "some fake file".match(regex);

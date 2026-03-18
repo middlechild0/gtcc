@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { use, useEffect } from "react";
+import { use } from "react";
 import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { trpc } from "@/trpc/client";

@@ -457,7 +457,8 @@ export class StaffService {
     if (actorStaffId === input.staffId) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "You cannot send a reset for your own account from this screen.",
+        message:
+          "You cannot send a reset for your own account from this screen.",
       });
     }
 

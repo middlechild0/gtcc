@@ -137,7 +137,9 @@ export type GetStaffInput = z.infer<typeof GetStaffSchema>;
 export type ListStaffInput = z.infer<typeof ListStaffSchema>;
 export type DeactivateStaffInput = z.infer<typeof DeactivateStaffSchema>;
 export type ReactivateStaffInput = z.infer<typeof ReactivateStaffSchema>;
-export type ChangeStaffPasswordInput = z.infer<typeof ChangeStaffPasswordSchema>;
+export type ChangeStaffPasswordInput = z.infer<
+  typeof ChangeStaffPasswordSchema
+>;
 export type SendStaffPasswordResetInput = z.infer<
   typeof SendStaffPasswordResetSchema
 >;

@@ -166,7 +166,6 @@ export function MyAccountSecuritySection({
           </div>
         </CardContent>
       </Card>
-
     </div>
   );
 }

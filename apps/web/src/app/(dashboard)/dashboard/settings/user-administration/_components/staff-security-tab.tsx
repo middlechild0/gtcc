@@ -64,9 +64,7 @@ export function StaffSecurityTab() {
       toast.success("Password updated for this user.");
       form.reset();
     } catch (err: any) {
-      toast.error(
-        err?.message ?? "Failed to update this user's password.",
-      );
+      toast.error(err?.message ?? "Failed to update this user's password.");
     }
   }
 
@@ -142,13 +140,9 @@ export function StaffSecurityTab() {
                 <Button
                   type="submit"
                   className="h-9 rounded-lg"
-                  disabled={
-                    !isReady || changePassword.isPending
-                  }
+                  disabled={!isReady || changePassword.isPending}
                 >
-                  {changePassword.isPending
-                    ? "Updating..."
-                    : "Update password"}
+                  {changePassword.isPending ? "Updating..." : "Update password"}
                 </Button>
               </div>
             </form>
@@ -185,9 +179,7 @@ export function StaffSecurityTab() {
                 }
               }}
             >
-              {sendPasswordReset.isPending
-                ? "Sending..."
-                : "Send reset link"}
+              {sendPasswordReset.isPending ? "Sending..." : "Send reset link"}
             </Button>
           </div>
         </CardContent>

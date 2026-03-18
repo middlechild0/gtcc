@@ -1,10 +1,10 @@
-import { z } from "zod";
-import { eq, desc, and } from "drizzle-orm";
-import { protectedProcedure, router } from "../../trpc/init";
-import { hasPermission } from "../../trpc/middleware/withPermission";
 import { TRPCError } from "@trpc/server";
 import { db } from "@visyx/db/client";
-import { priceBooks, priceBookEntries, taxRates } from "@visyx/db/schema";
+import { priceBookEntries, priceBooks, taxRates } from "@visyx/db/schema";
+import { and, desc, eq } from "drizzle-orm";
+import { z } from "zod";
+import { protectedProcedure, router } from "../../trpc/init";
+import { hasPermission } from "../../trpc/middleware/withPermission";
 
 export const pricingRouter = router({
   // Price Books
@@ -17,13 +17,15 @@ export const pricingRouter = router({
         branchId: z.number().optional(),
         type: z.enum(["CASH", "INSURANCE", "CORPORATE"]).optional(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const conditions = [];
-      if (input.branchId) conditions.push(eq(priceBooks.branchId, input.branchId));
+      if (input.branchId)
+        conditions.push(eq(priceBooks.branchId, input.branchId));
       if (input.type) conditions.push(eq(priceBooks.type, input.type));
-      if (input.isActive !== undefined) conditions.push(eq(priceBooks.isActive, input.isActive));
+      if (input.isActive !== undefined)
+        conditions.push(eq(priceBooks.isActive, input.isActive));
 
       const allBooks = await db.query.priceBooks.findMany({
         where: (conditions.length > 0 ? and(...conditions) : undefined) as any,
@@ -32,10 +34,10 @@ export const pricingRouter = router({
         with: {
           branch: true,
           insuranceProvider: true,
-        }
+        },
       });
 
-      let nextCursor: typeof input.cursor = undefined;
+      let nextCursor: typeof input.cursor;
       if (allBooks.length > input.limit) {
         const nextItem = allBooks.pop();
         nextCursor = nextItem!.id;
@@ -56,7 +58,7 @@ export const pricingRouter = router({
         branchId: z.number().optional().nullable(),
         insuranceProviderId: z.number().optional().nullable(),
         isActive: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const [newBook] = await db.insert(priceBooks).values(input).returning();
@@ -73,7 +75,7 @@ export const pricingRouter = router({
         branchId: z.number().optional().nullable(),
         insuranceProviderId: z.number().optional().nullable(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
@@ -84,7 +86,10 @@ export const pricingRouter = router({
         .returning();
 
       if (!updatedBook) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Price book not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Price book not found",
+        });
       }
 
       return updatedBook;
@@ -98,7 +103,7 @@ export const pricingRouter = router({
         priceBookId: z.number(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.number().nullish(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const allEntries = await db.query.priceBookEntries.findMany({
@@ -107,15 +112,15 @@ export const pricingRouter = router({
         orderBy: desc(priceBookEntries.createdAt),
         with: {
           billableItem: {
-             with: {
-                 service: true,
-                 product: true
-             }
-          }
-        }
+            with: {
+              service: true,
+              product: true,
+            },
+          },
+        },
       });
 
-      let nextCursor: typeof input.cursor = undefined;
+      let nextCursor: typeof input.cursor;
       if (allEntries.length > input.limit) {
         const nextItem = allEntries.pop();
         nextCursor = nextItem!.id;
@@ -134,7 +139,7 @@ export const pricingRouter = router({
         priceBookId: z.number(),
         billableItemId: z.number(),
         price: z.number().min(0),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       // Use PostgreSQL ON CONFLICT to either insert or update the price
@@ -142,7 +147,10 @@ export const pricingRouter = router({
         .insert(priceBookEntries)
         .values(input)
         .onConflictDoUpdate({
-          target: [priceBookEntries.priceBookId, priceBookEntries.billableItemId],
+          target: [
+            priceBookEntries.priceBookId,
+            priceBookEntries.billableItemId,
+          ],
           set: { price: input.price, updatedAt: new Date() },
         })
         .returning();
@@ -167,12 +175,15 @@ export const pricingRouter = router({
         rate: z.number().min(0).max(100),
         isDefault: z.boolean().default(false),
         isActive: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       if (input.isDefault) {
-          // Unset any existing default
-          await db.update(taxRates).set({ isDefault: false }).where(eq(taxRates.isDefault, true));
+        // Unset any existing default
+        await db
+          .update(taxRates)
+          .set({ isDefault: false })
+          .where(eq(taxRates.isDefault, true));
       }
 
       const [newTaxRate] = await db.insert(taxRates).values(input).returning();
@@ -188,14 +199,17 @@ export const pricingRouter = router({
         rate: z.number().min(0).max(100).optional(),
         isDefault: z.boolean().optional(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      
+
       if (data.isDefault) {
-          // Unset any existing default
-          await db.update(taxRates).set({ isDefault: false }).where(eq(taxRates.isDefault, true));
+        // Unset any existing default
+        await db
+          .update(taxRates)
+          .set({ isDefault: false })
+          .where(eq(taxRates.isDefault, true));
       }
 
       const [updatedTaxRate] = await db
@@ -205,7 +219,10 @@ export const pricingRouter = router({
         .returning();
 
       if (!updatedTaxRate) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Tax rate not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tax rate not found",
+        });
       }
 
       return updatedTaxRate;
