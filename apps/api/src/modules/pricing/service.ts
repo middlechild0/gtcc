@@ -132,6 +132,36 @@ export const PricingService = {
     return entry;
   },
 
+  async bulkUpsertEntries(input: {
+    priceBookId: number;
+    entries: { billableItemId: number; price: number }[];
+  }) {
+    if (input.entries.length === 0) return [];
+
+    return await db.transaction(async (tx) => {
+      const results = [];
+      for (const entry of input.entries) {
+        const [upserted] = await tx
+          .insert(priceBookEntries)
+          .values({
+            priceBookId: input.priceBookId,
+            billableItemId: entry.billableItemId,
+            price: entry.price,
+          })
+          .onConflictDoUpdate({
+            target: [
+              priceBookEntries.priceBookId,
+              priceBookEntries.billableItemId,
+            ],
+            set: { price: entry.price, updatedAt: new Date() },
+          })
+          .returning();
+        results.push(upserted);
+      }
+      return results;
+    });
+  },
+
   async listTaxRates() {
     return await db.query.taxRates.findMany({
       orderBy: desc(taxRates.createdAt),

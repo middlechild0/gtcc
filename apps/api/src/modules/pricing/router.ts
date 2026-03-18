@@ -68,6 +68,21 @@ export const pricingRouter = router({
     )
     .mutation(async ({ input }) => PricingService.upsertEntry(input)),
 
+  bulkUpsertEntries: protectedProcedure
+    .use(hasPermission("pricing:manage"))
+    .input(
+      z.object({
+        priceBookId: z.number(),
+        entries: z.array(
+          z.object({
+            billableItemId: z.number(),
+            price: z.number().min(0),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ input }) => PricingService.bulkUpsertEntries(input)),
+
   // Tax Rates
   listTaxRates: protectedProcedure
     .use(hasPermission("pricing:view"))
