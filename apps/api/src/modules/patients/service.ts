@@ -58,6 +58,15 @@ function get<T>(row: PatientRow, camel: string, snake: string): T | undefined {
   return (r[camel] ?? r[snake]) as T | undefined;
 }
 
+function normalizeOptionalString(
+  value?: string | null,
+): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
 function toPatientListItem(row: PatientRow) {
   return {
     id: get<string>(row, "id", "id")!,
@@ -247,9 +256,9 @@ export class PatientService {
         .insert(patients)
         .values({
           patientNumber,
-          salutation: input.salutation,
+          salutation: normalizeOptionalString(input.salutation),
           firstName: input.firstName,
-          middleName: input.middleName,
+          middleName: normalizeOptionalString(input.middleName),
           lastName: input.lastName,
           dateOfBirth: input.dateOfBirth
             ? input.dateOfBirth.split("T")[0]
@@ -257,13 +266,13 @@ export class PatientService {
           gender: input.gender as any, // Cast to mapped enum correctly later down ORM stack
           maritalStatus: input.maritalStatus as any,
           bloodGroup: input.bloodGroup as any,
-          email: input.email === "" ? null : input.email,
-          phone: input.phone,
-          country: input.country || "Kenya",
-          address: input.address,
-          passportNumber: input.passportNumber,
-          nationalId: input.nationalId,
-          nhifNumber: input.nhifNumber,
+          email: normalizeOptionalString(input.email),
+          phone: normalizeOptionalString(input.phone),
+          country: normalizeOptionalString(input.country) || "Kenya",
+          address: normalizeOptionalString(input.address),
+          passportNumber: normalizeOptionalString(input.passportNumber),
+          nationalId: normalizeOptionalString(input.nationalId),
+          nhifNumber: normalizeOptionalString(input.nhifNumber),
         })
         .returning();
 
@@ -287,10 +296,10 @@ export class PatientService {
             isPrimary: k.isPrimary ?? false,
             firstName: k.firstName,
             lastName: k.lastName,
-            relationship: k.relationship,
-            phone: k.phone,
-            email: k.email === "" ? null : k.email,
-            nationalId: k.nationalId,
+            relationship: normalizeOptionalString(k.relationship),
+            phone: normalizeOptionalString(k.phone),
+            email: normalizeOptionalString(k.email),
+            nationalId: normalizeOptionalString(k.nationalId),
           })),
         );
       }
@@ -303,11 +312,11 @@ export class PatientService {
             isPrimary: g.isPrimary ?? false,
             firstName: g.firstName,
             lastName: g.lastName,
-            relationship: g.relationship,
-            phone: g.phone,
-            email: g.email === "" ? null : g.email,
-            nationalId: g.nationalId,
-            employer: g.employer,
+            relationship: normalizeOptionalString(g.relationship),
+            phone: normalizeOptionalString(g.phone),
+            email: normalizeOptionalString(g.email),
+            nationalId: normalizeOptionalString(g.nationalId),
+            employer: normalizeOptionalString(g.employer),
           })),
         );
       }
@@ -344,9 +353,9 @@ export class PatientService {
       const [updated] = await tx
         .update(patients)
         .set({
-          salutation: input.salutation,
+          salutation: normalizeOptionalString(input.salutation),
           firstName: input.firstName,
-          middleName: input.middleName,
+          middleName: normalizeOptionalString(input.middleName),
           lastName: input.lastName,
           dateOfBirth: input.dateOfBirth
             ? input.dateOfBirth.split("T")[0]
@@ -354,13 +363,13 @@ export class PatientService {
           gender: input.gender as any,
           maritalStatus: input.maritalStatus as any,
           bloodGroup: input.bloodGroup as any,
-          email: input.email === "" ? null : input.email,
-          phone: input.phone,
-          country: input.country,
-          address: input.address,
-          passportNumber: input.passportNumber,
-          nationalId: input.nationalId,
-          nhifNumber: input.nhifNumber,
+          email: normalizeOptionalString(input.email),
+          phone: normalizeOptionalString(input.phone),
+          country: normalizeOptionalString(input.country) ?? undefined,
+          address: normalizeOptionalString(input.address),
+          passportNumber: normalizeOptionalString(input.passportNumber),
+          nationalId: normalizeOptionalString(input.nationalId),
+          nhifNumber: normalizeOptionalString(input.nhifNumber),
           updatedAt: new Date(),
         })
         .where(eq(patients.id, input.id))
@@ -380,10 +389,10 @@ export class PatientService {
               isPrimary: k.isPrimary ?? false,
               firstName: k.firstName,
               lastName: k.lastName,
-              relationship: k.relationship,
-              phone: k.phone,
-              email: k.email === "" ? null : k.email,
-              nationalId: k.nationalId,
+              relationship: normalizeOptionalString(k.relationship),
+              phone: normalizeOptionalString(k.phone),
+              email: normalizeOptionalString(k.email),
+              nationalId: normalizeOptionalString(k.nationalId),
             })),
           );
         }
@@ -400,11 +409,11 @@ export class PatientService {
               isPrimary: g.isPrimary ?? false,
               firstName: g.firstName,
               lastName: g.lastName,
-              relationship: g.relationship,
-              phone: g.phone,
-              email: g.email === "" ? null : g.email,
-              nationalId: g.nationalId,
-              employer: g.employer,
+              relationship: normalizeOptionalString(g.relationship),
+              phone: normalizeOptionalString(g.phone),
+              email: normalizeOptionalString(g.email),
+              nationalId: normalizeOptionalString(g.nationalId),
+              employer: normalizeOptionalString(g.employer),
             })),
           );
         }

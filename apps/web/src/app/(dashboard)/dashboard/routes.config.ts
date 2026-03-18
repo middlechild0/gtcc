@@ -172,6 +172,58 @@ export const routes: RouteConfig[] = [
     permissions: "billing:manage_insurance_providers",
     showInSearch: true,
   },
+
+  // Pricing & Catalog
+  {
+    id: "pricing-home",
+    path: "/dashboard/settings/pricing",
+    label: "Pricing",
+    breadcrumbLabel: "Pricing",
+    group: "settings",
+    parentId: "settings-root",
+    permissions: ["pricing:view", "catalog:view"],
+    showInSearch: true,
+  },
+  {
+    id: "pricing-catalog",
+    path: "/dashboard/settings/pricing/catalog",
+    label: "Catalog",
+    breadcrumbLabel: "Catalog",
+    group: "settings",
+    parentId: "pricing-home",
+    permissions: "catalog:view",
+    showInSearch: true,
+  },
+  {
+    id: "pricing-price-books",
+    path: "/dashboard/settings/pricing/price-books",
+    label: "Price Books",
+    breadcrumbLabel: "Price Books",
+    group: "settings",
+    parentId: "pricing-home",
+    permissions: "pricing:view",
+    showInSearch: true,
+  },
+  {
+    id: "pricing-price-book-detail",
+    path: "/dashboard/settings/pricing/price-books/[id]",
+    label: "Price Book",
+    breadcrumbLabel: "Price Book",
+    group: "settings",
+    parentId: "pricing-price-books",
+    permissions: "pricing:view",
+    showInSearch: false,
+  },
+  {
+    id: "pricing-tax-rates",
+    path: "/dashboard/settings/pricing/tax-rates",
+    label: "Tax Rates",
+    breadcrumbLabel: "Tax Rates",
+    group: "settings",
+    parentId: "pricing-home",
+    permissions: "pricing:view",
+    showInSearch: true,
+  },
 ];
 
 const routesById = new Map(routes.map((r) => [r.id, r]));
