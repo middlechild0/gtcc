@@ -22,6 +22,34 @@
       "when": 1772251100000,
       "tag": "0002_patients_table",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772564947254,
+      "tag": "0003_numerous_lake",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772917903983,
+      "tag": "0004_past_wild_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773086577557,
+      "tag": "0005_good_wallflower",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773175417828,
+      "tag": "0006_workable_toad_men",
+      "breakpoints": true
     }
   ]
 }

@@ -9,10 +9,19 @@ export default function NewBranchPage() {
   const router = useRouter();
   const { create } = useBranchMutations();
 
-  const handleSubmit = async (
-    values: Parameters<typeof create.mutateAsync>[0],
-  ) => {
-    const branch = await create.mutateAsync(values);
+  const handleSubmit = async (values: {
+    name: string;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  }) => {
+    const branch = await create.mutateAsync({
+      name: values.name,
+      address: values.address ?? undefined,
+      phone: values.phone ?? undefined,
+      email: values.email ?? undefined,
+      code: values.name.substring(0, 3).toUpperCase(),
+    });
     router.push(`/dashboard/settings/branches/${branch?.id}`);
   };
 

@@ -51,6 +51,12 @@ export const PERMISSIONS = [
     description: "Search and view patient profiles and visit history",
   },
   {
+    key: "patients:view_kpis",
+    module: "patients",
+    label: "View Patient KPIs",
+    description: "View aggregated patient counts and KPI metrics",
+  },
+  {
     key: "patients:create",
     module: "patients",
     label: "Register Patients",
@@ -126,6 +132,18 @@ export const PERMISSIONS = [
     description: "Cancel an issued invoice",
   },
   {
+    key: "billing:override_price",
+    module: "billing",
+    label: "Override Price",
+    description: "Apply manual price overrides to invoice line items",
+  },
+  {
+    key: "billing:approve_override",
+    module: "billing",
+    label: "Approve Price Override",
+    description: "Approve high-value or restricted price overrides",
+  },
+  {
     key: "billing:record_payment",
     module: "billing",
     label: "Record Payment",
@@ -172,6 +190,35 @@ export const PERMISSIONS = [
     module: "billing",
     label: "View Aging Reports",
     description: "View outstanding receivables and insurance claim aging",
+  },
+
+  // Catalog (Services & Products)
+  {
+    key: "catalog:view",
+    module: "catalog",
+    label: "View Catalog",
+    description: "Search and view the services and products catalog",
+  },
+  {
+    key: "catalog:manage",
+    module: "catalog",
+    label: "Manage Catalog",
+    description: "Create, edit, and deactivate services and products",
+  },
+
+  // Pricing
+  {
+    key: "pricing:view",
+    module: "pricing",
+    label: "View Pricing",
+    description: "View price books and their entries",
+  },
+  {
+    key: "pricing:manage",
+    module: "pricing",
+    label: "Manage Pricing",
+    description:
+      "Create and edit price books, tax rates, and assign item prices",
   },
 
   // Inventory
@@ -254,6 +301,32 @@ export const PERMISSIONS = [
     module: "accounting",
     label: "View Accounts Payable",
     description: "View what the clinic owes suppliers",
+  },
+
+  // Queue Operations
+  {
+    key: "queue:view",
+    module: "queue",
+    label: "View Queue",
+    description: "View active queue waitlists and statuses",
+  },
+  {
+    key: "queue:manage",
+    module: "queue",
+    label: "Manage Queue",
+    description: "Call patients and advance their workflow",
+  },
+  {
+    key: "queue:transfer",
+    module: "queue",
+    label: "Transfer Patient",
+    description: "Transfer a patient between departments manually",
+  },
+  {
+    key: "queue:cancel",
+    module: "queue",
+    label: "Cancel Visit",
+    description: "Cancel an active patient visit",
   },
 ] as const;
 

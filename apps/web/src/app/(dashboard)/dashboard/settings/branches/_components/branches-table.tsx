@@ -35,67 +35,71 @@ export function BranchesTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Address</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="w-[100px] text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading && branches.length === 0 ? (
-          <>
-            <SkeletonRow />
-            <SkeletonRow />
-            <SkeletonRow />
-          </>
-        ) : branches.length === 0 ? (
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-[720px]">
+        <TableHeader>
           <TableRow>
-            <TableCell
-              colSpan={6}
-              className="py-10 text-center text-muted-foreground text-sm"
-            >
-              {emptyMessage}
-            </TableCell>
+            <TableHead>Name</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[100px] text-right">Actions</TableHead>
           </TableRow>
-        ) : (
-          branches.map((branch) => (
-            <TableRow key={branch.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium hover:underline">
-                <Link href={`/dashboard/settings/branches/${branch.id}`}>
-                  {branch.name}
-                </Link>
-              </TableCell>
-              <TableCell className="max-w-xs truncate text-muted-foreground">
-                {branch.address || "—"}
-              </TableCell>
-              <TableCell className="hover:underline">
-                <Link href={`tel:${branch.phone}`}>{branch.phone || "—"}</Link>
-              </TableCell>
-              <TableCell className="text-muted-foreground hover:underline">
-                <Link href={`mailto:${branch.email}`}>
-                  {branch.email || "—"}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <BranchStatusBadge isActive={branch.isActive} />
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/dashboard/settings/branches/${branch.id}`}>
-                    View
-                  </Link>
-                </Button>
+        </TableHeader>
+        <TableBody>
+          {isLoading && branches.length === 0 ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : branches.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-10 text-center text-muted-foreground text-sm"
+              >
+                {emptyMessage}
               </TableCell>
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+          ) : (
+            branches.map((branch) => (
+              <TableRow key={branch.id} className="hover:bg-muted/50">
+                <TableCell className="font-medium hover:underline">
+                  <Link href={`/dashboard/settings/branches/${branch.id}`}>
+                    {branch.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-muted-foreground">
+                  {branch.address || "—"}
+                </TableCell>
+                <TableCell className="hover:underline">
+                  <Link href={`tel:${branch.phone}`}>
+                    {branch.phone || "—"}
+                  </Link>
+                </TableCell>
+                <TableCell className="text-muted-foreground hover:underline">
+                  <Link href={`mailto:${branch.email}`}>
+                    {branch.email || "—"}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <BranchStatusBadge isActive={branch.isActive} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dashboard/settings/branches/${branch.id}`}>
+                      View
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

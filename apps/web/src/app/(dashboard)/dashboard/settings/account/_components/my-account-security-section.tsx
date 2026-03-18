@@ -166,25 +166,6 @@ export function MyAccountSecuritySection({
           </div>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Two-factor authentication</CardTitle>
-          <CardDescription>
-            Add an extra layer of security to your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Two-factor authentication isn&apos;t available yet. When enabled,
-            you&apos;ll be able to protect your account with an authenticator
-            app or SMS code.
-          </p>
-          <Button variant="outline" className="mt-4" disabled>
-            Enable 2FA (coming soon)
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 }

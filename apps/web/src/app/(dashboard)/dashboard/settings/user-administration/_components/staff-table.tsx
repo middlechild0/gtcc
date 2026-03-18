@@ -35,63 +35,69 @@ export function StaffTable({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Job title</TableHead>
-          <TableHead>Branch</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="w-[100px] text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading && staff.length === 0 ? (
-          <>
-            <SkeletonRow />
-            <SkeletonRow />
-            <SkeletonRow />
-          </>
-        ) : staff.length === 0 ? (
+    <div className="w-full overflow-x-auto">
+      <Table className="min-w-[720px]">
+        <TableHeader>
           <TableRow>
-            <TableCell
-              colSpan={6}
-              className="py-10 text-center text-muted-foreground text-sm"
-            >
-              {emptyMessage}
-            </TableCell>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Job title</TableHead>
+            <TableHead>Branch</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[100px] text-right">Actions</TableHead>
           </TableRow>
-        ) : (
-          staff.map((u) => (
-            <TableRow key={u.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium hover:underline">
-                <Link href={`/dashboard/settings/user-administration/${u.id}`}>
-                  {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
-                </Link>
+        </TableHeader>
+        <TableBody>
+          {isLoading && staff.length === 0 ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : staff.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-10 text-center text-muted-foreground text-sm"
+              >
+                {emptyMessage}
               </TableCell>
-              <TableCell className="text-muted-foreground">{u.email}</TableCell>
-              <TableCell>{u.jobTitle || "—"}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {u.primaryBranchName || "—"}
-              </TableCell>
-              <TableCell>
-                <StaffStatusBadge isActive={Boolean(u.isActive)} />
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" asChild>
+            </TableRow>
+          ) : (
+            staff.map((u) => (
+              <TableRow key={u.id} className="hover:bg-muted/50">
+                <TableCell className="font-medium hover:underline">
                   <Link
                     href={`/dashboard/settings/user-administration/${u.id}`}
                   >
-                    View
+                    {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
                   </Link>
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {u.email}
+                </TableCell>
+                <TableCell>{u.jobTitle || "—"}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {u.primaryBranchName || "—"}
+                </TableCell>
+                <TableCell>
+                  <StaffStatusBadge isActive={Boolean(u.isActive)} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href={`/dashboard/settings/user-administration/${u.id}`}
+                    >
+                      View
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

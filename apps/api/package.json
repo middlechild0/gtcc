@@ -11,7 +11,8 @@
   },
   "exports": {
     "./ai/types": "./src/ai/types.ts",
-    "./trpc/routers/_app": "./src/trpc/routers/_app.ts"
+    "./trpc/routers/_app": "./src/trpc/routers/_app.ts",
+    "./modules/billing/insurance/schemas": "./src/modules/billing/insurance/schemas.ts"
   },
   "dependencies": {
     "@ai-sdk-tools/agents": "^1.2.0",

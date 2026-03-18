@@ -11,6 +11,7 @@ import { DashboardBreadcrumb } from "./dashboard/_components/dashboard-breadcrum
 import { DashboardFooterContent } from "./dashboard/_components/dashboard-footer-content";
 import { DashboardSidebar } from "./dashboard/_components/dashboard-sidebar";
 import { ZeroPermissionBanner } from "./dashboard/_components/zero-permission-banner";
+import { useQueueSubscription } from "./dashboard/_hooks/use-queue-subscription";
 import { useSettingsMenuItems } from "./dashboard/_hooks/use-settings-menu-items";
 import { useBranch } from "./dashboard/branch-context";
 import { searchableRoutes, sidebarRoutes } from "./dashboard/routes.config";
@@ -41,6 +42,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user } = useSession();
   const settingsMenuItems = useSettingsMenuItems(searchableRoutes);
 
+  useQueueSubscription();
+
   const displayName = user?.user_metadata?.full_name ?? "Account";
   const userEmail = user?.email ?? undefined;
 
@@ -69,6 +72,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SettingsMenu
               items={settingsMenuItems}
               searchPlaceholder="Search pages and settings"
+              align="end"
+              alignOffset={-56}
             />
           }
           className="border-sidebar-border bg-sidebar text-sidebar-foreground"

@@ -21,7 +21,7 @@ const config = {
     "next-mdx-remote",
   ],
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   experimental: {
     inlineCss: true,

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, User, Users } from "lucide-react";
+import { LayoutDashboard, ListOrdered, User, Users } from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
@@ -47,6 +47,38 @@ export const routes: RouteConfig[] = [
     showInSearch: true,
     permissions: "patients:view",
     icon: Users,
+  },
+  {
+    id: "patients-new",
+    path: "/dashboard/patients/new",
+    label: "New patient",
+    breadcrumbLabel: "New patient",
+    group: "main",
+    parentId: "patients-list",
+    permissions: "patients:create",
+    showInSearch: true,
+  },
+
+  {
+    id: "queue-overview",
+    path: "/dashboard/queue",
+    label: "Live Queue",
+    group: "main",
+    showInSidebar: true,
+    showInSearch: true,
+    permissions: "queue:view",
+    icon: ListOrdered,
+  },
+  {
+    id: "queue-department",
+    path: "/dashboard/queue/[id]",
+    label: "Department Queue",
+    breadcrumbLabel: "Department Queue",
+    group: "main",
+    parentId: "queue-overview",
+    permissions: "queue:view",
+    showInSearch: false,
+    showInSidebar: false,
   },
 
   {
@@ -111,6 +143,16 @@ export const routes: RouteConfig[] = [
     showInSearch: false,
   },
   {
+    id: "permission-groups",
+    path: "/dashboard/settings/user-administration/permission-groups",
+    label: "Permission Groups",
+    breadcrumbLabel: "Permission Groups",
+    group: "settings",
+    parentId: "user-admin-list",
+    permissions: "auth:manage_permission_groups",
+    showInSearch: true,
+  },
+  {
     id: "account-settings",
     path: "/dashboard/settings/account",
     label: "My Account",
@@ -121,14 +163,14 @@ export const routes: RouteConfig[] = [
     icon: User,
   },
   {
-    id: "cashier",
-    path: "/features/cashier",
-    label: "Cashier",
-    breadcrumbLabel: "Cashier",
-    group: "main",
+    id: "insurance-providers-list",
+    path: "/dashboard/settings/insurance-providers",
+    label: "Insurance Providers",
+    breadcrumbLabel: "Insurance Providers",
+    group: "settings",
+    parentId: "settings-root",
+    permissions: "billing:manage_insurance_providers",
     showInSearch: true,
-    showInSidebar: true,
-    icon: ShoppingCart,
   },
 ];
 

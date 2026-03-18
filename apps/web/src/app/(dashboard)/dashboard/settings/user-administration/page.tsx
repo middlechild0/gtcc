@@ -11,7 +11,13 @@ import {
   SelectValue,
 } from "@visyx/ui/select";
 import { Switch } from "@visyx/ui/switch";
-import { ChevronLeft, ChevronRight, Plus, RefreshCw } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
@@ -48,6 +54,9 @@ function UserAdministrationContent() {
 
   const branchOptions = useMemo(() => branches ?? [], [branches]);
 
+  const canManagePermissionGroups =
+    !authLoading && hasPermission("auth:manage_permission_groups");
+
   return (
     <div className="space-y-6">
       <UserAdminHeader
@@ -55,6 +64,19 @@ function UserAdministrationContent() {
         description="Invite staff, manage profiles, and control access."
         actions={
           <>
+            {canManagePermissionGroups && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                <Link href="/dashboard/settings/user-administration/permission-groups">
+                  <ShieldCheck className="mr-2 size-4" />
+                  Permission groups
+                </Link>
+              </Button>
+            )}
             <Button asChild>
               <Link href="/dashboard/settings/user-administration/invite">
                 <Plus className="mr-2 size-4" />
@@ -166,6 +188,29 @@ function UserAdministrationContent() {
           </div>
         </CardContent>
       </Card>
+
+      {canManagePermissionGroups && (
+        <div className="sm:hidden">
+          <Card className="border-dashed">
+            <CardContent className="flex items-center justify-between gap-4 p-4">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="text-muted-foreground size-5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Permission groups</p>
+                  <p className="text-muted-foreground text-xs">
+                    Create and manage reusable role templates to apply to staff.
+                  </p>
+                </div>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/settings/user-administration/permission-groups">
+                  Manage
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

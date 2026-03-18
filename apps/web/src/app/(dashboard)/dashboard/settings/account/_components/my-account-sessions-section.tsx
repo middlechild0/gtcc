@@ -1,6 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
+import { createClient } from "@visyx/supabase/client";
 import { Button } from "@visyx/ui/button";
 import {
   Card,
@@ -10,6 +11,7 @@ import {
   CardTitle,
 } from "@visyx/ui/card";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type MyAccountSessionsSectionProps = {
   user: User | null;
@@ -23,6 +25,7 @@ export function MyAccountSessionsSection({
   lastSignInAt,
 }: MyAccountSessionsSectionProps) {
   const [userAgent, setUserAgent] = useState<string | null>(null);
+  const [signingOutOthers, setSigningOutOthers] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -35,6 +38,24 @@ export function MyAccountSessionsSection({
     lastSignInAt != null
       ? new Date(lastSignInAt).toISOString().slice(0, 16).replace("T", " ")
       : "Unknown";
+
+  async function handleSignOutOtherSessions() {
+    try {
+      setSigningOutOthers(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      if (error) {
+        throw error;
+      }
+      toast.success("Signed out from your other devices.");
+    } catch (err: any) {
+      toast.error(
+        err?.message ?? "Failed to sign out from your other sessions.",
+      );
+    } finally {
+      setSigningOutOthers(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -73,11 +94,21 @@ export function MyAccountSessionsSection({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-muted-foreground text-sm">
-            We&apos;ll soon show a list of all devices that are logged in to
-            your account so you can sign them out remotely.
+            You&apos;re currently signed in on this browser. If you&apos;re
+            concerned about security, you can sign out of all your other devices
+            while keeping this session active.
           </p>
-          <Button type="button" variant="outline" disabled>
-            Sign out of all other sessions (coming soon)
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading || !user || !user.email || signingOutOthers}
+            onClick={() => {
+              void handleSignOutOtherSessions();
+            }}
+          >
+            {signingOutOthers
+              ? "Signing out of other sessions..."
+              : "Sign out of all other sessions"}
           </Button>
         </CardContent>
       </Card>

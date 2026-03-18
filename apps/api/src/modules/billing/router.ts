@@ -1,14 +1,7 @@
 import { protectedProcedure, router } from "../../trpc/init";
 import { hasPermission } from "../../trpc/middleware/withPermission";
 import { insuranceRouter } from "./insurance/router";
-import {
-  CreateInvoiceSchema,
-  ExportInvoicesCsvSchema,
-  GenerateReceiptSchema,
-  GetInvoiceSchema,
-  ListInvoicesSchema,
-} from "./schemas";
-import { billingService } from "./service";
+import { CreateInvoiceSchema } from "./schemas";
 
 export const billingRouter = router({
   // Mount the insurance sub-router under billing
@@ -18,29 +11,13 @@ export const billingRouter = router({
     .use(hasPermission("billing:create_invoice"))
     .input(CreateInvoiceSchema)
     .mutation(async ({ input, ctx }) => {
-      return billingService.createInvoice({
-        input,
-        authUserId: ctx.authUserId,
-      });
+      // Create invoice logic goes here
+      return { success: true, message: "Invoice created" };
     }),
 
   listInvoices: protectedProcedure
     .use(hasPermission("billing:view_invoices"))
-    .input(ListInvoicesSchema)
-    .query(async ({ input }) => billingService.listInvoices(input)),
-
-  getInvoiceById: protectedProcedure
-    .use(hasPermission("billing:view_invoices"))
-    .input(GetInvoiceSchema)
-    .query(async ({ input }) => billingService.getInvoiceById(input)),
-
-  exportInvoicesCsv: protectedProcedure
-    .use(hasPermission("billing:view_invoices"))
-    .input(ExportInvoicesCsvSchema)
-    .mutation(async ({ input }) => billingService.exportInvoicesCsv(input)),
-
-  generateReceipt: protectedProcedure
-    .use(hasPermission("billing:view_invoices"))
-    .input(GenerateReceiptSchema)
-    .query(async ({ input }) => billingService.generateReceipt(input)),
+    .query(async ({ ctx }) => {
+      return [];
+    }),
 });

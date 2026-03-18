@@ -17,13 +17,11 @@ export default function MyAccountPage() {
     staff,
     isLoading: authLoading,
     hasPermission,
-    isSuperuser,
     refetch,
   } = useAuth();
   const { user, loading: sessionLoading } = useSession();
 
-  const canManageOwnStaffProfile =
-    hasPermission("auth:manage_staff") && Boolean(staff?.id);
+  const canManageOwnStaffProfile = Boolean(staff?.id);
 
   const canViewBranches = hasPermission("branches:view");
   const { data: branches } = trpc.branches.list.useQuery(
@@ -32,7 +30,7 @@ export default function MyAccountPage() {
   );
   const branchOptions = useMemo(() => branches ?? [], [branches]);
 
-  const updateStaff = trpc.staff.update.useMutation({
+  const updateStaff = trpc.staff.updateSelf.useMutation({
     onSuccess: () => {
       refetch();
     },
@@ -63,13 +61,10 @@ export default function MyAccountPage() {
     if (!staff?.id || !canManageOwnStaffProfile) return;
 
     await updateStaff.mutateAsync({
-      id: staff.id,
       firstName: values.firstName,
       lastName: values.lastName,
       phone: values.phone,
       jobTitle: values.jobTitle,
-      primaryBranchId: values.primaryBranchId,
-      ...(isSuperuser ? { isAdmin: staff.isAdmin } : {}),
     });
   };
 
