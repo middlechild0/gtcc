@@ -1,10 +1,7 @@
-import { TRPCError } from "@trpc/server";
-import { db } from "@visyx/db/client";
-import { priceBookEntries, priceBooks, taxRates } from "@visyx/db/schema";
-import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "../../trpc/init";
 import { hasPermission } from "../../trpc/middleware/withPermission";
+import { PricingService } from "./service";
 
 export const pricingRouter = router({
   // Price Books
@@ -19,35 +16,7 @@ export const pricingRouter = router({
         isActive: z.boolean().optional(),
       }),
     )
-    .query(async ({ input }) => {
-      const conditions = [];
-      if (input.branchId)
-        conditions.push(eq(priceBooks.branchId, input.branchId));
-      if (input.type) conditions.push(eq(priceBooks.type, input.type));
-      if (input.isActive !== undefined)
-        conditions.push(eq(priceBooks.isActive, input.isActive));
-
-      const allBooks = await db.query.priceBooks.findMany({
-        where: (conditions.length > 0 ? and(...conditions) : undefined) as any,
-        limit: input.limit + 1,
-        orderBy: desc(priceBooks.createdAt),
-        with: {
-          branch: true,
-          insuranceProvider: true,
-        },
-      });
-
-      let nextCursor: typeof input.cursor;
-      if (allBooks.length > input.limit) {
-        const nextItem = allBooks.pop();
-        nextCursor = nextItem!.id;
-      }
-
-      return {
-        items: allBooks,
-        nextCursor,
-      };
-    }),
+    .query(async ({ input }) => PricingService.listPriceBooks(input)),
 
   createPriceBook: protectedProcedure
     .use(hasPermission("pricing:manage"))
@@ -60,10 +29,7 @@ export const pricingRouter = router({
         isActive: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ input }) => {
-      const [newBook] = await db.insert(priceBooks).values(input).returning();
-      return newBook;
-    }),
+    .mutation(async ({ input }) => PricingService.createPriceBook(input)),
 
   updatePriceBook: protectedProcedure
     .use(hasPermission("pricing:manage"))
@@ -77,23 +43,7 @@ export const pricingRouter = router({
         isActive: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-      const [updatedBook] = await db
-        .update(priceBooks)
-        .set(data)
-        .where(eq(priceBooks.id, id))
-        .returning();
-
-      if (!updatedBook) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Price book not found",
-        });
-      }
-
-      return updatedBook;
-    }),
+    .mutation(async ({ input }) => PricingService.updatePriceBook(input)),
 
   // Price Book Entries
   listEntries: protectedProcedure
@@ -105,32 +55,7 @@ export const pricingRouter = router({
         cursor: z.number().nullish(),
       }),
     )
-    .query(async ({ input }) => {
-      const allEntries = await db.query.priceBookEntries.findMany({
-        where: eq(priceBookEntries.priceBookId, input.priceBookId) as any,
-        limit: input.limit + 1,
-        orderBy: desc(priceBookEntries.createdAt),
-        with: {
-          billableItem: {
-            with: {
-              service: true,
-              product: true,
-            },
-          },
-        },
-      });
-
-      let nextCursor: typeof input.cursor;
-      if (allEntries.length > input.limit) {
-        const nextItem = allEntries.pop();
-        nextCursor = nextItem!.id;
-      }
-
-      return {
-        items: allEntries,
-        nextCursor,
-      };
-    }),
+    .query(async ({ input }) => PricingService.listEntries(input)),
 
   upsertEntry: protectedProcedure
     .use(hasPermission("pricing:manage"))
@@ -141,31 +66,12 @@ export const pricingRouter = router({
         price: z.number().min(0),
       }),
     )
-    .mutation(async ({ input }) => {
-      // Use PostgreSQL ON CONFLICT to either insert or update the price
-      const [entry] = await db
-        .insert(priceBookEntries)
-        .values(input)
-        .onConflictDoUpdate({
-          target: [
-            priceBookEntries.priceBookId,
-            priceBookEntries.billableItemId,
-          ],
-          set: { price: input.price, updatedAt: new Date() },
-        })
-        .returning();
-
-      return entry;
-    }),
+    .mutation(async ({ input }) => PricingService.upsertEntry(input)),
 
   // Tax Rates
   listTaxRates: protectedProcedure
     .use(hasPermission("pricing:view"))
-    .query(async () => {
-      return await db.query.taxRates.findMany({
-        orderBy: desc(taxRates.createdAt),
-      });
-    }),
+    .query(async () => PricingService.listTaxRates()),
 
   createTaxRate: protectedProcedure
     .use(hasPermission("pricing:manage"))
@@ -177,18 +83,7 @@ export const pricingRouter = router({
         isActive: z.boolean().default(true),
       }),
     )
-    .mutation(async ({ input }) => {
-      if (input.isDefault) {
-        // Unset any existing default
-        await db
-          .update(taxRates)
-          .set({ isDefault: false })
-          .where(eq(taxRates.isDefault, true));
-      }
-
-      const [newTaxRate] = await db.insert(taxRates).values(input).returning();
-      return newTaxRate;
-    }),
+    .mutation(async ({ input }) => PricingService.createTaxRate(input)),
 
   updateTaxRate: protectedProcedure
     .use(hasPermission("pricing:manage"))
@@ -201,30 +96,5 @@ export const pricingRouter = router({
         isActive: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const { id, ...data } = input;
-
-      if (data.isDefault) {
-        // Unset any existing default
-        await db
-          .update(taxRates)
-          .set({ isDefault: false })
-          .where(eq(taxRates.isDefault, true));
-      }
-
-      const [updatedTaxRate] = await db
-        .update(taxRates)
-        .set(data)
-        .where(eq(taxRates.id, id))
-        .returning();
-
-      if (!updatedTaxRate) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Tax rate not found",
-        });
-      }
-
-      return updatedTaxRate;
-    }),
+    .mutation(async ({ input }) => PricingService.updateTaxRate(input)),
 });
