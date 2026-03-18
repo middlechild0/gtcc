@@ -3,7 +3,6 @@
 import { ArrowLeft, ChevronDown, Search, Settings } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { useId } from "react";
 import { cn } from "../utils";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -55,7 +54,6 @@ export function SettingsMenu({
   triggerClassName,
   align = "end",
 }: SettingsMenuProps) {
-  const contentId = useId();
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
 
@@ -76,8 +74,6 @@ export function SettingsMenu({
             triggerClassName,
           )}
           aria-label="Open settings menu"
-          aria-controls={contentId}
-          aria-expanded={open}
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sidebar-accent/80">
             <Settings className="size-4" />
@@ -86,7 +82,6 @@ export function SettingsMenu({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        id={contentId}
         align={align}
         sideOffset={8}
         className="border-sidebar-border bg-sidebar text-sidebar-foreground w-80 p-0 shadow-lg"

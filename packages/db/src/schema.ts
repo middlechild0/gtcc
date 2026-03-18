@@ -36,7 +36,6 @@ import {
   boolean,
   integer,
   jsonb,
-  numeric,
   pgTable,
   serial,
   text,
@@ -44,17 +43,6 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
-
-//Exporting a Invoice folder handles all the logic on payments
-export const invoices = pgTable("invoices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  patientId: uuid("patient_id").notNull(),
-  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-  paymentType: jsonb("payment_type").notNull(), // stores array of strings
-  createdBy: uuid("created_by"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // USER PROFILES

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingCart, User, Users } from "lucide-react";
+import { LayoutDashboard, User, Users } from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
@@ -119,16 +119,6 @@ export const routes: RouteConfig[] = [
     parentId: "settings-root",
     showInSearch: true,
     icon: User,
-  },
-  {
-    id: "cashier",
-    path: "/features/cashier",
-    label: "Cashier",
-    breadcrumbLabel: "Cashier",
-    group: "main",
-    showInSearch: true,
-    showInSidebar: true,
-    icon: ShoppingCart,
   },
 ];
 

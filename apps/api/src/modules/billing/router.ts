@@ -1,5 +1,3 @@
-import { db } from "@visyx/db/client";
-import { invoices } from "@visyx/db/schema";
 import { protectedProcedure, router } from "../../trpc/init";
 import { hasPermission } from "../../trpc/middleware/withPermission";
 import { insuranceRouter } from "./insurance/router";
@@ -13,16 +11,7 @@ export const billingRouter = router({
     .use(hasPermission("billing:create_invoice"))
     .input(CreateInvoiceSchema)
     .mutation(async ({ input, ctx }) => {
-      const _result = await db
-        .insert(invoices)
-        .values({
-          patientId: String(input.patientId),
-          amount: String(input.amount),
-          paymentType: input.paymentType,
-          createdBy: ctx.authUserId,
-          createdAt: new Date(),
-        })
-        .returning();
+      // Create invoice logic goes here
       return { success: true, message: "Invoice created" };
     }),
 
