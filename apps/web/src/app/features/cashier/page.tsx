@@ -9,7 +9,6 @@ import { useCashierData } from "./_hooks/use-cashier-data";
 import { useCashierForm } from "./_hooks/use-cashier-form";
 import { useInvoiceDetails } from "./_hooks/use-invoice-details";
 import { useInvoicesList } from "./_hooks/use-invoices-list";
-import { useReceiptGenerator } from "./_hooks/use-receipt-generator";
 import { paymentTypes } from "./_utils/constants";
 
 export default function CashierPage() {
@@ -55,8 +54,6 @@ export default function CashierPage() {
   } = useInvoiceDetails({
     invoiceId: selectedInvoiceId,
   });
-
-  const { openReceiptPreview, downloadReceiptPdf } = useReceiptGenerator();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -106,8 +103,6 @@ export default function CashierPage() {
               onToDateChange={onToDateChange}
               onDownload={onDownload}
               onViewDetails={setSelectedInvoiceId}
-              onPrintReceipt={openReceiptPreview}
-              onDownloadReceipt={downloadReceiptPdf}
               pagination={pagination}
             />
 

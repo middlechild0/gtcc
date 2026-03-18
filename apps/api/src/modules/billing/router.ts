@@ -4,7 +4,6 @@ import { insuranceRouter } from "./insurance/router";
 import {
   CreateInvoiceSchema,
   ExportInvoicesCsvSchema,
-  GenerateReceiptSchema,
   GetInvoiceSchema,
   ListInvoicesSchema,
 } from "./schemas";
@@ -38,9 +37,4 @@ export const billingRouter = router({
     .use(hasPermission("billing:view_invoices"))
     .input(ExportInvoicesCsvSchema)
     .mutation(async ({ input }) => billingService.exportInvoicesCsv(input)),
-
-  generateReceipt: protectedProcedure
-    .use(hasPermission("billing:view_invoices"))
-    .input(GenerateReceiptSchema)
-    .query(async ({ input }) => billingService.generateReceipt(input)),
 });
