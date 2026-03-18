@@ -132,6 +132,18 @@ export const PERMISSIONS = [
     description: "Cancel an issued invoice",
   },
   {
+    key: "billing:override_price",
+    module: "billing",
+    label: "Override Price",
+    description: "Apply manual price overrides to invoice line items",
+  },
+  {
+    key: "billing:approve_override",
+    module: "billing",
+    label: "Approve Price Override",
+    description: "Approve high-value or restricted price overrides",
+  },
+  {
     key: "billing:record_payment",
     module: "billing",
     label: "Record Payment",
@@ -178,6 +190,34 @@ export const PERMISSIONS = [
     module: "billing",
     label: "View Aging Reports",
     description: "View outstanding receivables and insurance claim aging",
+  },
+
+  // Catalog (Services & Products)
+  {
+    key: "catalog:view",
+    module: "catalog",
+    label: "View Catalog",
+    description: "Search and view the services and products catalog",
+  },
+  {
+    key: "catalog:manage",
+    module: "catalog",
+    label: "Manage Catalog",
+    description: "Create, edit, and deactivate services and products",
+  },
+
+  // Pricing
+  {
+    key: "pricing:view",
+    module: "pricing",
+    label: "View Pricing",
+    description: "View price books and their entries",
+  },
+  {
+    key: "pricing:manage",
+    module: "pricing",
+    label: "Manage Pricing",
+    description: "Create and edit price books, tax rates, and assign item prices",
   },
 
   // Inventory

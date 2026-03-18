@@ -2,7 +2,13 @@ import { db } from "@visyx/db/client";
 import {
     departments,
     invoices,
+    invoiceLineItems,
     patients,
+    priceBooks,
+    priceBookEntries,
+    services,
+    taxRates,
+    billableItems,
     visits,
     visitTypes,
 } from "@visyx/db/schema";
@@ -172,10 +178,48 @@ export class QueueService {
                 throw new Error(`Initial department ${firstStepCode} not found in DB`);
             }
 
-            // 3. Generate Ticket
+            // 3. Find the applicable price book
+            let priceBookId: number | null = null;
+            const pbConditions = [
+                eq(priceBooks.isActive, true),
+                eq(priceBooks.type, input.payerType),
+                // optionally branch specific, though cash could be global
+            ];
+            
+            // Prefer branch specific book if defined
+            // Since drizzle doesn't easily do "ORDER BY strictness" in a single query reliably without complex SQL,
+            // we'll fetch them and sort in memory, or just look for exact match first.
+            let matchedBook = null;
+            
+            // Try Exact Match first (Branch + PayerType + Insurance)
+            const exactConditions = [...pbConditions, eq(priceBooks.branchId, input.branchId)];
+            if (input.payerType === "INSURANCE" && input.insuranceProviderId) {
+                exactConditions.push(eq(priceBooks.insuranceProviderId, input.insuranceProviderId));
+            }
+            const [exactBook] = await tx.select().from(priceBooks).where(and(...exactConditions)).limit(1);
+            
+            if (exactBook) {
+                matchedBook = exactBook;
+            } else {
+                // Try Global Match (No Branch)
+                const globalConditions = [...pbConditions];
+                // using sql`priceBooks.branchId IS NULL` in Drizzle could be tricky, using isNull if we exported it, 
+                // but let's just fetch potential matches and filter
+                if (input.payerType === "INSURANCE" && input.insuranceProviderId) {
+                    globalConditions.push(eq(priceBooks.insuranceProviderId, input.insuranceProviderId));
+                }
+                const globalBooks = await tx.select().from(priceBooks).where(and(...globalConditions));
+                matchedBook = globalBooks.find(b => b.branchId === null);
+            }
+
+            if (matchedBook) {
+                priceBookId = matchedBook.id;
+            }
+
+            // 4. Generate Ticket
             const ticketNumber = await this.generateTicketNumber(input.branchId);
 
-            // 4. Create Visit
+            // 5. Create Visit
             const [newVisit] = await tx
                 .insert(visits)
                 .values({
@@ -186,6 +230,8 @@ export class QueueService {
                     priority: input.priority,
                     currentDepartmentId: initialDept.id,
                     status: "WAITING",
+                    payerType: input.payerType,
+                    priceBookId,
                 })
                 .returning();
 
@@ -193,13 +239,73 @@ export class QueueService {
                 throw new Error("Failed to generate visit record");
             }
 
-            // 5. Generate Empty Draft Invoice
-            await tx.insert(invoices).values({
+            // 6. Generate Empty Draft Invoice
+            const [newInvoice] = await tx.insert(invoices).values({
                 visitId: newVisit.id,
                 totalAmount: 0,
                 amountPaid: 0,
                 status: "DRAFT",
-            });
+            }).returning();
+
+            // 7. Add Default Service if defined on the Visit Type
+            if (vType.defaultServiceId) {
+                // Find billable item mapping for this service
+                const [bItem] = await tx
+                    .select()
+                    .from(billableItems)
+                    .where(eq(billableItems.serviceId, vType.defaultServiceId));
+
+                if (bItem && newInvoice) {
+                    // Find price in pricebook
+                    let unitPrice = 0; // Default if not found
+                    if (priceBookId) {
+                        const [pbEntry] = await tx
+                            .select()
+                            .from(priceBookEntries)
+                            .where(
+                                and(
+                                    eq(priceBookEntries.priceBookId, priceBookId),
+                                    eq(priceBookEntries.billableItemId, bItem.id)
+                                )
+                            );
+                        if (pbEntry) {
+                            unitPrice = pbEntry.price;
+                        }
+                    }
+
+                    // Get service vatExempt status
+                    const [service] = await tx.select().from(services).where(eq(services.id, vType.defaultServiceId));
+                    let vatAmount = 0;
+                    
+                    if (service && !service.vatExempt) {
+                        // Find default tax rate
+                        const [defaultTax] = await tx.select().from(taxRates).where(eq(taxRates.isDefault, true));
+                        if (defaultTax) {
+                            vatAmount = Math.round((unitPrice * defaultTax.rate) / 100);
+                        }
+                    }
+
+                    const subtotal = unitPrice * 1; // quantity is 1
+                    const total = subtotal + vatAmount;
+
+                    await tx.insert(invoiceLineItems).values({
+                        invoiceId: newInvoice.id,
+                        billableItemId: bItem.id,
+                        description: bItem.name,
+                        unitPrice,
+                        quantity: 1,
+                        subtotal,
+                        vatAmount,
+                        total,
+                        departmentSource: initialDept.name,
+                    });
+
+                    // Update invoice total
+                    await tx.update(invoices).set({
+                        totalAmount: total,
+                    }).where(eq(invoices.id, newInvoice.id));
+                }
+            }
 
             return newVisit;
         });

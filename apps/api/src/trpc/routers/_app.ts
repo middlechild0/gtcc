@@ -6,6 +6,8 @@ import { inventoryRouter } from "../../modules/inventory/router";
 import { patientsRouter } from "../../modules/patients/router";
 import { staffRouter } from "../../modules/staff/router";
 import { queueRouter } from "../../modules/queue/router";
+import { catalogRouter } from "../../modules/catalog/router";
+import { pricingRouter } from "../../modules/pricing/router";
 import { publicProcedure, router } from "../init";
 import { authRouter } from "./auth";
 
@@ -23,6 +25,8 @@ export const appRouter = router({
   staff: staffRouter,
   branches: branchesRouter,
   queue: queueRouter,
+  catalog: catalogRouter,
+  pricing: pricingRouter,
 });
 
 export type AppRouter = typeof appRouter;

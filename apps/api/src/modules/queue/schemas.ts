@@ -10,6 +10,8 @@ export const StartVisitSchema = z.object({
     branchId: z.number().int().positive(),
     visitTypeId: z.number().int().positive(),
     priority: z.enum(["NORMAL", "URGENT"]).default("NORMAL"),
+    payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]).default("CASH"),
+    insuranceProviderId: z.number().int().positive().optional(),
 });
 
 export const UpdateVisitStatusSchema = z.object({

@@ -45,7 +45,9 @@ import {
   timestamp,
   unique,
   uuid,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ENUMS
@@ -273,6 +275,140 @@ export const patientInsurances = pgTable("patient_insurances", {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CATALOG (Services & Products)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const serviceCategoryEnum = pgEnum("service_category", [
+  "CONSULTATION",
+  "DIAGNOSTIC",
+  "OPTICAL",
+  "PROCEDURE",
+  "OTHER"
+]);
+
+export const services = pgTable("services", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "General Eye Examination"
+  category: serviceCategoryEnum("category").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  vatExempt: boolean("vat_exempt").default(true).notNull(), // Most medical services are VAT exempt
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const productCategoryEnum = pgEnum("product_category", [
+  "FRAME",
+  "LENS",
+  "CONTACT_LENS",
+  "ACCESSORY",
+  "MEDICATION",
+  "CONSUMABLE",
+  "OTHER"
+]);
+
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Ray-Ban Aviator RB3025"
+  sku: text("sku").unique(),
+  category: productCategoryEnum("category").notNull(),
+  description: text("description"),
+  
+  // Basic Inventory Tracking (to be expanded later)
+  stockLevel: integer("stock_level").default(0).notNull(),
+  reorderPoint: integer("reorder_point").default(0).notNull(),
+  // supplierId: integer("supplier_id").references(() => suppliers.id), // Future relation
+  
+  isActive: boolean("is_active").default(true).notNull(),
+  vatExempt: boolean("vat_exempt").default(false).notNull(), // Most physical products are VAT applicable
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const billableItemTypeEnum = pgEnum("billable_item_type", [
+  "SERVICE",
+  "PRODUCT"
+]);
+
+export const billableItems = pgTable(
+  "billable_items",
+  {
+    id: serial("id").primaryKey(),
+    type: billableItemTypeEnum("type").notNull(),
+    serviceId: integer("service_id").references(() => services.id, { onDelete: 'cascade' }),
+    productId: integer("product_id").references(() => products.id, { onDelete: 'cascade' }),
+    
+    // Denormalized for rapid invoice display/search
+    name: text("name").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    // Enforce exclusive arc (polymorphism constraint)
+    // A billable item must be EXACTLY ONE of either a Service or a Product
+    validType: check(
+      "valid_billable_item",
+      sql`num_nonnulls(${t.serviceId}, ${t.productId}) = 1`
+    ),
+  })
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRICING (Price Books & Entries)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const priceBookTypeEnum = pgEnum("price_book_type", [
+  "CASH",
+  "INSURANCE",
+  "CORPORATE"
+]);
+
+export const priceBooks = pgTable("price_books", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Standard Cash 2026", "Jubilee Insurance"
+  type: priceBookTypeEnum("type").notNull(),
+  
+  // Scoping
+  branchId: integer("branch_id").references(() => branches.id, { onDelete: 'cascade' }),
+  insuranceProviderId: integer("insurance_provider_id").references(() => insuranceProviders.id, { onDelete: 'cascade' }),
+  
+  isActive: boolean("is_active").default(true).notNull(),
+  effectiveFrom: date("effective_from"),
+  effectiveTo: date("effective_to"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const priceBookEntries = pgTable(
+  "price_book_entries",
+  {
+    id: serial("id").primaryKey(),
+    priceBookId: integer("price_book_id").notNull().references(() => priceBooks.id, { onDelete: 'cascade' }),
+    billableItemId: integer("billable_item_id").notNull().references(() => billableItems.id, { onDelete: 'cascade' }),
+    
+    price: integer("price").notNull(), // Exact price for this item in this book
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    // An item can only have one explicit price per book
+    unq: unique().on(t.priceBookId, t.billableItemId),
+  })
+);
+
+export const taxRates = pgTable("tax_rates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(), // e.g., "Standard VAT (16%)"
+  rate: integer("rate").notNull(), // e.g. 16 for 16% to avoid floating point issues
+  isDefault: boolean("is_default").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // QUEUE & VISIT TYPES (Dynamic Routing Configurations)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -287,7 +423,7 @@ export const visitTypes = pgTable("visit_types", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // e.g., "Complete Eye Exam", "Frame Repair"
   workflowSteps: jsonb("workflow_steps").notNull(), // e.g. ["RECEPTION", "TRIAGE", "DOCTOR", "OPTICIAN", "CASHIER"]
-  baseFee: integer("base_fee"),
+  defaultServiceId: integer("default_service_id").references(() => services.id), // Used for auto-billing
   isActive: boolean("is_active").default(true).notNull(),
 });
 
@@ -308,6 +444,11 @@ export const paymentModeEnum = pgEnum("payment_mode", [
   "INSURANCE",
   "CARD",
 ]);
+export const payerTypeEnum = pgEnum("payer_type", [
+  "CASH",
+  "INSURANCE",
+  "CORPORATE",
+]);
 
 export const visits = pgTable("visits", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -320,6 +461,10 @@ export const visits = pgTable("visits", {
   visitTypeId: integer("visit_type_id")
     .notNull()
     .references(() => visitTypes.id),
+    
+  // Pricing & Payer Info (Set at startVisit)
+  payerType: payerTypeEnum("payer_type").default("CASH").notNull(),
+  priceBookId: integer("price_book_id").references(() => priceBooks.id),
 
   ticketNumber: text("ticket_number").notNull(),
   priority: visitPriorityEnum("priority").default("NORMAL").notNull(),
@@ -362,9 +507,49 @@ export const invoiceLineItems = pgTable("invoice_line_items", {
   invoiceId: uuid("invoice_id")
     .notNull()
     .references(() => invoices.id, { onDelete: "cascade" }),
-  description: text("description").notNull(),
-  amount: integer("amount").notNull(),
+    
+  // The catalog item being billed
+  billableItemId: integer("billable_item_id").notNull().references(() => billableItems.id),
+  description: text("description").notNull(), // Copied at time of billing for immutable records
+  
+  // Financial breakdown
+  unitPrice: integer("unit_price").notNull(), // From price book explicitly
+  quantity: integer("quantity").default(1).notNull(),
+  subtotal: integer("subtotal").notNull(), // unitPrice * quantity
+  vatAmount: integer("vat_amount").default(0).notNull(), // Calculated based on exact tax rate at time of billing
+  total: integer("total").notNull(), // subtotal + vatAmount
+  
+  isOverridden: boolean("is_overridden").default(false).notNull(),
   departmentSource: text("department_source"), // Internal reference for reporting where the charge came from
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const overrideReasonEnum = pgEnum("override_reason", [
+  "INSURANCE_NEGOTIATED_RATE",
+  "CORPORATE_AGREEMENT",
+  "DOCTOR_DISCRETION",
+  "CORRECTION",
+  "MANAGEMENT_APPROVAL",
+  "OTHER"
+]);
+
+export const invoiceLineItemOverrides = pgTable("invoice_line_item_overrides", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lineItemId: integer("line_item_id")
+    .notNull()
+    .references(() => invoiceLineItems.id, { onDelete: "cascade" }),
+    
+  originalPrice: integer("original_price").notNull(),
+  newPrice: integer("new_price").notNull(),
+  
+  reason: overrideReasonEnum("reason").notNull(),
+  note: text("note"),
+  
+  // Audit Trail
+  changedById: uuid("changed_by_id").notNull().references(() => userProfiles.userId),
+  approvedById: uuid("approved_by_id").references(() => userProfiles.userId), // For high-value overrides requiring a manager
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -646,8 +831,62 @@ export const departmentsRelations = relations(departments, ({ many }) => ({
   visits: many(visits),
 }));
 
-export const visitTypesRelations = relations(visitTypes, ({ many }) => ({
+export const servicesRelations = relations(services, ({ one, many }) => ({
+  billableItem: one(billableItems, {
+    fields: [services.id],
+    references: [billableItems.serviceId],
+  }),
+  visitTypes: many(visitTypes),
+}));
+
+export const productsRelations = relations(products, ({ one }) => ({
+  billableItem: one(billableItems, {
+    fields: [products.id],
+    references: [billableItems.productId],
+  }),
+}));
+
+export const billableItemsRelations = relations(billableItems, ({ one, many }) => ({
+  service: one(services, {
+    fields: [billableItems.serviceId],
+    references: [services.id],
+  }),
+  product: one(products, {
+    fields: [billableItems.productId],
+    references: [products.id],
+  }),
+  priceBookEntries: many(priceBookEntries),
+}));
+
+export const priceBooksRelations = relations(priceBooks, ({ one, many }) => ({
+  branch: one(branches, {
+    fields: [priceBooks.branchId],
+    references: [branches.id],
+  }),
+  insuranceProvider: one(insuranceProviders, {
+    fields: [priceBooks.insuranceProviderId],
+    references: [insuranceProviders.id],
+  }),
+  entries: many(priceBookEntries),
+}));
+
+export const priceBookEntriesRelations = relations(priceBookEntries, ({ one }) => ({
+  priceBook: one(priceBooks, {
+    fields: [priceBookEntries.priceBookId],
+    references: [priceBooks.id],
+  }),
+  billableItem: one(billableItems, {
+    fields: [priceBookEntries.billableItemId],
+    references: [billableItems.id],
+  }),
+}));
+
+export const visitTypesRelations = relations(visitTypes, ({ one, many }) => ({
   visits: many(visits),
+  defaultService: one(services, {
+    fields: [visitTypes.defaultServiceId],
+    references: [services.id],
+  }),
 }));
 
 export const visitsRelations = relations(visits, ({ one, many }) => ({
@@ -670,6 +909,10 @@ export const visitsRelations = relations(visits, ({ one, many }) => ({
   invoice: one(invoices, {
     fields: [visits.id],
     references: [invoices.visitId],
+  }),
+  priceBook: one(priceBooks, {
+    fields: [visits.priceBookId],
+    references: [priceBooks.id],
   }),
   preTest: one(preTests, {
     fields: [visits.id],
@@ -702,10 +945,33 @@ export const invoicesRelations = relations(invoices, ({ one, many }) => ({
 
 export const invoiceLineItemsRelations = relations(
   invoiceLineItems,
-  ({ one }) => ({
+  ({ one, many }) => ({
     invoice: one(invoices, {
       fields: [invoiceLineItems.invoiceId],
       references: [invoices.id],
+    }),
+    billableItem: one(billableItems, {
+      fields: [invoiceLineItems.billableItemId],
+      references: [billableItems.id],
+    }),
+    overrides: many(invoiceLineItemOverrides),
+  }),
+);
+
+export const invoiceLineItemOverridesRelations = relations(
+  invoiceLineItemOverrides,
+  ({ one }) => ({
+    lineItem: one(invoiceLineItems, {
+      fields: [invoiceLineItemOverrides.lineItemId],
+      references: [invoiceLineItems.id],
+    }),
+    changedBy: one(userProfiles, {
+      fields: [invoiceLineItemOverrides.changedById],
+      references: [userProfiles.userId],
+    }),
+    approvedBy: one(userProfiles, {
+      fields: [invoiceLineItemOverrides.approvedById],
+      references: [userProfiles.userId],
     }),
   }),
 );
