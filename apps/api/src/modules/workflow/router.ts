@@ -37,8 +37,10 @@ export const workflowRouter = router({
 
   updateDepartment: workflowProcedure
     .use(
-      withAuditLog("workflow:update_department", "department", (input) =>
-        String(input.id),
+      withAuditLog(
+        "workflow:update_department",
+        "department",
+        (_input, result) => String(result.id),
       ),
     )
     .input(UpdateDepartmentSchema)
@@ -61,8 +63,10 @@ export const workflowRouter = router({
 
   updateVisitType: workflowProcedure
     .use(
-      withAuditLog("workflow:update_visit_type", "visit_type", (input) =>
-        String(input.id),
+      withAuditLog(
+        "workflow:update_visit_type",
+        "visit_type",
+        (_input, result) => String(result.id),
       ),
     )
     .input(UpdateVisitTypeSchema)
