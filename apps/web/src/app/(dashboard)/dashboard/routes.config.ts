@@ -172,6 +172,16 @@ export const routes: RouteConfig[] = [
     permissions: "billing:manage_insurance_providers",
     showInSearch: true,
   },
+  {
+    id: "workflow-config",
+    path: "/dashboard/settings/workflow",
+    label: "Workflow Configuration",
+    breadcrumbLabel: "Workflow Configuration",
+    group: "settings",
+    parentId: "settings-root",
+    permissions: "queue:configure_workflows",
+    showInSearch: true,
+  },
 
   // Pricing & Catalog
   {

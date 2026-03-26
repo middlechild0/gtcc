@@ -10,7 +10,8 @@
     "lint:fix": "biome check --write .",
     "test": "bun test --pass-with-no-tests",
     "test:watch": "bun test --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:studio": "drizzle-kit studio"
   },
   "exports": {
     "./client": "./src/client.ts",
