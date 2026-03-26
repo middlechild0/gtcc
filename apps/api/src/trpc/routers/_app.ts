@@ -8,6 +8,7 @@ import { patientsRouter } from "../../modules/patients/router";
 import { pricingRouter } from "../../modules/pricing/router";
 import { queueRouter } from "../../modules/queue/router";
 import { staffRouter } from "../../modules/staff/router";
+import { workflowRouter } from "../../modules/workflow/router";
 import { publicProcedure, router } from "../init";
 import { authRouter } from "./auth";
 
@@ -25,6 +26,7 @@ export const appRouter = router({
   staff: staffRouter,
   branches: branchesRouter,
   queue: queueRouter,
+  workflow: workflowRouter,
   catalog: catalogRouter,
   pricing: pricingRouter,
 });

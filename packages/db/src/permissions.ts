@@ -328,6 +328,13 @@ export const PERMISSIONS = [
     label: "Cancel Visit",
     description: "Cancel an active patient visit",
   },
+  {
+    key: "queue:configure_workflows",
+    module: "queue",
+    label: "Configure Workflows",
+    description:
+      "Manage departments and visit type workflows (global routing configuration)",
+  },
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];

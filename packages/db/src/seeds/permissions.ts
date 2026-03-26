@@ -145,6 +145,12 @@ const PERMISSION_GROUPS: {
       "branches:view",
     ],
   },
+  {
+    name: "Clinic Administrator",
+    description:
+      "Organization-wide configuration: queue workflows, departments, and visit types. Assign queue:configure_workflows with branch_id NULL only.",
+    permissions: ["queue:view", "queue:configure_workflows"],
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

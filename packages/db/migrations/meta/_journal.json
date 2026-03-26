@@ -50,6 +50,13 @@
       "when": 1773175417828,
       "tag": "0006_workable_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1774550662549,
+      "tag": "0007_sturdy_jean_grey",
+      "breakpoints": true
     }
   ]
 }

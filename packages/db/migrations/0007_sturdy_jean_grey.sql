@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "visit_types_name_normalized_unq" ON "visit_types" USING btree (lower(trim("name")));
