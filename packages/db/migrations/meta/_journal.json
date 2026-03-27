@@ -64,6 +64,13 @@
       "when": 1774611983804,
       "tag": "0008_brown_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774615801169,
+      "tag": "0009_orange_shriek",
+      "breakpoints": true
     }
   ]
 }

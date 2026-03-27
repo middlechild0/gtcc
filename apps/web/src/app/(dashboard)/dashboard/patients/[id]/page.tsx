@@ -209,16 +209,25 @@ export default function PatientDetailsPage({
               <CardHeader>
                 <CardTitle>Insurance Coverage</CardTitle>
                 <CardDescription>
-                  Primary health insurance provider details.
+                  Primary health insurance and scheme details.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Provider ID
+                    Provider
                   </dt>
                   <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.providerId}
+                    {patient.insurance.provider?.name ||
+                      `#${patient.insurance.providerId}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">
+                    Scheme
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium">
+                    {patient.insurance.scheme?.name || "Not specified"}
                   </dd>
                 </div>
                 <div>
@@ -231,18 +240,20 @@ export default function PatientDetailsPage({
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Principal
+                    Pre-auth Number
                   </dt>
                   <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.principalName || "Self"}
+                    {patient.insurance.preAuthNumber || "Not provided"}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
-                    Relationship
+                    Expiry
                   </dt>
-                  <dd className="mt-1 text-sm font-medium capitalize">
-                    {patient.insurance.principalRelationship || "N/A"}
+                  <dd className="mt-1 text-sm font-medium">
+                    {patient.insurance.expiresAt
+                      ? format(new Date(patient.insurance.expiresAt), "PP")
+                      : "Not set"}
                   </dd>
                 </div>
               </CardContent>

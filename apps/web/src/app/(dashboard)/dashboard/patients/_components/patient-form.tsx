@@ -111,9 +111,9 @@ const patientFormSchema = z.object({
   insurance: z
     .object({
       providerId: z.number().int().optional(),
+      schemeId: z.number().int().optional(),
       memberNumber: z.string().optional(),
-      principalName: z.string().optional(),
-      principalRelationship: z.string().optional(),
+      preAuthNumber: z.string().optional(),
       expiresAt: z.string().optional(),
     })
     .optional(),
@@ -221,6 +221,31 @@ export function PatientForm({
   });
 
   const handleSubmit = form.handleSubmit(async (values) => {
+    const selectedProviderId = values.insurance?.providerId;
+    const selectedProvider = (providers ?? []).find(
+      (p: any) => p.id === selectedProviderId,
+    );
+    const selectedScheme = selectedProvider?.schemes?.find(
+      (s: any) => s.id === values.insurance?.schemeId,
+    );
+    const requiresPreAuth = Boolean(
+      selectedScheme?.requiresPreAuth ?? selectedProvider?.requiresPreAuth,
+    );
+
+    if (
+      values.insurance?.providerId &&
+      values.insurance?.memberNumber &&
+      requiresPreAuth &&
+      !values.insurance?.preAuthNumber?.trim()
+    ) {
+      form.setError("insurance.preAuthNumber", {
+        type: "manual",
+        message: "Pre-auth number is required for this provider/scheme",
+      });
+      setActiveTab("insurance");
+      return;
+    }
+
     await onSubmit(values as unknown as CreatePatientInput);
   });
 
@@ -268,6 +293,17 @@ export function PatientForm({
 
   const currentDob = form.watch("dateOfBirth");
   const currentExpiry = form.watch("insurance.expiresAt");
+  const selectedProviderId = form.watch("insurance.providerId");
+  const selectedSchemeId = form.watch("insurance.schemeId");
+  const selectedProvider = (providers ?? []).find(
+    (p: any) => p.id === selectedProviderId,
+  );
+  const selectedScheme = selectedProvider?.schemes?.find(
+    (s: any) => s.id === selectedSchemeId,
+  );
+  const requiresPreAuth = Boolean(
+    selectedScheme?.requiresPreAuth ?? selectedProvider?.requiresPreAuth,
+  );
   const isInsuranceExpired = currentExpiry
     ? isPast(parseISO(currentExpiry))
     : false;
@@ -877,6 +913,46 @@ export function PatientForm({
                       ) : null}
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="insurance.schemeId">Scheme</Label>
+                      <select
+                        id="insurance.schemeId"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!selectedProvider}
+                        {...form.register("insurance.schemeId", {
+                          valueAsNumber: true,
+                          onChange: () => {
+                            const providerId = form.getValues(
+                              "insurance.providerId",
+                            );
+                            const schemeId =
+                              form.getValues("insurance.schemeId");
+                            const provider = (providers ?? []).find(
+                              (p: any) => p.id === providerId,
+                            );
+                            const isValidScheme = provider?.schemes?.some(
+                              (s: any) => s.id === schemeId,
+                            );
+                            if (!isValidScheme) {
+                              form.setValue("insurance.schemeId", undefined);
+                            }
+                          },
+                        })}
+                      >
+                        <option value={0}>
+                          {selectedProvider
+                            ? "Select scheme"
+                            : "Select provider first"}
+                        </option>
+                        {(selectedProvider?.schemes ?? []).map(
+                          (scheme: any) => (
+                            <option key={scheme.id} value={scheme.id}>
+                              {scheme.name}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="insurance.memberNumber">
                         Member / Card Number{" "}
                         <span className="text-destructive">*</span>
@@ -898,23 +974,17 @@ export function PatientForm({
 
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="insurance.principalName">
-                        Principal Name
+                      <Label htmlFor="insurance.preAuthNumber">
+                        Pre-auth Number
                       </Label>
                       <Input
-                        id="insurance.principalName"
-                        placeholder="If dependent"
-                        {...form.register("insurance.principalName")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="insurance.principalRelationship">
-                        Relationship
-                      </Label>
-                      <Input
-                        id="insurance.principalRelationship"
-                        placeholder="e.g. Spouse"
-                        {...form.register("insurance.principalRelationship")}
+                        id="insurance.preAuthNumber"
+                        placeholder={
+                          requiresPreAuth
+                            ? "Required for selected scheme"
+                            : "Optional"
+                        }
+                        {...form.register("insurance.preAuthNumber")}
                       />
                     </div>
                     <div className="space-y-2">
@@ -925,6 +995,7 @@ export function PatientForm({
                         {...form.register("insurance.expiresAt")}
                       />
                     </div>
+                    <div />
                   </div>
 
                   {isInsuranceExpired && (

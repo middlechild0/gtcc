@@ -66,9 +66,9 @@ export const CreatePatientSchema = z.object({
   insurance: z
     .object({
       providerId: z.number().int().optional(),
+      schemeId: z.number().int().optional(),
       memberNumber: z.string().optional(),
-      principalName: z.string().optional(),
-      principalRelationship: z.string().optional(),
+      preAuthNumber: z.string().optional(),
       expiresAt: z.string().optional(), // YYYY-MM-DD
     })
     .optional(),

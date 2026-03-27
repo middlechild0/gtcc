@@ -1,6 +1,8 @@
 import { db } from "@visyx/db/client";
 import {
   branches,
+  insuranceProviderSchemes,
+  insuranceProviders,
   patientBranchProfiles,
   patientGuarantors,
   patientInsurances,
@@ -187,23 +189,26 @@ export class PatientService {
       throw new Error(`Patient with ID ${id} not found`);
     }
 
-    const [kin, guarantors, insurances] = await Promise.all([
+    const [kin, guarantors, insurance] = await Promise.all([
       db.select().from(patientKins).where(eq(patientKins.patientId, id)),
       db
         .select()
         .from(patientGuarantors)
         .where(eq(patientGuarantors.patientId, id)),
-      db
-        .select()
-        .from(patientInsurances)
-        .where(eq(patientInsurances.patientId, id)),
+      db.query.patientInsurances.findFirst({
+        where: eq(patientInsurances.patientId, id),
+        with: {
+          provider: true,
+          scheme: true,
+        },
+      }),
     ]);
 
     return {
       ...toPatientListItem(patient as PatientRow),
       kin,
       guarantor: guarantors,
-      insurance: insurances[0] || null,
+      insurance: insurance || null,
     };
   }
 
@@ -323,12 +328,49 @@ export class PatientService {
 
       // 5. Insurance
       if (input.insurance?.providerId && input.insurance.memberNumber) {
+        const [provider] = await tx
+          .select({
+            id: insuranceProviders.id,
+            requiresPreAuth: insuranceProviders.requiresPreAuth,
+          })
+          .from(insuranceProviders)
+          .where(eq(insuranceProviders.id, input.insurance.providerId));
+
+        if (!provider) {
+          throw new Error("Selected insurance provider does not exist");
+        }
+
+        let requiresPreAuth = provider.requiresPreAuth;
+
+        if (input.insurance.schemeId) {
+          const [scheme] = await tx
+            .select({
+              id: insuranceProviderSchemes.id,
+              providerId: insuranceProviderSchemes.providerId,
+              requiresPreAuth: insuranceProviderSchemes.requiresPreAuth,
+            })
+            .from(insuranceProviderSchemes)
+            .where(eq(insuranceProviderSchemes.id, input.insurance.schemeId));
+
+          if (!scheme || scheme.providerId !== input.insurance.providerId) {
+            throw new Error("Selected insurance scheme does not match provider");
+          }
+
+          requiresPreAuth = scheme.requiresPreAuth;
+        }
+
+        if (requiresPreAuth && !normalizeOptionalString(input.insurance.preAuthNumber)) {
+          throw new Error(
+            "Pre-authorization number is required for the selected insurance provider/scheme",
+          );
+        }
+
         await tx.insert(patientInsurances).values({
           patientId: created.id,
           providerId: input.insurance.providerId,
+          schemeId: input.insurance.schemeId,
           memberNumber: input.insurance.memberNumber,
-          principalName: input.insurance.principalName,
-          principalRelationship: input.insurance.principalRelationship,
+          preAuthNumber: normalizeOptionalString(input.insurance.preAuthNumber),
           expiresAt: input.insurance.expiresAt
             ? input.insurance.expiresAt.split("T")[0]
             : undefined,
@@ -424,12 +466,56 @@ export class PatientService {
           .delete(patientInsurances)
           .where(eq(patientInsurances.patientId, input.id));
         if (input.insurance?.providerId && input.insurance.memberNumber) {
+          const [provider] = await tx
+            .select({
+              id: insuranceProviders.id,
+              requiresPreAuth: insuranceProviders.requiresPreAuth,
+            })
+            .from(insuranceProviders)
+            .where(eq(insuranceProviders.id, input.insurance.providerId));
+
+          if (!provider) {
+            throw new Error("Selected insurance provider does not exist");
+          }
+
+          let requiresPreAuth = provider.requiresPreAuth;
+
+          if (input.insurance.schemeId) {
+            const [scheme] = await tx
+              .select({
+                id: insuranceProviderSchemes.id,
+                providerId: insuranceProviderSchemes.providerId,
+                requiresPreAuth: insuranceProviderSchemes.requiresPreAuth,
+              })
+              .from(insuranceProviderSchemes)
+              .where(eq(insuranceProviderSchemes.id, input.insurance.schemeId));
+
+            if (!scheme || scheme.providerId !== input.insurance.providerId) {
+              throw new Error(
+                "Selected insurance scheme does not match provider",
+              );
+            }
+
+            requiresPreAuth = scheme.requiresPreAuth;
+          }
+
+          if (
+            requiresPreAuth &&
+            !normalizeOptionalString(input.insurance.preAuthNumber)
+          ) {
+            throw new Error(
+              "Pre-authorization number is required for the selected insurance provider/scheme",
+            );
+          }
+
           await tx.insert(patientInsurances).values({
             patientId: input.id,
             providerId: input.insurance.providerId,
+            schemeId: input.insurance.schemeId,
             memberNumber: input.insurance.memberNumber,
-            principalName: input.insurance.principalName,
-            principalRelationship: input.insurance.principalRelationship,
+            preAuthNumber: normalizeOptionalString(
+              input.insurance.preAuthNumber,
+            ),
             expiresAt: input.insurance.expiresAt
               ? input.insurance.expiresAt.split("T")[0]
               : undefined,

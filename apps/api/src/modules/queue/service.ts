@@ -4,6 +4,7 @@ import {
   departments,
   invoiceLineItems,
   invoices,
+  patientInsurances,
   patients,
   priceBookEntries,
   priceBooks,
@@ -156,6 +157,40 @@ export class QueueService {
    */
   async startVisit(input: StartVisitInput) {
     return await db.transaction(async (tx) => {
+      if (input.payerType === "INSURANCE") {
+        if (!input.insuranceProviderId) {
+          throw new Error("Insurance provider is required for insurance visits");
+        }
+
+        const insuranceRecord = await tx.query.patientInsurances.findFirst({
+          where: and(
+            eq(patientInsurances.patientId, input.patientId),
+            eq(patientInsurances.providerId, input.insuranceProviderId),
+            eq(patientInsurances.isActive, true),
+          ),
+          with: {
+            provider: true,
+            scheme: true,
+          },
+        });
+
+        if (!insuranceRecord) {
+          throw new Error(
+            "Patient has no active insurance record for the selected provider",
+          );
+        }
+
+        const requiresPreAuth =
+          insuranceRecord.scheme?.requiresPreAuth ??
+          insuranceRecord.provider.requiresPreAuth;
+
+        if (requiresPreAuth && !insuranceRecord.preAuthNumber?.trim()) {
+          throw new Error(
+            "Pre-authorization number is required before starting this insurance visit",
+          );
+        }
+      }
+
       // 1. Fetch visit type details
       const [vType] = await tx
         .select()

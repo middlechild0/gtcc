@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
 import {
   Dialog,
@@ -19,7 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@visyx/ui/form";
-import { Badge } from "@visyx/ui/badge";
 import {
   Select,
   SelectContent,
@@ -54,7 +54,11 @@ interface StartVisitDialogProps {
 const PAYER_LABELS = {
   CASH: { label: "Cash / Self-pay", icon: Wallet, color: "text-amber-600" },
   INSURANCE: { label: "Insurance", icon: ShieldCheck, color: "text-blue-600" },
-  CORPORATE: { label: "Corporate / Employer", icon: CreditCard, color: "text-violet-600" },
+  CORPORATE: {
+    label: "Corporate / Employer",
+    icon: CreditCard,
+    color: "text-violet-600",
+  },
 } as const;
 
 export function StartVisitDialog({
@@ -135,7 +139,9 @@ export function StartVisitDialog({
       priority: values.priority,
       payerType: values.payerType,
       insuranceProviderId:
-        values.payerType === "INSURANCE" ? values.insuranceProviderId : undefined,
+        values.payerType === "INSURANCE"
+          ? values.insuranceProviderId
+          : undefined,
     });
   };
 
@@ -227,14 +233,16 @@ export function StartVisitDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.entries(PAYER_LABELS).map(([key, { label, icon: Icon, color }]) => (
-                          <SelectItem key={key} value={key}>
-                            <span className="flex items-center gap-2">
-                              <Icon className={`h-4 w-4 ${color}`} />
-                              {label}
-                            </span>
-                          </SelectItem>
-                        ))}
+                        {Object.entries(PAYER_LABELS).map(
+                          ([key, { label, icon: Icon, color }]) => (
+                            <SelectItem key={key} value={key}>
+                              <span className="flex items-center gap-2">
+                                <Icon className={`h-4 w-4 ${color}`} />
+                                {label}
+                              </span>
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -252,10 +260,21 @@ export function StartVisitDialog({
                           Insurance on file
                         </p>
                         <p className="text-sm font-semibold">
-                          Provider ID #{patientInsurance.providerId}
+                          {patientInsurance.provider?.name ||
+                            `Provider #${patientInsurance.providerId}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
+                          {patientInsurance.scheme?.name ? (
+                            <span className="mr-2">
+                              Scheme: {patientInsurance.scheme.name}
+                            </span>
+                          ) : null}
                           Member: {patientInsurance.memberNumber}
+                          {patientInsurance.preAuthNumber ? (
+                            <span className="ml-2">
+                              · Pre-auth: {patientInsurance.preAuthNumber}
+                            </span>
+                          ) : null}
                           {patientInsurance.expiresAt && (
                             <span className="ml-2">
                               · Expires {patientInsurance.expiresAt}
@@ -263,7 +282,10 @@ export function StartVisitDialog({
                           )}
                         </p>
                       </div>
-                      <Badge variant="secondary" className="text-blue-700 bg-blue-100">
+                      <Badge
+                        variant="secondary"
+                        className="text-blue-700 bg-blue-100"
+                      >
                         Auto-selected
                       </Badge>
                     </div>
@@ -274,6 +296,17 @@ export function StartVisitDialog({
                       visit, or proceed with Cash.
                     </p>
                   )}
+
+                  {patientInsurance &&
+                  (patientInsurance.scheme?.requiresPreAuth ??
+                    patientInsurance.provider?.requiresPreAuth) &&
+                  !patientInsurance.preAuthNumber ? (
+                    <p className="text-xs text-destructive bg-destructive/10 rounded p-2 border border-destructive/30">
+                      This scheme requires pre-authorization. Add a pre-auth
+                      number to the patient insurance profile before starting
+                      the visit.
+                    </p>
+                  ) : null}
                 </div>
               )}
 

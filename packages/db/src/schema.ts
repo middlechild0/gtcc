@@ -73,6 +73,11 @@ export const bloodGroupEnum = pgEnum("blood_group_enum", [
   "UNKNOWN",
 ]);
 
+export const insuranceBillingBasisEnum = pgEnum("insurance_billing_basis", [
+  "CAPITATION",
+  "FEE_FOR_SERVICE",
+]);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // USER PROFILES
 // Everyone in the system: staff, patients, superusers.
@@ -242,14 +247,40 @@ export const patientGuarantors = pgTable("patient_guarantors", {
 export const insuranceProviders = pgTable("insurance_providers", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
-  email: text("email"),
-  phone: text("phone"),
-  address: text("address"),
+  providerCode: text("provider_code").unique(),
+  billingBasis: insuranceBillingBasisEnum("billing_basis")
+    .default("FEE_FOR_SERVICE")
+    .notNull(),
+  requiresPreAuth: boolean("requires_pre_auth").default(false).notNull(),
+  copayAmount: integer("copay_amount").default(0).notNull(),
+  shaAccreditationNumber: text("sha_accreditation_number").unique(),
   isActive: boolean("is_active").default(true).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const insuranceProviderSchemes = pgTable(
+  "insurance_provider_schemes",
+  {
+    id: serial("id").primaryKey(),
+    providerId: integer("provider_id")
+      .notNull()
+      .references(() => insuranceProviders.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    billingBasis: insuranceBillingBasisEnum("billing_basis")
+      .default("FEE_FOR_SERVICE")
+      .notNull(),
+    requiresPreAuth: boolean("requires_pre_auth").default(false).notNull(),
+    copayAmount: integer("copay_amount").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    unqProviderSchemeName: unique().on(t.providerId, t.name),
+  }),
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PATIENT INSURANCES (Patient Policies)
@@ -263,10 +294,12 @@ export const patientInsurances = pgTable("patient_insurances", {
   providerId: integer("provider_id")
     .notNull()
     .references(() => insuranceProviders.id, { onDelete: "cascade" }),
+  schemeId: integer("scheme_id").references(() => insuranceProviderSchemes.id, {
+    onDelete: "set null",
+  }),
 
   memberNumber: text("member_number").notNull(),
-  principalName: text("principal_name"), // If patient is a dependent
-  principalRelationship: text("principal_relationship"),
+  preAuthNumber: text("pre_auth_number"),
   isActive: boolean("is_active").default(true).notNull(),
   expiresAt: date("expires_at"),
 
@@ -379,6 +412,10 @@ export const priceBooks = pgTable("price_books", {
   }),
   insuranceProviderId: integer("insurance_provider_id").references(
     () => insuranceProviders.id,
+    { onDelete: "cascade" },
+  ),
+  insuranceProviderSchemeId: integer("insurance_provider_scheme_id").references(
+    () => insuranceProviderSchemes.id,
     { onDelete: "cascade" },
   ),
 
@@ -893,6 +930,10 @@ export const priceBooksRelations = relations(priceBooks, ({ one, many }) => ({
     fields: [priceBooks.insuranceProviderId],
     references: [insuranceProviders.id],
   }),
+  insuranceProviderScheme: one(insuranceProviderSchemes, {
+    fields: [priceBooks.insuranceProviderSchemeId],
+    references: [insuranceProviderSchemes.id],
+  }),
   entries: many(priceBookEntries),
 }));
 
@@ -1219,6 +1260,19 @@ export const patientGuarantorsRelations = relations(
 export const insuranceProvidersRelations = relations(
   insuranceProviders,
   ({ many }) => ({
+    schemes: many(insuranceProviderSchemes),
+    patientInsurances: many(patientInsurances),
+  }),
+);
+
+export const insuranceProviderSchemesRelations = relations(
+  insuranceProviderSchemes,
+  ({ one, many }) => ({
+    provider: one(insuranceProviders, {
+      fields: [insuranceProviderSchemes.providerId],
+      references: [insuranceProviders.id],
+    }),
+    priceBooks: many(priceBooks),
     patientInsurances: many(patientInsurances),
   }),
 );
@@ -1233,6 +1287,10 @@ export const patientInsurancesRelations = relations(
     provider: one(insuranceProviders, {
       fields: [patientInsurances.providerId],
       references: [insuranceProviders.id],
+    }),
+    scheme: one(insuranceProviderSchemes, {
+      fields: [patientInsurances.schemeId],
+      references: [insuranceProviderSchemes.id],
     }),
   }),
 );
