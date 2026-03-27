@@ -10,6 +10,7 @@
       "!**/.next",
       "!**/.react-email",
       "!**/.wrangler",
+      "!packages/db/migrations/meta/**",
       "!packages/db/.env",
       "!packages/supabase/.env",
       "!apps/api/.env",

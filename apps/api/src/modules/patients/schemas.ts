@@ -88,10 +88,8 @@ export const GetPatientSchema = z.object({
   id: z.string().uuid(),
 });
 
-export const UpdatePatientSchema = CreatePatientSchema.partial().extend({
+export const UpdatePatientSchema = CreatePatientSchema.extend({
   id: z.string().uuid("Patient ID is required for update"),
-  // Optionally, we might want to ensure branchId is not required during an update,
-  // but it's already optional due to .partial()
 });
 
 export type UpdatePatientInput = z.infer<typeof UpdatePatientSchema>;

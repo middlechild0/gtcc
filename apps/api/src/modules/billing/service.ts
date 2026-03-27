@@ -3,8 +3,8 @@ import { db } from "@visyx/db/client";
 import {
   billableItems,
   departments,
-  invoiceLineItems,
   invoiceLineItemOverrides,
+  invoiceLineItems,
   invoices,
   payments,
   priceBookEntries,
@@ -350,7 +350,10 @@ export class BillingService {
       // 2. Lock and validate the invoice
       const invoice = await lockInvoiceRow(tx, lineItem.invoiceId);
       if (!invoice) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice not found",
+        });
       }
 
       if (invoice.status !== "DRAFT") {
@@ -391,7 +394,10 @@ export class BillingService {
       const invoice = await lockInvoiceRow(tx, input.invoiceId);
 
       if (!invoice) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice not found",
+        });
       }
 
       if (invoice.status !== "DRAFT") {
@@ -421,7 +427,10 @@ export class BillingService {
       const invoice = await lockInvoiceRow(tx, input.invoiceId);
 
       if (!invoice) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice not found",
+        });
       }
 
       if (invoice.status === "VOIDED" || invoice.status === "PAID") {
@@ -446,15 +455,21 @@ export class BillingService {
       const result = await tx.execute(
         sql`SELECT COALESCE(SUM(amount), 0)::int AS total_paid FROM payments WHERE invoice_id = ${input.invoiceId}::uuid`,
       );
-      const totalPaid = (result.rows[0] as { total_paid: number } | undefined)
-        ?.total_paid ?? 0;
+      const totalPaid =
+        (result.rows[0] as { total_paid: number } | undefined)?.total_paid ?? 0;
 
       const newStatus: "DRAFT" | "ISSUED" | "PAID" | "VOIDED" =
-        totalPaid >= invoice.total_amount ? "PAID" : (invoice.status as "DRAFT" | "ISSUED");
+        totalPaid >= invoice.total_amount
+          ? "PAID"
+          : (invoice.status as "DRAFT" | "ISSUED");
 
       await tx
         .update(invoices)
-        .set({ amountPaid: totalPaid, status: newStatus, updatedAt: new Date() })
+        .set({
+          amountPaid: totalPaid,
+          status: newStatus,
+          updatedAt: new Date(),
+        })
         .where(eq(invoices.id, input.invoiceId));
 
       return { payment: newPayment, totalPaid, invoiceStatus: newStatus };

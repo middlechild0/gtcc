@@ -159,7 +159,9 @@ export class QueueService {
     return await db.transaction(async (tx) => {
       if (input.payerType === "INSURANCE") {
         if (!input.insuranceProviderId) {
-          throw new Error("Insurance provider is required for insurance visits");
+          throw new Error(
+            "Insurance provider is required for insurance visits",
+          );
         }
 
         const insuranceRecord = await tx.query.patientInsurances.findFirst({

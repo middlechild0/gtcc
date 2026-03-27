@@ -353,13 +353,18 @@ export class PatientService {
             .where(eq(insuranceProviderSchemes.id, input.insurance.schemeId));
 
           if (!scheme || scheme.providerId !== input.insurance.providerId) {
-            throw new Error("Selected insurance scheme does not match provider");
+            throw new Error(
+              "Selected insurance scheme does not match provider",
+            );
           }
 
           requiresPreAuth = scheme.requiresPreAuth;
         }
 
-        if (requiresPreAuth && !normalizeOptionalString(input.insurance.preAuthNumber)) {
+        if (
+          requiresPreAuth &&
+          !normalizeOptionalString(input.insurance.preAuthNumber)
+        ) {
           throw new Error(
             "Pre-authorization number is required for the selected insurance provider/scheme",
           );

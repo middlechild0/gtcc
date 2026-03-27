@@ -194,6 +194,7 @@ export function PatientForm({
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientFormSchema),
+    mode: "onChange",
     defaultValues: {
       ...defaultValues,
       branchId: defaultValues.branchId ?? activeBranchId ?? 0,
@@ -307,6 +308,20 @@ export function PatientForm({
   const isInsuranceExpired = currentExpiry
     ? isPast(parseISO(currentExpiry))
     : false;
+  const hasRequiredCoreFields =
+    Boolean(form.watch("firstName")?.trim()) &&
+    Boolean(form.watch("lastName")?.trim()) &&
+    Number(form.watch("branchId") ?? 0) > 0;
+  const hasRequiredPreAuthForInsurance =
+    !(
+      form.watch("insurance.providerId") &&
+      form.watch("insurance.memberNumber")?.trim() &&
+      requiresPreAuth
+    ) || Boolean(form.watch("insurance.preAuthNumber")?.trim());
+  const disableSavePatient =
+    !hasRequiredCoreFields ||
+    !hasRequiredPreAuthForInsurance ||
+    !form.formState.isValid;
 
   return (
     <Card>
@@ -1041,7 +1056,10 @@ export function PatientForm({
               </Button>
             )}
             {activeTab === "insurance" && (
-              <SubmitButton isSubmitting={submitting ?? false}>
+              <SubmitButton
+                isSubmitting={submitting ?? false}
+                disabled={disableSavePatient}
+              >
                 {submitting ? "Saving..." : "Save patient"}
               </SubmitButton>
             )}

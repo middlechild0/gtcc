@@ -37,7 +37,6 @@ import {
   check,
   date,
   integer,
-  uniqueIndex,
   jsonb,
   pgEnum,
   pgSequence,
@@ -46,6 +45,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -469,18 +469,23 @@ export const departments = pgTable("departments", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
-export const visitTypes = pgTable("visit_types", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(), // e.g., "Complete Eye Exam", "Frame Repair"
-  workflowSteps: jsonb("workflow_steps").notNull(), // e.g. ["RECEPTION", "TRIAGE", "DOCTOR", "OPTICIAN", "CASHIER"]
-  defaultServiceId: integer("default_service_id").references(() => services.id), // Used for auto-billing
-  isActive: boolean("is_active").default(true).notNull(),
-},
-(t) => ({
-  nameNormalizedUnq: uniqueIndex("visit_types_name_normalized_unq").on(
-    sql`lower(trim(${t.name}))`,
-  ),
-}));
+export const visitTypes = pgTable(
+  "visit_types",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(), // e.g., "Complete Eye Exam", "Frame Repair"
+    workflowSteps: jsonb("workflow_steps").notNull(), // e.g. ["RECEPTION", "TRIAGE", "DOCTOR", "OPTICIAN", "CASHIER"]
+    defaultServiceId: integer("default_service_id").references(
+      () => services.id,
+    ), // Used for auto-billing
+    isActive: boolean("is_active").default(true).notNull(),
+  },
+  (t) => ({
+    nameNormalizedUnq: uniqueIndex("visit_types_name_normalized_unq").on(
+      sql`lower(trim(${t.name}))`,
+    ),
+  }),
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VISITS (The Queue)
