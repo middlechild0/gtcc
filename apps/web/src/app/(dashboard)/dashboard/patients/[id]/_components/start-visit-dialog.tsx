@@ -36,13 +36,23 @@ import * as z from "zod";
 import { trpc } from "@/trpc/client";
 import { useBranch } from "../../../branch-context";
 
-const formSchema = z.object({
-  visitTypeId: z.string().min(1, "Please select a visit type."),
-  priority: z.enum(["NORMAL", "URGENT"]),
-  payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]),
-  /** Only required when payerType === "INSURANCE" */
-  insuranceProviderId: z.number().int().positive().optional(),
-});
+const formSchema = z
+  .object({
+    visitTypeId: z.string().min(1, "Please select a visit type."),
+    priority: z.enum(["NORMAL", "URGENT"]),
+    payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]),
+    /** Only required when payerType === "INSURANCE" */
+    insuranceProviderId: z.number().int().positive().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.payerType === "INSURANCE" && !data.insuranceProviderId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["insuranceProviderId"],
+        message: "Insurance provider is required for insurance visits",
+      });
+    }
+  });
 
 type StartVisitFormValues = z.infer<typeof formSchema>;
 
@@ -111,7 +121,23 @@ export function StartVisitDialog({
   });
 
   const payerType = form.watch("payerType");
+  const visitTypeId = form.watch("visitTypeId");
+  const insuranceProviderId = form.watch("insuranceProviderId");
   const patientInsurance = patient?.insurance;
+
+  const requiresPreAuth =
+    payerType === "INSURANCE" &&
+    (patientInsurance?.scheme?.requiresPreAuth ??
+      patientInsurance?.provider?.requiresPreAuth);
+  const hasPreAuth = Boolean(patientInsurance?.preAuthNumber?.trim());
+
+  const canConfirm =
+    Boolean(visitTypeId) &&
+    (!visitTypes?.length ? false : true) &&
+    (payerType !== "INSURANCE" ||
+      (Boolean(insuranceProviderId) &&
+        Boolean(patientInsurance) &&
+        (!requiresPreAuth || hasPreAuth)));
 
   // Auto-fill insurance provider when patient has one on file and user switches to INSURANCE
   useEffect(() => {
@@ -351,7 +377,7 @@ export function StartVisitDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={startVisitMut.isPending || !visitTypes?.length}
+                  disabled={startVisitMut.isPending || !canConfirm}
                 >
                   {startVisitMut.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

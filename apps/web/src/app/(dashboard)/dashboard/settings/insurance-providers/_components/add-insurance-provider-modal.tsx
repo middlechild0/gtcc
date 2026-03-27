@@ -38,6 +38,9 @@ const CreateInsuranceProviderSchema = z.object({
 export type CreateInsuranceProviderInput = z.infer<
   typeof CreateInsuranceProviderSchema
 >;
+type CreateInsuranceProviderFormValues = z.input<
+  typeof CreateInsuranceProviderSchema
+>;
 
 export function AddInsuranceProviderModal({
   open,
@@ -47,7 +50,11 @@ export function AddInsuranceProviderModal({
   const { create, update } = useInsuranceProviders();
   const isEditing = !!providerToEdit;
 
-  const form = useForm<CreateInsuranceProviderInput>({
+  const form = useForm<
+    CreateInsuranceProviderFormValues,
+    unknown,
+    CreateInsuranceProviderInput
+  >({
     resolver: zodResolver(CreateInsuranceProviderSchema),
     defaultValues: {
       name: "",
@@ -198,7 +205,12 @@ export function AddInsuranceProviderModal({
                         min={0}
                         placeholder="0"
                         {...field}
-                        value={field.value ?? ""}
+                        value={
+                          typeof field.value === "number" ||
+                          typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
                       />
                     </FormControl>
                     <FormMessage />
