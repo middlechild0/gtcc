@@ -81,6 +81,19 @@ export function StartVisitDialog({
   const utils = trpc.useUtils();
   const { activeBranchId: branchId } = useBranch();
 
+  const { data: activeVisits, isLoading: isCheckingActiveVisit } =
+    trpc.patients.getVisitHistory.useQuery(
+      {
+        patientId,
+        branchId: branchId ?? undefined,
+        limit: 1,
+        activeOnly: true,
+      },
+      { enabled: Boolean(branchId) },
+    );
+
+  const activeVisit = activeVisits?.[0] ?? null;
+
   // Fetch visit types when dialog opens
   const { data: visitTypes, isLoading: isLoadingTypes } =
     trpc.queue.getVisitTypes.useQuery(undefined, { enabled: open });
@@ -98,6 +111,7 @@ export function StartVisitDialog({
         description: `${patientName} has been added to the queue (Ticket #${data.ticketNumber}).`,
       });
       utils.queue.invalidate();
+      utils.patients.getVisitHistory.invalidate();
       setOpen(false);
       form.reset();
     },
@@ -132,8 +146,9 @@ export function StartVisitDialog({
   const hasPreAuth = Boolean(patientInsurance?.preAuthNumber?.trim());
 
   const canConfirm =
+    !activeVisit &&
     Boolean(visitTypeId) &&
-    (!visitTypes?.length ? false : true) &&
+    Boolean(visitTypes?.length) &&
     (payerType !== "INSURANCE" ||
       (Boolean(insuranceProviderId) &&
         Boolean(patientInsurance) &&
@@ -174,9 +189,9 @@ export function StartVisitDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button disabled={isCheckingActiveVisit || Boolean(activeVisit)}>
           <Play className="mr-2 h-4 w-4" />
-          Start Visit
+          {activeVisit ? "Visit Ongoing" : "Start Visit"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
@@ -196,6 +211,14 @@ export function StartVisitDialog({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-5 pt-2"
             >
+              {activeVisit && (
+                <p className="text-xs text-destructive bg-destructive/10 rounded p-2 border border-destructive/30">
+                  This patient already has an active visit (Ticket #
+                  {activeVisit.ticketNumber}, {activeVisit.status}). Complete or
+                  cancel it before starting another one.
+                </p>
+              )}
+
               {/* Visit Type */}
               <FormField
                 control={form.control}

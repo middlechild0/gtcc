@@ -28,48 +28,72 @@ export const queueRouter = router({
     }),
 
   startVisit: protectedProcedure
+    .input(StartVisitSchema)
     .use(hasPermission("queue:manage"))
     .use(withAuditLog("queue:manage", "visit"))
-    .input(StartVisitSchema)
     .mutation(async ({ input }) => {
       return queueService.startVisit(input);
     }),
 
   callPatient: protectedProcedure
-    .use(hasPermission("queue:manage"))
-    .use(withAuditLog("queue:manage", "visit", (input) => input.visitId))
     .input(UpdateVisitStatusSchema)
+    .use(hasPermission("queue:manage"))
+    .use(
+      withAuditLog(
+        "queue:manage",
+        "visit",
+        (input, result) => input?.visitId ?? result?.id,
+      ),
+    )
     .mutation(async ({ input }) => {
       return queueService.callPatient(input);
     }),
 
   advanceWorkflow: protectedProcedure
-    .use(hasPermission("queue:manage"))
-    .use(withAuditLog("queue:manage", "visit", (input) => input.visitId))
     .input(UpdateVisitStatusSchema)
+    .use(hasPermission("queue:manage"))
+    .use(
+      withAuditLog(
+        "queue:manage",
+        "visit",
+        (input, result) => input?.visitId ?? result?.visit?.id,
+      ),
+    )
     .mutation(async ({ input }) => {
       return queueService.advanceWorkflow(input);
     }),
 
   transferPatient: protectedProcedure
-    .use(hasPermission("queue:transfer"))
-    .use(withAuditLog("queue:transfer", "visit", (input) => input.visitId))
     .input(TransferPatientSchema)
+    .use(hasPermission("queue:transfer"))
+    .use(
+      withAuditLog(
+        "queue:transfer",
+        "visit",
+        (input, result) => input?.visitId ?? result?.id,
+      ),
+    )
     .mutation(async ({ input }) => {
       return queueService.transferPatient(input);
     }),
 
   markUrgent: protectedProcedure
-    .use(hasPermission("queue:manage"))
     .input(UpdateVisitStatusSchema)
+    .use(hasPermission("queue:manage"))
     .mutation(async ({ input }) => {
       return queueService.markUrgent(input);
     }),
 
   cancelVisit: protectedProcedure
-    .use(hasPermission("queue:cancel"))
-    .use(withAuditLog("queue:cancel", "visit", (input) => input.visitId))
     .input(UpdateVisitStatusSchema)
+    .use(hasPermission("queue:cancel"))
+    .use(
+      withAuditLog(
+        "queue:cancel",
+        "visit",
+        (input, result) => input?.visitId ?? result?.id,
+      ),
+    )
     .mutation(async ({ input }) => {
       return queueService.cancelVisit(input);
     }),

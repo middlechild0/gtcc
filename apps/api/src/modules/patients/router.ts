@@ -6,6 +6,7 @@ import {
   CreatePatientSchema,
   DeactivatePatientSchema,
   GetPatientSchema,
+  GetPatientVisitHistorySchema,
   ListPatientsSchema,
   UpdatePatientSchema,
 } from "./schemas";
@@ -25,6 +26,13 @@ export const patientsRouter = router({
     .use(withAuditLog("patients:view", "patient", (input) => input.id))
     .query(async ({ input }) => {
       return patientService.getPatient(input.id);
+    }),
+
+  getVisitHistory: protectedProcedure
+    .use(hasPermission("patients:view"))
+    .input(GetPatientVisitHistorySchema)
+    .query(async ({ input }) => {
+      return patientService.getVisitHistory(input);
     }),
 
   create: protectedProcedure

@@ -1,6 +1,7 @@
 import { db } from "@visyx/db/client";
 import {
   branches,
+  departments,
   insuranceProviderSchemes,
   insuranceProviders,
   patientBranchProfiles,
@@ -8,8 +9,10 @@ import {
   patientInsurances,
   patientKins,
   patients,
+  visits,
+  visitTypes,
 } from "@visyx/db/schema";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type {
   CreatePatientInput,
   DeactivatePatientInput,
@@ -100,6 +103,57 @@ function toPatientListItem(row: PatientRow) {
 }
 
 export class PatientService {
+  async getVisitHistory(input: {
+    patientId: string;
+    branchId?: number;
+    limit: number;
+    activeOnly: boolean;
+  }) {
+    const activeStatuses = ["WAITING", "IN_PROGRESS", "ON_HOLD"] as const;
+
+    const filters = [eq(visits.patientId, input.patientId)];
+
+    if (input.branchId) {
+      filters.push(eq(visits.branchId, input.branchId));
+    }
+
+    if (input.activeOnly) {
+      filters.push(inArray(visits.status, activeStatuses));
+    }
+
+    return db
+      .select({
+        id: visits.id,
+        ticketNumber: visits.ticketNumber,
+        status: visits.status,
+        priority: visits.priority,
+        payerType: visits.payerType,
+        registeredAt: visits.registeredAt,
+        completedAt: visits.completedAt,
+        visitType: {
+          id: visitTypes.id,
+          name: visitTypes.name,
+        },
+        department: {
+          id: departments.id,
+          code: departments.code,
+          name: departments.name,
+        },
+        branch: {
+          id: branches.id,
+          code: branches.code,
+          name: branches.name,
+        },
+      })
+      .from(visits)
+      .innerJoin(visitTypes, eq(visits.visitTypeId, visitTypes.id))
+      .innerJoin(departments, eq(visits.currentDepartmentId, departments.id))
+      .innerJoin(branches, eq(visits.branchId, branches.id))
+      .where(and(...filters))
+      .orderBy(desc(visits.registeredAt))
+      .limit(input.limit);
+  }
+
   async getPatients(input: ListPatientsInput & { branchId: number }) {
     const { page, limit, search } = input;
     const conditions = [];

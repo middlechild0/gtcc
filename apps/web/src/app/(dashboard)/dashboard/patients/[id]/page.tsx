@@ -10,13 +10,16 @@ import {
   CardTitle,
 } from "@visyx/ui/card";
 import { Separator } from "@visyx/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@visyx/ui/tabs";
 import { format } from "date-fns";
 import { ArrowLeft, Edit, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
+import { useBranch } from "@/app/(dashboard)/dashboard/branch-context";
 import { useAuth } from "@/app/auth/_hooks/use-auth";
 import { RouteGuard } from "@/app/auth/components/route-guard";
 import { trpc } from "@/trpc/client";
+import { PatientVisitHistory } from "./_components/patient-visit-history";
 import { StartVisitDialog } from "./_components/start-visit-dialog";
 
 export default function PatientDetailsPage({
@@ -26,6 +29,7 @@ export default function PatientDetailsPage({
 }) {
   const { id } = use(params);
   const { hasPermission } = useAuth();
+  const { activeBranchId } = useBranch();
   const { data: patient, isLoading } = trpc.patients.get.useQuery({ id });
 
   if (isLoading) {
@@ -110,270 +114,296 @@ export default function PatientDetailsPage({
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Main Info */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-y-6 sm:grid-cols-2">
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Date of Birth
-                </dt>
-                <dd className="mt-1 text-sm font-medium">
-                  {patient.dateOfBirth
-                    ? format(new Date(patient.dateOfBirth), "PP")
-                    : "Not specified"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Gender
-                </dt>
-                <dd className="mt-1 text-sm font-medium capitalize">
-                  {patient.gender?.toLowerCase() || "Not specified"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Marital Status
-                </dt>
-                <dd className="mt-1 text-sm font-medium capitalize">
-                  {patient.maritalStatus?.toLowerCase() || "Not specified"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Blood Group
-                </dt>
-                <dd className="mt-1 text-sm font-medium capitalize">
-                  {patient.bloodGroup?.toLowerCase() || "Not specified"}
-                </dd>
-              </div>
-              <div className="col-span-2">
-                <Separator className="my-2" />
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  National ID
-                </dt>
-                <dd className="mt-1 text-sm font-medium">
-                  {patient.nationalId || "Not specified"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Passport
-                </dt>
-                <dd className="mt-1 text-sm font-medium">
-                  {patient.passportNumber || "Not specified"}
-                </dd>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="h-auto w-full justify-start border-b bg-transparent p-0">
+            <TabsTrigger
+              value="overview"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="visits"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              Visit History
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Contact Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {patient.phone || "Not specified"}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {patient.email || "Not specified"}
-                </span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                <div className="flex flex-col text-sm font-medium">
-                  <span>{patient.address || "Address not specified"}</span>
-                  <span className="text-muted-foreground font-normal">
-                    {patient.country || "Kenya"}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Insurance Information */}
-          {patient.insurance && (
-            <Card className="md:col-span-2 lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Insurance Coverage</CardTitle>
-                <CardDescription>
-                  Primary health insurance and scheme details.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Provider
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.provider?.name ||
-                      `#${patient.insurance.providerId}`}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Scheme
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.scheme?.name || "Not specified"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Member Number
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.memberNumber}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Pre-auth Number
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.preAuthNumber || "Not provided"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Expiry
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium">
-                    {patient.insurance.expiresAt
-                      ? format(new Date(patient.insurance.expiresAt), "PP")
-                      : "Not set"}
-                  </dd>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Kin & Guarantor Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:col-span-3">
-            {/* Next of Kin Tracker */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Next of Kin</CardTitle>
-                <CardDescription>
-                  Emergency contacts for the patient.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {patient.kin && patient.kin.length > 0 ? (
-                  <div className="space-y-4">
-                    {patient.kin.map((kin, i) => (
-                      <div
-                        key={i}
-                        className="flex flex-col gap-1 rounded-md border p-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
-                            {kin.firstName} {kin.lastName}
-                          </span>
-                          {kin.isPrimary && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] uppercase"
-                            >
-                              Primary
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {kin.relationship || "Unknown Relationship"}
-                        </span>
-                        <div className="mt-2 flex flex-col gap-1 text-sm">
-                          {kin.phone && (
-                            <span className="text-muted-foreground">
-                              📞 {kin.phone}
-                            </span>
-                          )}
-                          {kin.email && (
-                            <span className="text-muted-foreground">
-                              ✉️ {kin.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Main Info */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-y-6 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Date of Birth
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium">
+                      {patient.dateOfBirth
+                        ? format(new Date(patient.dateOfBirth), "PP")
+                        : "Not specified"}
+                    </dd>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    No next of kin recorded.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Guarantor Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Guarantors</CardTitle>
-                <CardDescription>
-                  Financial guarantors linked to the patient.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {patient.guarantor && patient.guarantor.length > 0 ? (
-                  <div className="space-y-4">
-                    {patient.guarantor.map((g, i) => (
-                      <div
-                        key={i}
-                        className="flex flex-col gap-1 rounded-md border p-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
-                            {g.firstName} {g.lastName}
-                          </span>
-                          {g.isPrimary && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] uppercase"
-                            >
-                              Primary
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {g.relationship || "Unknown Relationship"}{" "}
-                          {g.employer ? `• ${g.employer}` : ""}
-                        </span>
-                        <div className="mt-2 flex flex-col gap-1 text-sm">
-                          {g.phone && (
-                            <span className="text-muted-foreground">
-                              📞 {g.phone}
-                            </span>
-                          )}
-                          {g.email && (
-                            <span className="text-muted-foreground">
-                              ✉️ {g.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Gender
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium capitalize">
+                      {patient.gender?.toLowerCase() || "Not specified"}
+                    </dd>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    No guarantors recorded.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Marital Status
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium capitalize">
+                      {patient.maritalStatus?.toLowerCase() || "Not specified"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Blood Group
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium capitalize">
+                      {patient.bloodGroup?.toLowerCase() || "Not specified"}
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <Separator className="my-2" />
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      National ID
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium">
+                      {patient.nationalId || "Not specified"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Passport
+                    </dt>
+                    <dd className="mt-1 text-sm font-medium">
+                      {patient.passportNumber || "Not specified"}
+                    </dd>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact Details</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {patient.phone || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {patient.email || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <div className="flex flex-col text-sm font-medium">
+                      <span>{patient.address || "Address not specified"}</span>
+                      <span className="text-muted-foreground font-normal">
+                        {patient.country || "Kenya"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Insurance Information */}
+              {patient.insurance && (
+                <Card className="md:col-span-2 lg:col-span-3">
+                  <CardHeader>
+                    <CardTitle>Insurance Coverage</CardTitle>
+                    <CardDescription>
+                      Primary health insurance and scheme details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Provider
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium">
+                        {patient.insurance.provider?.name ||
+                          `#${patient.insurance.providerId}`}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Scheme
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium">
+                        {patient.insurance.scheme?.name || "Not specified"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Member Number
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium">
+                        {patient.insurance.memberNumber}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Pre-auth Number
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium">
+                        {patient.insurance.preAuthNumber || "Not provided"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Expiry
+                      </dt>
+                      <dd className="mt-1 text-sm font-medium">
+                        {patient.insurance.expiresAt
+                          ? format(new Date(patient.insurance.expiresAt), "PP")
+                          : "Not set"}
+                      </dd>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Kin & Guarantor Grid */}
+              <div className="grid gap-6 md:grid-cols-2 lg:col-span-3">
+                {/* Next of Kin Tracker */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Next of Kin</CardTitle>
+                    <CardDescription>
+                      Emergency contacts for the patient.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {patient.kin && patient.kin.length > 0 ? (
+                      <div className="space-y-4">
+                        {patient.kin.map((kin, i) => (
+                          <div
+                            key={i}
+                            className="flex flex-col gap-1 rounded-md border p-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">
+                                {kin.firstName} {kin.lastName}
+                              </span>
+                              {kin.isPrimary && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] uppercase"
+                                >
+                                  Primary
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {kin.relationship || "Unknown Relationship"}
+                            </span>
+                            <div className="mt-2 flex flex-col gap-1 text-sm">
+                              {kin.phone && (
+                                <span className="text-muted-foreground">
+                                  📞 {kin.phone}
+                                </span>
+                              )}
+                              {kin.email && (
+                                <span className="text-muted-foreground">
+                                  ✉️ {kin.email}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No next of kin recorded.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Guarantor Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Guarantors</CardTitle>
+                    <CardDescription>
+                      Financial guarantors linked to the patient.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {patient.guarantor && patient.guarantor.length > 0 ? (
+                      <div className="space-y-4">
+                        {patient.guarantor.map((g, i) => (
+                          <div
+                            key={i}
+                            className="flex flex-col gap-1 rounded-md border p-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">
+                                {g.firstName} {g.lastName}
+                              </span>
+                              {g.isPrimary && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] uppercase"
+                                >
+                                  Primary
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {g.relationship || "Unknown Relationship"}{" "}
+                              {g.employer ? `• ${g.employer}` : ""}
+                            </span>
+                            <div className="mt-2 flex flex-col gap-1 text-sm">
+                              {g.phone && (
+                                <span className="text-muted-foreground">
+                                  📞 {g.phone}
+                                </span>
+                              )}
+                              {g.email && (
+                                <span className="text-muted-foreground">
+                                  ✉️ {g.email}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No guarantors recorded.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="visits" className="mt-6">
+            <PatientVisitHistory
+              patientId={patient.id}
+              branchId={activeBranchId ?? undefined}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </RouteGuard>
   );

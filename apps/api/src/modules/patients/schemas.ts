@@ -88,6 +88,13 @@ export const GetPatientSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const GetPatientVisitHistorySchema = z.object({
+  patientId: z.string().uuid(),
+  branchId: z.number().int().positive().optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+  activeOnly: z.boolean().default(false),
+});
+
 export const UpdatePatientSchema = CreatePatientSchema.extend({
   id: z.string().uuid("Patient ID is required for update"),
 });

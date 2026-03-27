@@ -13,7 +13,7 @@ import {
   visits,
   visitTypes,
 } from "@visyx/db/schema";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type {
   GetDepartmentPoolInput,
   StartVisitInput,
@@ -157,6 +157,30 @@ export class QueueService {
    */
   async startVisit(input: StartVisitInput) {
     return await db.transaction(async (tx) => {
+      const activeStatuses = ["WAITING", "IN_PROGRESS", "ON_HOLD"] as const;
+
+      const [existingActiveVisit] = await tx
+        .select({
+          id: visits.id,
+          ticketNumber: visits.ticketNumber,
+          status: visits.status,
+        })
+        .from(visits)
+        .where(
+          and(
+            eq(visits.patientId, input.patientId),
+            eq(visits.branchId, input.branchId),
+            inArray(visits.status, activeStatuses),
+          ),
+        )
+        .limit(1);
+
+      if (existingActiveVisit) {
+        throw new Error(
+          `This patient already has an active visit (${existingActiveVisit.ticketNumber}, ${existingActiveVisit.status}). Complete or cancel it before starting a new one.`,
+        );
+      }
+
       if (input.payerType === "INSURANCE") {
         if (!input.insuranceProviderId) {
           throw new Error(
