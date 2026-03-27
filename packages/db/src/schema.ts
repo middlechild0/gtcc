@@ -540,7 +540,8 @@ export const invoiceLineItems = pgTable("invoice_line_items", {
   total: integer("total").notNull(), // subtotal + vatAmount
 
   isOverridden: boolean("is_overridden").default(false).notNull(),
-  departmentSource: text("department_source"), // Internal reference for reporting where the charge came from
+  departmentSource: text("department_source"), // Human-readable display string
+  departmentSourceCode: text("department_source_code"), // Stable dept code (e.g. "DOCTOR") for permission scoping
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

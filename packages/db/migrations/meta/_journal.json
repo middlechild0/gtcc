@@ -57,6 +57,13 @@
       "when": 1774550662549,
       "tag": "0007_sturdy_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774611983804,
+      "tag": "0008_brown_retro_girl",
+      "breakpoints": true
     }
   ]
 }

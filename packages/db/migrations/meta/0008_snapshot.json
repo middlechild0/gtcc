@@ -1,0 +1,3210 @@
+{
+  "id": "ccf93f69-fa76-4a64-800a-f6c37eb8bfb9",
+  "prevId": "d122b94a-858d-431f-b038-9d72246e0379",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.audit_logs": {
+      "name": "audit_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "details": {
+          "name": "details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_logs_user_id_user_profiles_user_id_fk": {
+          "name": "audit_logs_user_id_user_profiles_user_id_fk",
+          "tableFrom": "audit_logs",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "audit_logs_branch_id_branches_id_fk": {
+          "name": "audit_logs_branch_id_branches_id_fk",
+          "tableFrom": "audit_logs",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.billable_items": {
+      "name": "billable_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "billable_item_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "service_id": {
+          "name": "service_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "billable_items_service_id_services_id_fk": {
+          "name": "billable_items_service_id_services_id_fk",
+          "tableFrom": "billable_items",
+          "tableTo": "services",
+          "columnsFrom": [
+            "service_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "billable_items_product_id_products_id_fk": {
+          "name": "billable_items_product_id_products_id_fk",
+          "tableFrom": "billable_items",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "valid_billable_item": {
+          "name": "valid_billable_item",
+          "value": "num_nonnulls(\"billable_items\".\"service_id\", \"billable_items\".\"product_id\") = 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.branches": {
+      "name": "branches",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "branches_code_unique": {
+          "name": "branches_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.consultations": {
+      "name": "consultations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "assigned_doctor_id": {
+          "name": "assigned_doctor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chief_complaint": {
+          "name": "chief_complaint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinical_notes": {
+          "name": "clinical_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "diagnosis": {
+          "name": "diagnosis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "consultations_visit_id_visits_id_fk": {
+          "name": "consultations_visit_id_visits_id_fk",
+          "tableFrom": "consultations",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "consultations_assigned_doctor_id_user_profiles_user_id_fk": {
+          "name": "consultations_assigned_doctor_id_user_profiles_user_id_fk",
+          "tableFrom": "consultations",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "assigned_doctor_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "consultations_visit_id_unique": {
+          "name": "consultations_visit_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "visit_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contact_lens_fittings": {
+      "name": "contact_lens_fittings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_curve": {
+          "name": "base_curve",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "diameter": {
+          "name": "diameter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand": {
+          "name": "brand",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "contact_lens_fittings_visit_id_visits_id_fk": {
+          "name": "contact_lens_fittings_visit_id_visits_id_fk",
+          "tableFrom": "contact_lens_fittings",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.departments": {
+      "name": "departments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "departments_code_unique": {
+          "name": "departments_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.dispensing_orders": {
+      "name": "dispensing_orders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "assigned_optician_id": {
+          "name": "assigned_optician_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lens_type": {
+          "name": "lens_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "frame_model": {
+          "name": "frame_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_external_rx": {
+          "name": "is_external_rx",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "status": {
+          "name": "status",
+          "type": "order_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING_LAB'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "dispensing_orders_visit_id_visits_id_fk": {
+          "name": "dispensing_orders_visit_id_visits_id_fk",
+          "tableFrom": "dispensing_orders",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "dispensing_orders_assigned_optician_id_user_profiles_user_id_fk": {
+          "name": "dispensing_orders_assigned_optician_id_user_profiles_user_id_fk",
+          "tableFrom": "dispensing_orders",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "assigned_optician_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "dispensing_orders_visit_id_unique": {
+          "name": "dispensing_orders_visit_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "visit_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.insurance_providers": {
+      "name": "insurance_providers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "insurance_providers_name_unique": {
+          "name": "insurance_providers_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.invoice_line_item_overrides": {
+      "name": "invoice_line_item_overrides",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "line_item_id": {
+          "name": "line_item_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_price": {
+          "name": "original_price",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "new_price": {
+          "name": "new_price",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "override_reason",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_by_id": {
+          "name": "changed_by_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "approved_by_id": {
+          "name": "approved_by_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "invoice_line_item_overrides_line_item_id_invoice_line_items_id_fk": {
+          "name": "invoice_line_item_overrides_line_item_id_invoice_line_items_id_fk",
+          "tableFrom": "invoice_line_item_overrides",
+          "tableTo": "invoice_line_items",
+          "columnsFrom": [
+            "line_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "invoice_line_item_overrides_changed_by_id_user_profiles_user_id_fk": {
+          "name": "invoice_line_item_overrides_changed_by_id_user_profiles_user_id_fk",
+          "tableFrom": "invoice_line_item_overrides",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "changed_by_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "invoice_line_item_overrides_approved_by_id_user_profiles_user_id_fk": {
+          "name": "invoice_line_item_overrides_approved_by_id_user_profiles_user_id_fk",
+          "tableFrom": "invoice_line_item_overrides",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "approved_by_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.invoice_line_items": {
+      "name": "invoice_line_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "invoice_id": {
+          "name": "invoice_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "billable_item_id": {
+          "name": "billable_item_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "subtotal": {
+          "name": "subtotal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vat_amount": {
+          "name": "vat_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "total": {
+          "name": "total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_overridden": {
+          "name": "is_overridden",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "department_source": {
+          "name": "department_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "department_source_code": {
+          "name": "department_source_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "invoice_line_items_invoice_id_invoices_id_fk": {
+          "name": "invoice_line_items_invoice_id_invoices_id_fk",
+          "tableFrom": "invoice_line_items",
+          "tableTo": "invoices",
+          "columnsFrom": [
+            "invoice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "invoice_line_items_billable_item_id_billable_items_id_fk": {
+          "name": "invoice_line_items_billable_item_id_billable_items_id_fk",
+          "tableFrom": "invoice_line_items",
+          "tableTo": "billable_items",
+          "columnsFrom": [
+            "billable_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.invoices": {
+      "name": "invoices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_amount": {
+          "name": "total_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "amount_paid": {
+          "name": "amount_paid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "invoice_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'DRAFT'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "invoices_visit_id_visits_id_fk": {
+          "name": "invoices_visit_id_visits_id_fk",
+          "tableFrom": "invoices",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.optical_prescriptions": {
+      "name": "optical_prescriptions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "od_sphere": {
+          "name": "od_sphere",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "od_cylinder": {
+          "name": "od_cylinder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "od_axis": {
+          "name": "od_axis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "os_sphere": {
+          "name": "os_sphere",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "os_cylinder": {
+          "name": "os_cylinder",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "os_axis": {
+          "name": "os_axis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pupillary_distance": {
+          "name": "pupillary_distance",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "optical_prescriptions_visit_id_visits_id_fk": {
+          "name": "optical_prescriptions_visit_id_visits_id_fk",
+          "tableFrom": "optical_prescriptions",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient_branch_profiles": {
+      "name": "patient_branch_profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_registration_branch": {
+          "name": "is_registration_branch",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "patient_branch_profiles_patient_id_patients_id_fk": {
+          "name": "patient_branch_profiles_patient_id_patients_id_fk",
+          "tableFrom": "patient_branch_profiles",
+          "tableTo": "patients",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "patient_branch_profiles_branch_id_branches_id_fk": {
+          "name": "patient_branch_profiles_branch_id_branches_id_fk",
+          "tableFrom": "patient_branch_profiles",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "patient_branch_profiles_patient_id_branch_id_unique": {
+          "name": "patient_branch_profiles_patient_id_branch_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "patient_id",
+            "branch_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient_guarantors": {
+      "name": "patient_guarantors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "relationship": {
+          "name": "relationship",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "national_id": {
+          "name": "national_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer": {
+          "name": "employer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "patient_guarantors_patient_id_patients_id_fk": {
+          "name": "patient_guarantors_patient_id_patients_id_fk",
+          "tableFrom": "patient_guarantors",
+          "tableTo": "patients",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient_insurances": {
+      "name": "patient_insurances",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "member_number": {
+          "name": "member_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "principal_name": {
+          "name": "principal_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "principal_relationship": {
+          "name": "principal_relationship",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "patient_insurances_patient_id_patients_id_fk": {
+          "name": "patient_insurances_patient_id_patients_id_fk",
+          "tableFrom": "patient_insurances",
+          "tableTo": "patients",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "patient_insurances_provider_id_insurance_providers_id_fk": {
+          "name": "patient_insurances_provider_id_insurance_providers_id_fk",
+          "tableFrom": "patient_insurances",
+          "tableTo": "insurance_providers",
+          "columnsFrom": [
+            "provider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient_kins": {
+      "name": "patient_kins",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "relationship": {
+          "name": "relationship",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "national_id": {
+          "name": "national_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "patient_kins_patient_id_patients_id_fk": {
+          "name": "patient_kins_patient_id_patients_id_fk",
+          "tableFrom": "patient_kins",
+          "tableTo": "patients",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patients": {
+      "name": "patients",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "patient_number": {
+          "name": "patient_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salutation": {
+          "name": "salutation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "middle_name": {
+          "name": "middle_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_of_birth": {
+          "name": "date_of_birth",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "marital_status": {
+          "name": "marital_status",
+          "type": "marital_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "blood_group": {
+          "name": "blood_group",
+          "type": "blood_group_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Kenya'"
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "passport_number": {
+          "name": "passport_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "national_id": {
+          "name": "national_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nhif_number": {
+          "name": "nhif_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "merged_into_id": {
+          "name": "merged_into_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "patients_patient_number_unique": {
+          "name": "patients_patient_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "patient_number"
+          ]
+        },
+        "patients_passport_number_unique": {
+          "name": "patients_passport_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "passport_number"
+          ]
+        },
+        "patients_national_id_unique": {
+          "name": "patients_national_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "national_id"
+          ]
+        },
+        "patients_nhif_number_unique": {
+          "name": "patients_nhif_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nhif_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.payments": {
+      "name": "payments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "invoice_id": {
+          "name": "invoice_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payment_mode": {
+          "name": "payment_mode",
+          "type": "payment_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receipt_number": {
+          "name": "receipt_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "payments_invoice_id_invoices_id_fk": {
+          "name": "payments_invoice_id_invoices_id_fk",
+          "tableFrom": "payments",
+          "tableTo": "invoices",
+          "columnsFrom": [
+            "invoice_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.permission_group_items": {
+      "name": "permission_group_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "group_id": {
+          "name": "group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "permission_id": {
+          "name": "permission_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "permission_group_items_group_id_permission_groups_id_fk": {
+          "name": "permission_group_items_group_id_permission_groups_id_fk",
+          "tableFrom": "permission_group_items",
+          "tableTo": "permission_groups",
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "permission_group_items_permission_id_permissions_id_fk": {
+          "name": "permission_group_items_permission_id_permissions_id_fk",
+          "tableFrom": "permission_group_items",
+          "tableTo": "permissions",
+          "columnsFrom": [
+            "permission_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "permission_group_items_group_id_permission_id_unique": {
+          "name": "permission_group_items_group_id_permission_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "group_id",
+            "permission_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.permission_groups": {
+      "name": "permission_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "permission_groups_name_unique": {
+          "name": "permission_groups_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.permissions": {
+      "name": "permissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "name": "module",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "permissions_key_unique": {
+          "name": "permissions_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pre_tests": {
+      "name": "pre_tests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "performed_by_id": {
+          "name": "performed_by_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "auto_refraction_data": {
+          "name": "auto_refraction_data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "intra_ocular_pressure": {
+          "name": "intra_ocular_pressure",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "visual_acuity": {
+          "name": "visual_acuity",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pre_tests_visit_id_visits_id_fk": {
+          "name": "pre_tests_visit_id_visits_id_fk",
+          "tableFrom": "pre_tests",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "pre_tests_performed_by_id_user_profiles_user_id_fk": {
+          "name": "pre_tests_performed_by_id_user_profiles_user_id_fk",
+          "tableFrom": "pre_tests",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "performed_by_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "pre_tests_visit_id_unique": {
+          "name": "pre_tests_visit_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "visit_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.price_book_entries": {
+      "name": "price_book_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "price_book_id": {
+          "name": "price_book_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "billable_item_id": {
+          "name": "billable_item_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "price_book_entries_price_book_id_price_books_id_fk": {
+          "name": "price_book_entries_price_book_id_price_books_id_fk",
+          "tableFrom": "price_book_entries",
+          "tableTo": "price_books",
+          "columnsFrom": [
+            "price_book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "price_book_entries_billable_item_id_billable_items_id_fk": {
+          "name": "price_book_entries_billable_item_id_billable_items_id_fk",
+          "tableFrom": "price_book_entries",
+          "tableTo": "billable_items",
+          "columnsFrom": [
+            "billable_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "price_book_entries_price_book_id_billable_item_id_unique": {
+          "name": "price_book_entries_price_book_id_billable_item_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "price_book_id",
+            "billable_item_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.price_books": {
+      "name": "price_books",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "price_book_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "insurance_provider_id": {
+          "name": "insurance_provider_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "effective_from": {
+          "name": "effective_from",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "effective_to": {
+          "name": "effective_to",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "price_books_branch_id_branches_id_fk": {
+          "name": "price_books_branch_id_branches_id_fk",
+          "tableFrom": "price_books",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "price_books_insurance_provider_id_insurance_providers_id_fk": {
+          "name": "price_books_insurance_provider_id_insurance_providers_id_fk",
+          "tableFrom": "price_books",
+          "tableTo": "insurance_providers",
+          "columnsFrom": [
+            "insurance_provider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.products": {
+      "name": "products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sku": {
+          "name": "sku",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category": {
+          "name": "category",
+          "type": "product_category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stock_level": {
+          "name": "stock_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "reorder_point": {
+          "name": "reorder_point",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "vat_exempt": {
+          "name": "vat_exempt",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "products_sku_unique": {
+          "name": "products_sku_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "sku"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.repairs": {
+      "name": "repairs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "visit_id": {
+          "name": "visit_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "issue_description": {
+          "name": "issue_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parts_replaced": {
+          "name": "parts_replaced",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost_estimate": {
+          "name": "cost_estimate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "repairs_visit_id_visits_id_fk": {
+          "name": "repairs_visit_id_visits_id_fk",
+          "tableFrom": "repairs",
+          "tableTo": "visits",
+          "columnsFrom": [
+            "visit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "repairs_visit_id_unique": {
+          "name": "repairs_visit_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "visit_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.services": {
+      "name": "services",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "service_category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "vat_exempt": {
+          "name": "vat_exempt",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.staff": {
+      "name": "staff",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "primary_branch_id": {
+          "name": "primary_branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_title": {
+          "name": "job_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_admin": {
+          "name": "is_admin",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "staff_user_id_user_profiles_user_id_fk": {
+          "name": "staff_user_id_user_profiles_user_id_fk",
+          "tableFrom": "staff",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "staff_primary_branch_id_branches_id_fk": {
+          "name": "staff_primary_branch_id_branches_id_fk",
+          "tableFrom": "staff",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "primary_branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "staff_user_id_unique": {
+          "name": "staff_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.staff_permissions": {
+      "name": "staff_permissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "permission_id": {
+          "name": "permission_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "granted": {
+          "name": "granted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "applied_from_group_id": {
+          "name": "applied_from_group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "granted_by_id": {
+          "name": "granted_by_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "staff_permissions_staff_id_staff_id_fk": {
+          "name": "staff_permissions_staff_id_staff_id_fk",
+          "tableFrom": "staff_permissions",
+          "tableTo": "staff",
+          "columnsFrom": [
+            "staff_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "staff_permissions_permission_id_permissions_id_fk": {
+          "name": "staff_permissions_permission_id_permissions_id_fk",
+          "tableFrom": "staff_permissions",
+          "tableTo": "permissions",
+          "columnsFrom": [
+            "permission_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "staff_permissions_branch_id_branches_id_fk": {
+          "name": "staff_permissions_branch_id_branches_id_fk",
+          "tableFrom": "staff_permissions",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "staff_permissions_applied_from_group_id_permission_groups_id_fk": {
+          "name": "staff_permissions_applied_from_group_id_permission_groups_id_fk",
+          "tableFrom": "staff_permissions",
+          "tableTo": "permission_groups",
+          "columnsFrom": [
+            "applied_from_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "staff_permissions_granted_by_id_user_profiles_user_id_fk": {
+          "name": "staff_permissions_granted_by_id_user_profiles_user_id_fk",
+          "tableFrom": "staff_permissions",
+          "tableTo": "user_profiles",
+          "columnsFrom": [
+            "granted_by_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "staff_permissions_staff_id_permission_id_branch_id_unique": {
+          "name": "staff_permissions_staff_id_permission_id_branch_id_unique",
+          "nullsNotDistinct": true,
+          "columns": [
+            "staff_id",
+            "permission_id",
+            "branch_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tax_rates": {
+      "name": "tax_rates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate": {
+          "name": "rate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_default": {
+          "name": "is_default",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "tax_rates_name_unique": {
+          "name": "tax_rates_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_profiles": {
+      "name": "user_profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_superuser": {
+          "name": "is_superuser",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_profiles_user_id_unique": {
+          "name": "user_profiles_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        },
+        "user_profiles_email_unique": {
+          "name": "user_profiles_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.visit_types": {
+      "name": "visit_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "workflow_steps": {
+          "name": "workflow_steps",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "default_service_id": {
+          "name": "default_service_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {
+        "visit_types_name_normalized_unq": {
+          "name": "visit_types_name_normalized_unq",
+          "columns": [
+            {
+              "expression": "lower(trim(\"name\"))",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "visit_types_default_service_id_services_id_fk": {
+          "name": "visit_types_default_service_id_services_id_fk",
+          "tableFrom": "visit_types",
+          "tableTo": "services",
+          "columnsFrom": [
+            "default_service_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.visits": {
+      "name": "visits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "visit_type_id": {
+          "name": "visit_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payer_type": {
+          "name": "payer_type",
+          "type": "payer_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'CASH'"
+        },
+        "price_book_id": {
+          "name": "price_book_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ticket_number": {
+          "name": "ticket_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "priority": {
+          "name": "priority",
+          "type": "visit_priority",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NORMAL'"
+        },
+        "current_department_id": {
+          "name": "current_department_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "visit_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'WAITING'"
+        },
+        "registered_at": {
+          "name": "registered_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "visits_patient_id_patients_id_fk": {
+          "name": "visits_patient_id_patients_id_fk",
+          "tableFrom": "visits",
+          "tableTo": "patients",
+          "columnsFrom": [
+            "patient_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "visits_branch_id_branches_id_fk": {
+          "name": "visits_branch_id_branches_id_fk",
+          "tableFrom": "visits",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "visits_visit_type_id_visit_types_id_fk": {
+          "name": "visits_visit_type_id_visit_types_id_fk",
+          "tableFrom": "visits",
+          "tableTo": "visit_types",
+          "columnsFrom": [
+            "visit_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "visits_price_book_id_price_books_id_fk": {
+          "name": "visits_price_book_id_price_books_id_fk",
+          "tableFrom": "visits",
+          "tableTo": "price_books",
+          "columnsFrom": [
+            "price_book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "visits_current_department_id_departments_id_fk": {
+          "name": "visits_current_department_id_departments_id_fk",
+          "tableFrom": "visits",
+          "tableTo": "departments",
+          "columnsFrom": [
+            "current_department_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.billable_item_type": {
+      "name": "billable_item_type",
+      "schema": "public",
+      "values": [
+        "SERVICE",
+        "PRODUCT"
+      ]
+    },
+    "public.blood_group_enum": {
+      "name": "blood_group_enum",
+      "schema": "public",
+      "values": [
+        "A+",
+        "A-",
+        "B+",
+        "B-",
+        "AB+",
+        "AB-",
+        "O+",
+        "O-",
+        "UNKNOWN"
+      ]
+    },
+    "public.gender_enum": {
+      "name": "gender_enum",
+      "schema": "public",
+      "values": [
+        "MALE",
+        "FEMALE",
+        "OTHER"
+      ]
+    },
+    "public.invoice_status": {
+      "name": "invoice_status",
+      "schema": "public",
+      "values": [
+        "DRAFT",
+        "ISSUED",
+        "PAID",
+        "VOIDED"
+      ]
+    },
+    "public.marital_status_enum": {
+      "name": "marital_status_enum",
+      "schema": "public",
+      "values": [
+        "SINGLE",
+        "MARRIED",
+        "DIVORCED",
+        "WIDOWED",
+        "SEPARATED",
+        "OTHER"
+      ]
+    },
+    "public.order_status": {
+      "name": "order_status",
+      "schema": "public",
+      "values": [
+        "PENDING_LAB",
+        "IN_LAB",
+        "READY_FOR_COLLECTION",
+        "DISPATCHED"
+      ]
+    },
+    "public.override_reason": {
+      "name": "override_reason",
+      "schema": "public",
+      "values": [
+        "INSURANCE_NEGOTIATED_RATE",
+        "CORPORATE_AGREEMENT",
+        "DOCTOR_DISCRETION",
+        "CORRECTION",
+        "MANAGEMENT_APPROVAL",
+        "OTHER"
+      ]
+    },
+    "public.payer_type": {
+      "name": "payer_type",
+      "schema": "public",
+      "values": [
+        "CASH",
+        "INSURANCE",
+        "CORPORATE"
+      ]
+    },
+    "public.payment_mode": {
+      "name": "payment_mode",
+      "schema": "public",
+      "values": [
+        "CASH",
+        "MPESA",
+        "INSURANCE",
+        "CARD"
+      ]
+    },
+    "public.price_book_type": {
+      "name": "price_book_type",
+      "schema": "public",
+      "values": [
+        "CASH",
+        "INSURANCE",
+        "CORPORATE"
+      ]
+    },
+    "public.product_category": {
+      "name": "product_category",
+      "schema": "public",
+      "values": [
+        "FRAME",
+        "LENS",
+        "CONTACT_LENS",
+        "ACCESSORY",
+        "MEDICATION",
+        "CONSUMABLE",
+        "OTHER"
+      ]
+    },
+    "public.service_category": {
+      "name": "service_category",
+      "schema": "public",
+      "values": [
+        "CONSULTATION",
+        "DIAGNOSTIC",
+        "OPTICAL",
+        "PROCEDURE",
+        "OTHER"
+      ]
+    },
+    "public.visit_priority": {
+      "name": "visit_priority",
+      "schema": "public",
+      "values": [
+        "NORMAL",
+        "URGENT"
+      ]
+    },
+    "public.visit_status": {
+      "name": "visit_status",
+      "schema": "public",
+      "values": [
+        "WAITING",
+        "IN_PROGRESS",
+        "DONE",
+        "ON_HOLD"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {
+    "public.patient_number_seq": {
+      "name": "patient_number_seq",
+      "schema": "public",
+      "increment": "1",
+      "startWith": "1",
+      "minValue": "1",
+      "maxValue": "9223372036854775807",
+      "cache": "1",
+      "cycle": false
+    }
+  },
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

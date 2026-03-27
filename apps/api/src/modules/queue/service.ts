@@ -328,13 +328,15 @@ export class QueueService {
             vatAmount,
             total,
             departmentSource: initialDept.name,
+            departmentSourceCode: initialDept.code,
           });
 
-          // Update invoice total
+          // Recompute invoice total from SUM (consistent with BillingService, safe for concurrent edits)
           await tx
             .update(invoices)
             .set({
-              totalAmount: total,
+              totalAmount: sql`COALESCE((SELECT SUM(total) FROM invoice_line_items WHERE invoice_id = ${newInvoice.id}), 0)`,
+              updatedAt: new Date(),
             })
             .where(eq(invoices.id, newInvoice.id));
         }
