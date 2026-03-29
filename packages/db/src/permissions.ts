@@ -114,6 +114,13 @@ export const PERMISSIONS = [
       "Generate invoices for consultations, frames, lenses, services",
   },
   {
+    key: "billing:add_line_item",
+    module: "billing",
+    label: "Add Invoice Line Item",
+    description:
+      "Add billable items to a draft invoice from a department workstation. Also allows removing or editing own line items (same department, DRAFT only).",
+  },
+  {
     key: "billing:view_invoices",
     module: "billing",
     label: "View Invoices",
@@ -327,6 +334,13 @@ export const PERMISSIONS = [
     module: "queue",
     label: "Cancel Visit",
     description: "Cancel an active patient visit",
+  },
+  {
+    key: "queue:configure_workflows",
+    module: "queue",
+    label: "Configure Workflows",
+    description:
+      "Manage departments and visit type workflows (global routing configuration)",
   },
 ] as const;
 

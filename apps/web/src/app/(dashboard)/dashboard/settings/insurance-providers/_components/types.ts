@@ -4,8 +4,18 @@ export interface AddInsuranceProviderModalProps {
   providerToEdit?: {
     id: number;
     name: string;
-    email: string | null;
-    phone: string | null;
-    address: string | null;
+    providerCode: string | null;
+    billingBasis: "CAPITATION" | "FEE_FOR_SERVICE";
+    requiresPreAuth: boolean;
+    copayAmount: number;
+    shaAccreditationNumber: string | null;
+    schemes: {
+      id: number;
+      name: string;
+      billingBasis: "CAPITATION" | "FEE_FOR_SERVICE";
+      requiresPreAuth: boolean;
+      copayAmount: number;
+      isActive: boolean;
+    }[];
   } | null;
 }

@@ -4,6 +4,7 @@ import {
   departments,
   invoiceLineItems,
   invoices,
+  patientInsurances,
   patients,
   priceBookEntries,
   priceBooks,
@@ -12,7 +13,7 @@ import {
   visits,
   visitTypes,
 } from "@visyx/db/schema";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type {
   GetDepartmentPoolInput,
   StartVisitInput,
@@ -156,6 +157,66 @@ export class QueueService {
    */
   async startVisit(input: StartVisitInput) {
     return await db.transaction(async (tx) => {
+      const activeStatuses = ["WAITING", "IN_PROGRESS", "ON_HOLD"] as const;
+
+      const [existingActiveVisit] = await tx
+        .select({
+          id: visits.id,
+          ticketNumber: visits.ticketNumber,
+          status: visits.status,
+        })
+        .from(visits)
+        .where(
+          and(
+            eq(visits.patientId, input.patientId),
+            eq(visits.branchId, input.branchId),
+            inArray(visits.status, activeStatuses),
+          ),
+        )
+        .limit(1);
+
+      if (existingActiveVisit) {
+        throw new Error(
+          `This patient already has an active visit (${existingActiveVisit.ticketNumber}, ${existingActiveVisit.status}). Complete or cancel it before starting a new one.`,
+        );
+      }
+
+      if (input.payerType === "INSURANCE") {
+        if (!input.insuranceProviderId) {
+          throw new Error(
+            "Insurance provider is required for insurance visits",
+          );
+        }
+
+        const insuranceRecord = await tx.query.patientInsurances.findFirst({
+          where: and(
+            eq(patientInsurances.patientId, input.patientId),
+            eq(patientInsurances.providerId, input.insuranceProviderId),
+            eq(patientInsurances.isActive, true),
+          ),
+          with: {
+            provider: true,
+            scheme: true,
+          },
+        });
+
+        if (!insuranceRecord) {
+          throw new Error(
+            "Patient has no active insurance record for the selected provider",
+          );
+        }
+
+        const requiresPreAuth =
+          insuranceRecord.scheme?.requiresPreAuth ??
+          insuranceRecord.provider.requiresPreAuth;
+
+        if (requiresPreAuth && !insuranceRecord.preAuthNumber?.trim()) {
+          throw new Error(
+            "Pre-authorization number is required before starting this insurance visit",
+          );
+        }
+      }
+
       // 1. Fetch visit type details
       const [vType] = await tx
         .select()
@@ -328,13 +389,15 @@ export class QueueService {
             vatAmount,
             total,
             departmentSource: initialDept.name,
+            departmentSourceCode: initialDept.code,
           });
 
-          // Update invoice total
+          // Recompute invoice total from SUM (consistent with BillingService, safe for concurrent edits)
           await tx
             .update(invoices)
             .set({
-              totalAmount: total,
+              totalAmount: sql`COALESCE((SELECT SUM(total) FROM invoice_line_items WHERE invoice_id = ${newInvoice.id}), 0)`,
+              updatedAt: new Date(),
             })
             .where(eq(invoices.id, newInvoice.id));
         }

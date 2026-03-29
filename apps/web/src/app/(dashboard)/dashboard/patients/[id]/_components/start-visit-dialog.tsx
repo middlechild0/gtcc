@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Badge } from "@visyx/ui/badge";
 import { Button } from "@visyx/ui/button";
 import {
   Dialog,
@@ -27,18 +28,31 @@ import {
   SelectValue,
 } from "@visyx/ui/select";
 import { useToast } from "@visyx/ui/use-toast";
-import { Loader2, Play } from "lucide-react";
+import { CreditCard, Loader2, Play, ShieldCheck, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
 import { trpc } from "@/trpc/client";
 import { useBranch } from "../../../branch-context";
 
-const formSchema = z.object({
-  visitTypeId: z.string().min(1, "Please select a visit type."),
-  priority: z.enum(["NORMAL", "URGENT"]),
-});
+const formSchema = z
+  .object({
+    visitTypeId: z.string().min(1, "Please select a visit type."),
+    priority: z.enum(["NORMAL", "URGENT"]),
+    payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]),
+    /** Only required when payerType === "INSURANCE" */
+    insuranceProviderId: z.number().int().positive().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.payerType === "INSURANCE" && !data.insuranceProviderId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["insuranceProviderId"],
+        message: "Insurance provider is required for insurance visits",
+      });
+    }
+  });
 
 type StartVisitFormValues = z.infer<typeof formSchema>;
 
@@ -46,6 +60,16 @@ interface StartVisitDialogProps {
   patientId: string;
   patientName: string;
 }
+
+const PAYER_LABELS = {
+  CASH: { label: "Cash / Self-pay", icon: Wallet, color: "text-amber-600" },
+  INSURANCE: { label: "Insurance", icon: ShieldCheck, color: "text-blue-600" },
+  CORPORATE: {
+    label: "Corporate / Employer",
+    icon: CreditCard,
+    color: "text-violet-600",
+  },
+} as const;
 
 export function StartVisitDialog({
   patientId,
@@ -57,10 +81,28 @@ export function StartVisitDialog({
   const utils = trpc.useUtils();
   const { activeBranchId: branchId } = useBranch();
 
+  const { data: activeVisits, isLoading: isCheckingActiveVisit } =
+    trpc.patients.getVisitHistory.useQuery(
+      {
+        patientId,
+        branchId: branchId ?? undefined,
+        limit: 1,
+        activeOnly: true,
+      },
+      { enabled: Boolean(branchId) },
+    );
+
+  const activeVisit = activeVisits?.[0] ?? null;
+
+  // Fetch visit types when dialog opens
   const { data: visitTypes, isLoading: isLoadingTypes } =
-    trpc.queue.getVisitTypes.useQuery(undefined, {
-      enabled: open,
-    });
+    trpc.queue.getVisitTypes.useQuery(undefined, { enabled: open });
+
+  // Fetch patient record (includes insurance policy if present)
+  const { data: patient } = trpc.patients.get.useQuery(
+    { id: patientId },
+    { enabled: open },
+  );
 
   const startVisitMut = trpc.queue.startVisit.useMutation({
     onSuccess: (data) => {
@@ -69,10 +111,9 @@ export function StartVisitDialog({
         description: `${patientName} has been added to the queue (Ticket #${data.ticketNumber}).`,
       });
       utils.queue.invalidate();
+      utils.patients.getVisitHistory.invalidate();
       setOpen(false);
       form.reset();
-      // Optionally redirect to the queue overview or keep them here
-      // router.push("/dashboard/queue");
     },
     onError: (error) => {
       toast({
@@ -88,8 +129,39 @@ export function StartVisitDialog({
     defaultValues: {
       visitTypeId: "",
       priority: "NORMAL",
+      payerType: "CASH",
+      insuranceProviderId: undefined,
     },
   });
+
+  const payerType = form.watch("payerType");
+  const visitTypeId = form.watch("visitTypeId");
+  const insuranceProviderId = form.watch("insuranceProviderId");
+  const patientInsurance = patient?.insurance;
+
+  const requiresPreAuth =
+    payerType === "INSURANCE" &&
+    (patientInsurance?.scheme?.requiresPreAuth ??
+      patientInsurance?.provider?.requiresPreAuth);
+  const hasPreAuth = Boolean(patientInsurance?.preAuthNumber?.trim());
+
+  const canConfirm =
+    !activeVisit &&
+    Boolean(visitTypeId) &&
+    Boolean(visitTypes?.length) &&
+    (payerType !== "INSURANCE" ||
+      (Boolean(insuranceProviderId) &&
+        Boolean(patientInsurance) &&
+        (!requiresPreAuth || hasPreAuth)));
+
+  // Auto-fill insurance provider when patient has one on file and user switches to INSURANCE
+  useEffect(() => {
+    if (payerType === "INSURANCE" && patientInsurance?.providerId) {
+      form.setValue("insuranceProviderId", patientInsurance.providerId);
+    } else {
+      form.setValue("insuranceProviderId", undefined);
+    }
+  }, [payerType, patientInsurance, form]);
 
   const onSubmit: SubmitHandler<StartVisitFormValues> = (values) => {
     if (!branchId) {
@@ -106,15 +178,20 @@ export function StartVisitDialog({
       branchId,
       visitTypeId: Number(values.visitTypeId),
       priority: values.priority,
+      payerType: values.payerType,
+      insuranceProviderId:
+        values.payerType === "INSURANCE"
+          ? values.insuranceProviderId
+          : undefined,
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button disabled={isCheckingActiveVisit || Boolean(activeVisit)}>
           <Play className="mr-2 h-4 w-4" />
-          Start Visit
+          {activeVisit ? "Visit Ongoing" : "Start Visit"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
@@ -125,16 +202,24 @@ export function StartVisitDialog({
             </DialogTitle>
             <DialogDescription className="text-sm">
               Add this patient to the active clinic queue. A draft invoice will
-              be created automatically and can be completed after the
-              consultation.
+              be created automatically using the payer's price book.
             </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 pt-2"
+              className="space-y-5 pt-2"
             >
+              {activeVisit && (
+                <p className="text-xs text-destructive bg-destructive/10 rounded p-2 border border-destructive/30">
+                  This patient already has an active visit (Ticket #
+                  {activeVisit.ticketNumber}, {activeVisit.status}). Complete or
+                  cancel it before starting another one.
+                </p>
+              )}
+
+              {/* Visit Type */}
               <FormField
                 control={form.control}
                 name="visitTypeId"
@@ -151,7 +236,7 @@ export function StartVisitDialog({
                               isLoadingTypes
                                 ? "Loading visit types..."
                                 : visitTypes?.length
-                                  ? "Select a valid reason for visit"
+                                  ? "Select reason for visit"
                                   : "No active visit types configured"
                             }
                           />
@@ -181,6 +266,100 @@ export function StartVisitDialog({
                 )}
               />
 
+              {/* Payer Type */}
+              <FormField
+                control={form.control}
+                name="payerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                      Payer / Billing mode
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select payer type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(PAYER_LABELS).map(
+                          ([key, { label, icon: Icon, color }]) => (
+                            <SelectItem key={key} value={key}>
+                              <span className="flex items-center gap-2">
+                                <Icon className={`h-4 w-4 ${color}`} />
+                                {label}
+                              </span>
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Insurance Provider — shown only when payerType = INSURANCE */}
+              {payerType === "INSURANCE" && (
+                <div className="rounded-lg border border-blue-200/60 bg-blue-50/40 px-4 py-3 space-y-3">
+                  {patientInsurance ? (
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Insurance on file
+                        </p>
+                        <p className="text-sm font-semibold">
+                          {patientInsurance.provider?.name ||
+                            `Provider #${patientInsurance.providerId}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {patientInsurance.scheme?.name ? (
+                            <span className="mr-2">
+                              Scheme: {patientInsurance.scheme.name}
+                            </span>
+                          ) : null}
+                          Member: {patientInsurance.memberNumber}
+                          {patientInsurance.preAuthNumber ? (
+                            <span className="ml-2">
+                              · Pre-auth: {patientInsurance.preAuthNumber}
+                            </span>
+                          ) : null}
+                          {patientInsurance.expiresAt && (
+                            <span className="ml-2">
+                              · Expires {patientInsurance.expiresAt}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="text-blue-700 bg-blue-100"
+                      >
+                        Auto-selected
+                      </Badge>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 border border-amber-200">
+                      ⚠ No insurance policy on file for this patient. Add one
+                      from the patient profile before starting an insurance
+                      visit, or proceed with Cash.
+                    </p>
+                  )}
+
+                  {patientInsurance &&
+                  (patientInsurance.scheme?.requiresPreAuth ??
+                    patientInsurance.provider?.requiresPreAuth) &&
+                  !patientInsurance.preAuthNumber ? (
+                    <p className="text-xs text-destructive bg-destructive/10 rounded p-2 border border-destructive/30">
+                      This scheme requires pre-authorization. Add a pre-auth
+                      number to the patient insurance profile before starting
+                      the visit.
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Priority */}
               <FormField
                 control={form.control}
                 name="priority"
@@ -221,7 +400,7 @@ export function StartVisitDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={startVisitMut.isPending || !visitTypes?.length}
+                  disabled={startVisitMut.isPending || !canConfirm}
                 >
                   {startVisitMut.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

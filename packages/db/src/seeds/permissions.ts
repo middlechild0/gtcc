@@ -40,6 +40,8 @@ const PERMISSION_GROUPS: {
       "clinical:create_prescription",
       "clinical:view_prescriptions",
       "clinical:manage_attachments",
+      "billing:view_invoices",
+      "billing:add_line_item",
       "inventory:view",
     ],
   },
@@ -69,11 +71,42 @@ const PERMISSION_GROUPS: {
       "queue:manage",
       "billing:create_invoice",
       "billing:view_invoices",
+      "billing:add_line_item",
+      "billing:edit_invoice",
       "billing:record_payment",
       "billing:issue_receipt",
       "billing:apply_discount",
       "billing:view_insurance_claims",
       "billing:create_insurance_claim",
+      "inventory:view",
+    ],
+  },
+  {
+    name: "Triage / Technician",
+    description:
+      "Pre-test and triage staff. Can add diagnostic charges to the draft invoice.",
+    permissions: [
+      "patients:view",
+      "queue:view",
+      "queue:manage",
+      "clinical:view_consultations",
+      "clinical:view_prescriptions",
+      "billing:view_invoices",
+      "billing:add_line_item",
+    ],
+  },
+  {
+    name: "Optician",
+    description:
+      "Dispensing opticians who add frames, lenses, and optical products to invoices.",
+    permissions: [
+      "patients:view",
+      "queue:view",
+      "queue:manage",
+      "clinical:view_consultations",
+      "clinical:view_prescriptions",
+      "billing:view_invoices",
+      "billing:add_line_item",
       "inventory:view",
     ],
   },
@@ -144,6 +177,12 @@ const PERMISSION_GROUPS: {
       "accounting:view_accounts_payable",
       "branches:view",
     ],
+  },
+  {
+    name: "Clinic Administrator",
+    description:
+      "Organization-wide configuration: queue workflows, departments, and visit types. Assign queue:configure_workflows with branch_id NULL only.",
+    permissions: ["queue:view", "queue:configure_workflows"],
   },
 ];
 

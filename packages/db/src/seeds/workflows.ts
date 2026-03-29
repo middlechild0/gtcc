@@ -50,36 +50,62 @@ export const defaultVisitTypes = [
   },
 ];
 
+/** When true, seed may overwrite existing department names and visit type workflows (dev / explicit opt-in). */
+function allowWorkflowSeedOverwrite(): boolean {
+  return (
+    process.env.NODE_ENV === "development" ||
+    process.env.ALLOW_WORKFLOW_SEED_OVERWRITE === "1"
+  );
+}
+
 export async function seedDepartmentsAndVisitTypes() {
+  const allowOverwrite = allowWorkflowSeedOverwrite();
+
   console.log("Seeding departments...");
   for (const dept of defaultDepartments) {
-    await db
-      .insert(departments)
-      .values(dept)
-      .onConflictDoUpdate({
-        target: departments.code,
-        set: { name: dept.name, isActive: dept.isActive },
-      });
+    const existing = await db.query.departments.findFirst({
+      where: eq(departments.code, dept.code),
+    });
+
+    if (existing) {
+      if (allowOverwrite) {
+        await db
+          .update(departments)
+          .set({ name: dept.name, isActive: dept.isActive })
+          .where(eq(departments.id, existing.id));
+      }
+      continue;
+    }
+
+    await db.insert(departments).values(dept);
   }
 
   console.log("Seeding visit types...");
   for (const visitType of defaultVisitTypes) {
-    // Visit types don't have a strict unique code, so we upsert by name
     const existing = await db.query.visitTypes.findFirst({
       where: eq(visitTypes.name, visitType.name),
     });
 
     if (existing) {
-      await db
-        .update(visitTypes)
-        .set({
-          workflowSteps: visitType.workflowSteps,
-          isActive: visitType.isActive,
-        })
-        .where(eq(visitTypes.id, existing.id));
-    } else {
-      await db.insert(visitTypes).values(visitType);
+      if (allowOverwrite) {
+        await db
+          .update(visitTypes)
+          .set({
+            workflowSteps: visitType.workflowSteps,
+            isActive: visitType.isActive,
+          })
+          .where(eq(visitTypes.id, existing.id));
+      }
+      continue;
     }
+
+    await db.insert(visitTypes).values(visitType);
+  }
+
+  if (!allowOverwrite) {
+    console.log(
+      "  (Existing rows were left unchanged. Set ALLOW_WORKFLOW_SEED_OVERWRITE=1 or NODE_ENV=development to overwrite.)",
+    );
   }
 
   console.log("Finished seeding departments and visit types 🌱");

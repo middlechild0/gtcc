@@ -21,9 +21,19 @@ export function InsuranceProvidersTable() {
   const [providerToEdit, setProviderToEdit] = useState<{
     id: number;
     name: string;
-    email: string | null;
-    phone: string | null;
-    address: string | null;
+    providerCode: string | null;
+    billingBasis: "CAPITATION" | "FEE_FOR_SERVICE";
+    requiresPreAuth: boolean;
+    copayAmount: number;
+    shaAccreditationNumber: string | null;
+    schemes: {
+      id: number;
+      name: string;
+      billingBasis: "CAPITATION" | "FEE_FOR_SERVICE";
+      requiresPreAuth: boolean;
+      copayAmount: number;
+      isActive: boolean;
+    }[];
   } | null>(null);
 
   const handleEdit = (provider: any) => {
@@ -56,17 +66,21 @@ export function InsuranceProvidersTable() {
       </div>
 
       <div className="rounded-md border overflow-x-auto">
-        <Table className="min-w-[480px]">
+        <Table className="min-w-[760px]">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Provider Code</TableHead>
+              <TableHead>Billing Basis</TableHead>
+              <TableHead>Co-pay</TableHead>
+              <TableHead>Pre-auth</TableHead>
               <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!providers || providers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={2} className="h-48 text-center">
+                <TableCell colSpan={6} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <ShieldAlert className="h-10 w-10 text-muted-foreground" />
                     <h3 className="text-lg font-medium">No providers found</h3>
@@ -86,6 +100,16 @@ export function InsuranceProvidersTable() {
               providers.map((provider) => (
                 <TableRow key={provider.id}>
                   <TableCell className="font-medium">{provider.name}</TableCell>
+                  <TableCell>{provider.providerCode || "—"}</TableCell>
+                  <TableCell>
+                    {provider.billingBasis === "CAPITATION"
+                      ? "Capitation"
+                      : "Fee for service"}
+                  </TableCell>
+                  <TableCell>KES {provider.copayAmount ?? 0}</TableCell>
+                  <TableCell>
+                    {provider.requiresPreAuth ? "Required" : "Not required"}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"

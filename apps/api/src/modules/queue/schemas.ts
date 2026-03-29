@@ -5,14 +5,24 @@ export const GetDepartmentPoolSchema = z.object({
   departmentCode: z.string(),
 });
 
-export const StartVisitSchema = z.object({
-  patientId: z.string().uuid(),
-  branchId: z.number().int().positive(),
-  visitTypeId: z.number().int().positive(),
-  priority: z.enum(["NORMAL", "URGENT"]).default("NORMAL"),
-  payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]).default("CASH"),
-  insuranceProviderId: z.number().int().positive().optional(),
-});
+export const StartVisitSchema = z
+  .object({
+    patientId: z.string().uuid(),
+    branchId: z.number().int().positive(),
+    visitTypeId: z.number().int().positive(),
+    priority: z.enum(["NORMAL", "URGENT"]).default("NORMAL"),
+    payerType: z.enum(["CASH", "INSURANCE", "CORPORATE"]).default("CASH"),
+    insuranceProviderId: z.number().int().positive().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.payerType === "INSURANCE" && !data.insuranceProviderId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["insuranceProviderId"],
+        message: "Insurance provider is required for insurance visits",
+      });
+    }
+  });
 
 export const UpdateVisitStatusSchema = z.object({
   visitId: z.string().uuid(),

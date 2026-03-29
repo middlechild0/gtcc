@@ -1,13 +1,18 @@
 import { db } from "@visyx/db/client";
 import {
   branches,
+  departments,
+  insuranceProviderSchemes,
+  insuranceProviders,
   patientBranchProfiles,
   patientGuarantors,
   patientInsurances,
   patientKins,
   patients,
+  visits,
+  visitTypes,
 } from "@visyx/db/schema";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type {
   CreatePatientInput,
   DeactivatePatientInput,
@@ -98,6 +103,57 @@ function toPatientListItem(row: PatientRow) {
 }
 
 export class PatientService {
+  async getVisitHistory(input: {
+    patientId: string;
+    branchId?: number;
+    limit: number;
+    activeOnly: boolean;
+  }) {
+    const activeStatuses = ["WAITING", "IN_PROGRESS", "ON_HOLD"] as const;
+
+    const filters = [eq(visits.patientId, input.patientId)];
+
+    if (input.branchId) {
+      filters.push(eq(visits.branchId, input.branchId));
+    }
+
+    if (input.activeOnly) {
+      filters.push(inArray(visits.status, activeStatuses));
+    }
+
+    return db
+      .select({
+        id: visits.id,
+        ticketNumber: visits.ticketNumber,
+        status: visits.status,
+        priority: visits.priority,
+        payerType: visits.payerType,
+        registeredAt: visits.registeredAt,
+        completedAt: visits.completedAt,
+        visitType: {
+          id: visitTypes.id,
+          name: visitTypes.name,
+        },
+        department: {
+          id: departments.id,
+          code: departments.code,
+          name: departments.name,
+        },
+        branch: {
+          id: branches.id,
+          code: branches.code,
+          name: branches.name,
+        },
+      })
+      .from(visits)
+      .innerJoin(visitTypes, eq(visits.visitTypeId, visitTypes.id))
+      .innerJoin(departments, eq(visits.currentDepartmentId, departments.id))
+      .innerJoin(branches, eq(visits.branchId, branches.id))
+      .where(and(...filters))
+      .orderBy(desc(visits.registeredAt))
+      .limit(input.limit);
+  }
+
   async getPatients(input: ListPatientsInput & { branchId: number }) {
     const { page, limit, search } = input;
     const conditions = [];
@@ -187,23 +243,26 @@ export class PatientService {
       throw new Error(`Patient with ID ${id} not found`);
     }
 
-    const [kin, guarantors, insurances] = await Promise.all([
+    const [kin, guarantors, insurance] = await Promise.all([
       db.select().from(patientKins).where(eq(patientKins.patientId, id)),
       db
         .select()
         .from(patientGuarantors)
         .where(eq(patientGuarantors.patientId, id)),
-      db
-        .select()
-        .from(patientInsurances)
-        .where(eq(patientInsurances.patientId, id)),
+      db.query.patientInsurances.findFirst({
+        where: eq(patientInsurances.patientId, id),
+        with: {
+          provider: true,
+          scheme: true,
+        },
+      }),
     ]);
 
     return {
       ...toPatientListItem(patient as PatientRow),
       kin,
       guarantor: guarantors,
-      insurance: insurances[0] || null,
+      insurance: insurance || null,
     };
   }
 
@@ -323,12 +382,54 @@ export class PatientService {
 
       // 5. Insurance
       if (input.insurance?.providerId && input.insurance.memberNumber) {
+        const [provider] = await tx
+          .select({
+            id: insuranceProviders.id,
+            requiresPreAuth: insuranceProviders.requiresPreAuth,
+          })
+          .from(insuranceProviders)
+          .where(eq(insuranceProviders.id, input.insurance.providerId));
+
+        if (!provider) {
+          throw new Error("Selected insurance provider does not exist");
+        }
+
+        let requiresPreAuth = provider.requiresPreAuth;
+
+        if (input.insurance.schemeId) {
+          const [scheme] = await tx
+            .select({
+              id: insuranceProviderSchemes.id,
+              providerId: insuranceProviderSchemes.providerId,
+              requiresPreAuth: insuranceProviderSchemes.requiresPreAuth,
+            })
+            .from(insuranceProviderSchemes)
+            .where(eq(insuranceProviderSchemes.id, input.insurance.schemeId));
+
+          if (!scheme || scheme.providerId !== input.insurance.providerId) {
+            throw new Error(
+              "Selected insurance scheme does not match provider",
+            );
+          }
+
+          requiresPreAuth = scheme.requiresPreAuth;
+        }
+
+        if (
+          requiresPreAuth &&
+          !normalizeOptionalString(input.insurance.preAuthNumber)
+        ) {
+          throw new Error(
+            "Pre-authorization number is required for the selected insurance provider/scheme",
+          );
+        }
+
         await tx.insert(patientInsurances).values({
           patientId: created.id,
           providerId: input.insurance.providerId,
+          schemeId: input.insurance.schemeId,
           memberNumber: input.insurance.memberNumber,
-          principalName: input.insurance.principalName,
-          principalRelationship: input.insurance.principalRelationship,
+          preAuthNumber: normalizeOptionalString(input.insurance.preAuthNumber),
           expiresAt: input.insurance.expiresAt
             ? input.insurance.expiresAt.split("T")[0]
             : undefined,
@@ -424,12 +525,56 @@ export class PatientService {
           .delete(patientInsurances)
           .where(eq(patientInsurances.patientId, input.id));
         if (input.insurance?.providerId && input.insurance.memberNumber) {
+          const [provider] = await tx
+            .select({
+              id: insuranceProviders.id,
+              requiresPreAuth: insuranceProviders.requiresPreAuth,
+            })
+            .from(insuranceProviders)
+            .where(eq(insuranceProviders.id, input.insurance.providerId));
+
+          if (!provider) {
+            throw new Error("Selected insurance provider does not exist");
+          }
+
+          let requiresPreAuth = provider.requiresPreAuth;
+
+          if (input.insurance.schemeId) {
+            const [scheme] = await tx
+              .select({
+                id: insuranceProviderSchemes.id,
+                providerId: insuranceProviderSchemes.providerId,
+                requiresPreAuth: insuranceProviderSchemes.requiresPreAuth,
+              })
+              .from(insuranceProviderSchemes)
+              .where(eq(insuranceProviderSchemes.id, input.insurance.schemeId));
+
+            if (!scheme || scheme.providerId !== input.insurance.providerId) {
+              throw new Error(
+                "Selected insurance scheme does not match provider",
+              );
+            }
+
+            requiresPreAuth = scheme.requiresPreAuth;
+          }
+
+          if (
+            requiresPreAuth &&
+            !normalizeOptionalString(input.insurance.preAuthNumber)
+          ) {
+            throw new Error(
+              "Pre-authorization number is required for the selected insurance provider/scheme",
+            );
+          }
+
           await tx.insert(patientInsurances).values({
             patientId: input.id,
             providerId: input.insurance.providerId,
+            schemeId: input.insurance.schemeId,
             memberNumber: input.insurance.memberNumber,
-            principalName: input.insurance.principalName,
-            principalRelationship: input.insurance.principalRelationship,
+            preAuthNumber: normalizeOptionalString(
+              input.insurance.preAuthNumber,
+            ),
             expiresAt: input.insurance.expiresAt
               ? input.insurance.expiresAt.split("T")[0]
               : undefined,

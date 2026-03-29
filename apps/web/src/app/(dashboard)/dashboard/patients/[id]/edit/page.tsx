@@ -91,9 +91,9 @@ export default function EditPatientPage({
     insurance: patient.insurance
       ? {
           providerId: patient.insurance.providerId ?? 0,
+          schemeId: patient.insurance.schemeId ?? 0,
           memberNumber: patient.insurance.memberNumber ?? "",
-          principalName: patient.insurance.principalName ?? "",
-          principalRelationship: patient.insurance.principalRelationship ?? "",
+          preAuthNumber: patient.insurance.preAuthNumber ?? "",
           expiresAt: patient.insurance.expiresAt
             ? new Date(patient.insurance.expiresAt).toISOString().split("T")[0]
             : "",
