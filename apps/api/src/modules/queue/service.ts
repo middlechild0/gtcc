@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { db } from "@visyx/db/client";
 import {
   billableItems,
@@ -13,7 +14,6 @@ import {
   visits,
   visitTypes,
 } from "@visyx/db/schema";
-import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type { Context } from "../../trpc/init";
 import type {
@@ -504,7 +504,9 @@ export class QueueService {
     const [visit] = await db
       .select({ id: visits.id })
       .from(visits)
-      .where(and(eq(visits.id, input.visitId), eq(visits.branchId, ctx.branchId)))
+      .where(
+        and(eq(visits.id, input.visitId), eq(visits.branchId, ctx.branchId)),
+      )
       .limit(1);
 
     if (!visit) {

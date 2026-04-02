@@ -6,8 +6,8 @@ import {
   invoiceLineItemOverrides,
   invoiceLineItems,
   invoices,
-  payments,
   patients,
+  payments,
   priceBookEntries,
   products,
   services,
@@ -98,7 +98,9 @@ export class BillingService {
       .from(invoices)
       .innerJoin(visits, eq(invoices.visitId, visits.id))
       .innerJoin(patients, eq(visits.patientId, patients.id))
-      .where(and(eq(invoices.status, "ISSUED"), eq(visits.branchId, ctx.branchId)))
+      .where(
+        and(eq(invoices.status, "ISSUED"), eq(visits.branchId, ctx.branchId)),
+      )
       .orderBy(asc(invoices.createdAt));
 
     return rows.map((row) => ({

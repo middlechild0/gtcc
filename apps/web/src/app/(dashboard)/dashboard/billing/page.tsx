@@ -11,12 +11,13 @@ export default function BillingPage() {
   const { toast } = useToast();
   const utils = trpc.useUtils();
 
-  const { data: invoices, isLoading } = trpc.billing.listIssuedInvoices.useQuery(
-    {},
-    {
-      refetchInterval: 15_000,
-    },
-  );
+  const { data: invoices, isLoading } =
+    trpc.billing.listIssuedInvoices.useQuery(
+      {},
+      {
+        refetchInterval: 15_000,
+      },
+    );
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<
@@ -57,7 +58,11 @@ export default function BillingPage() {
   }
 
   if (isLoading) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading invoices...</div>;
+    return (
+      <div className="p-6 text-sm text-muted-foreground">
+        Loading invoices...
+      </div>
+    );
   }
 
   return (
@@ -121,7 +126,10 @@ export default function BillingPage() {
                   className="min-w-[140px]"
                   disabled={isProcessing}
                   onClick={() =>
-                    handleConfirmPayment(invoice.id, Number(invoice.totalAmount))
+                    handleConfirmPayment(
+                      invoice.id,
+                      Number(invoice.totalAmount),
+                    )
                   }
                 >
                   {isProcessing ? "Processing..." : "Confirm Payment"}

@@ -1,0 +1,695 @@
+# Visyx (gtcc) — Copilot Implementation Script
+# Target: Patient → Doctor → Billing → Exit (end-to-end in one day)
+# Stack: Bun · Hono · tRPC · Next.js App Router · Drizzle ORM · PostgreSQL · Supabase Auth
+
+---
+
+## ⚠️ DO THIS FIRST — Seed Check (blocker)
+
+Before writing any code, run this SQL against your PostgreSQL database.
+If any query returns 0 rows, the startVisit call will crash. Fix the seed before anything else.
+
+```sql
+-- Check branches
+SELECT id, name FROM branches LIMIT 5;
+
+-- Check departments
+SELECT id, code, name FROM departments LIMIT 5;
+
+-- Check visit types with workflow steps
+SELECT id, name, workflow_steps FROM visit_types LIMIT 5;
+
+-- Check price books
+SELECT id, name FROM price_books LIMIT 5;
+```
+
+If empty, insert minimum seed data:
+
+```sql
+-- Seed a branch (skip if one exists)
+INSERT INTO branches (id, name, code)
+VALUES (gen_random_uuid(), 'Main Branch', 'MAIN')
+ON CONFLICT DO NOTHING;
+
+-- Seed departments
+INSERT INTO departments (id, branch_id, name, code)
+SELECT gen_random_uuid(), b.id, 'Consultation', 'CON'
+FROM branches b WHERE b.code = 'MAIN'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO departments (id, branch_id, name, code)
+SELECT gen_random_uuid(), b.id, 'Billing', 'BILL'
+FROM branches b WHERE b.code = 'MAIN'
+ON CONFLICT DO NOTHING;
+
+-- Seed a cash price book
+INSERT INTO price_books (id, branch_id, name, payer_type)
+SELECT gen_random_uuid(), b.id, 'Cash Standard', 'CASH'
+FROM branches b WHERE b.code = 'MAIN'
+ON CONFLICT DO NOTHING;
+
+-- Seed visit type: Consultation → Billing
+INSERT INTO visit_types (id, branch_id, name, workflow_steps)
+SELECT
+  gen_random_uuid(),
+  b.id,
+  'General Consultation',
+  jsonb_build_array(
+    jsonb_build_object('departmentCode', 'CON'),
+    jsonb_build_object('departmentCode', 'BILL')
+  )
+FROM branches b WHERE b.code = 'MAIN'
+ON CONFLICT DO NOTHING;
+```
+
+---
+
+## PHASE 1 — Database: Add `notes` column to `visits`
+
+### File: `packages/db/src/schema.ts`
+
+Find the `visits` table definition. It will look like:
+
+```ts
+export const visits = pgTable('visits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  patientId: uuid('patient_id').notNull().references(() => patients.id),
+  branchId: uuid('branch_id').notNull().references(() => branches.id),
+  status: visitStatusEnum('status').notNull().default('WAITING'),
+  // ... other columns
+});
+```
+
+Add ONE new column inside that table object:
+
+```ts
+notes: text('notes'),   // <-- ADD THIS LINE. Nullable, no default.
+```
+
+### Generate & run migration
+
+```bash
+bun drizzle-kit generate
+bun drizzle-kit migrate
+```
+
+Confirm the column was added:
+
+```sql
+SELECT column_name, data_type FROM information_schema.columns
+WHERE table_name = 'visits' AND column_name = 'notes';
+```
+
+---
+
+## PHASE 2 — Backend: Save Consultation Notes
+
+### File: `apps/api/src/modules/queue/service.ts`
+
+Add this method to the `QueueService` class. Place it after the `advanceWorkflow` method.
+
+```ts
+/**
+ * Saves clinical notes written by the doctor during a consultation.
+ * Updates the notes field on the active visit record.
+ */
+async saveConsultationNotes(
+  ctx: Context,
+  input: { visitId: string; notes: string }
+): Promise<void> {
+  const { visitId, notes } = input;
+
+  // Verify the visit exists and belongs to this branch
+  const visit = await db.query.visits.findFirst({
+    where: and(
+      eq(visits.id, visitId),
+      eq(visits.branchId, ctx.branchId)
+    ),
+  });
+
+  if (!visit) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Visit not found or does not belong to this branch.',
+    });
+  }
+
+  await db
+    .update(visits)
+    .set({ notes })
+    .where(eq(visits.id, visitId));
+}
+```
+
+### File: `apps/api/src/modules/queue/schemas.ts`
+
+Add the input schema for the new mutation:
+
+```ts
+export const saveConsultationNotesSchema = z.object({
+  visitId: z.string().uuid(),
+  notes: z.string().min(1, 'Notes cannot be empty').max(10000),
+});
+```
+
+### File: `apps/api/src/modules/queue/router.ts`
+
+Add the new tRPC mutation inside the `queueRouter`. Place it after the `advanceWorkflow` procedure.
+
+```ts
+saveConsultationNotes: protectedProcedure
+  .input(saveConsultationNotesSchema)
+  .mutation(({ ctx, input }) => {
+    // Permission: any authenticated clinician can save notes
+    // Add: hasPermission(ctx, 'visits:write') if that permission exists
+    return queueService.saveConsultationNotes(ctx, input);
+  }),
+```
+
+---
+
+## PHASE 3 — Backend: Record Payment & Close Visit
+
+### File: `apps/api/src/modules/billing/schemas.ts`
+
+Add the input schema for payment recording:
+
+```ts
+export const recordPaymentSchema = z.object({
+  invoiceId: z.string().uuid(),
+  amount: z.number().positive('Amount must be greater than zero'),
+  method: z.enum(['CASH', 'CARD', 'MPESA']),
+});
+
+export const listIssuedInvoicesSchema = z.object({
+  // Optional: future filtering. Leave empty for now.
+});
+```
+
+### File: `apps/api/src/modules/billing/service.ts`
+
+Add two methods to the `BillingService` class.
+
+**Method 1: `recordPayment`** — inserts a payment, recomputes total, closes visit if paid.
+
+```ts
+/**
+ * Records a payment against an invoice.
+ * If the invoice is fully paid, marks it PAID and closes the visit (DONE).
+ */
+async recordPayment(
+  ctx: Context,
+  input: { invoiceId: string; amount: number; method: 'CASH' | 'CARD' | 'MPESA' }
+): Promise<void> {
+  const { invoiceId, amount, method } = input;
+
+  // 1. Lock the invoice row to prevent double-payment race conditions
+  const invoice = await this.lockInvoiceRow(invoiceId);  // already exists in service.ts
+
+  if (!invoice) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Invoice not found.' });
+  }
+
+  if (invoice.status === 'PAID') {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invoice is already paid.' });
+  }
+
+  if (invoice.status === 'DRAFT') {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Invoice must be issued before payment can be recorded.',
+    });
+  }
+
+  // 2. Insert payment record
+  await db.insert(payments).values({
+    id: crypto.randomUUID(),
+    invoiceId,
+    amount: String(amount),   // use string if your schema stores as numeric string
+    method,
+    recordedBy: ctx.userId,
+    branchId: ctx.branchId,
+    createdAt: new Date(),
+  });
+
+  // 3. Recompute invoice total and check if fully paid
+  // recomputeInvoiceTotal already exists — it sets status to PAID if sum >= total_amount
+  await this.recomputeInvoiceTotal(invoiceId);
+
+  // 4. If now PAID, mark the linked visit as DONE
+  const updatedInvoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+  });
+
+  if (updatedInvoice?.status === 'PAID' && updatedInvoice.visitId) {
+    await db
+      .update(visits)
+      .set({ status: 'DONE' })
+      .where(eq(visits.id, updatedInvoice.visitId));
+  }
+}
+```
+
+**Method 2: `listIssuedInvoices`** — returns all ISSUED invoices for the cashier screen.
+
+```ts
+/**
+ * Returns all invoices with status ISSUED for this branch.
+ * Used by the cashier screen to show patients waiting for payment.
+ */
+async listIssuedInvoices(ctx: Context) {
+  const result = await db.query.invoices.findMany({
+    where: and(
+      eq(invoices.branchId, ctx.branchId),
+      eq(invoices.status, 'ISSUED')
+    ),
+    with: {
+      visit: {
+        with: {
+          patient: {
+            columns: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              patientNumber: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: [asc(invoices.createdAt)],
+  });
+
+  return result;
+}
+```
+
+### File: `apps/api/src/modules/billing/router.ts`
+
+Add both new procedures inside the `billingRouter`. Place them after `issueInvoice`.
+
+```ts
+listIssuedInvoices: protectedProcedure
+  .query(({ ctx }) => {
+    // Permission: require billing:view or cashier role
+    return billingService.listIssuedInvoices(ctx);
+  }),
+
+recordPayment: protectedProcedure
+  .input(recordPaymentSchema)
+  .mutation(({ ctx, input }) => {
+    // Permission: require billing:confirm_payment
+    return billingService.recordPayment(ctx, input);
+  }),
+```
+
+---
+
+## PHASE 4 — Frontend: Consultation Notes Component
+
+### New file: `apps/web/src/app/(dashboard)/dashboard/queue/[id]/_components/consultation-notes.tsx`
+
+Create this file in full:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc/client';  // adjust import path to match project
+import { toast } from 'sonner';             // or whatever toast lib is used in this project
+
+interface ConsultationNotesProps {
+  visitId: string;
+  existingNotes: string | null;
+  visitStatus: string;
+}
+
+export function ConsultationNotes({
+  visitId,
+  existingNotes,
+  visitStatus,
+}: ConsultationNotesProps) {
+  const [notes, setNotes] = useState(existingNotes ?? '');
+  const [isDirty, setIsDirty] = useState(false);
+
+  const saveNotes = trpc.queue.saveConsultationNotes.useMutation({
+    onSuccess: () => {
+      toast.success('Consultation notes saved.');
+      setIsDirty(false);
+    },
+    onError: (err) => {
+      toast.error(`Failed to save notes: ${err.message}`);
+    },
+  });
+
+  const isEditable = visitStatus === 'IN_PROGRESS';
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Consultation Notes</h3>
+        {!isEditable && (
+          <span className="text-xs text-muted-foreground">
+            Call the patient to enable editing
+          </span>
+        )}
+      </div>
+
+      <textarea
+        className="w-full min-h-[160px] resize-y rounded-md border bg-background px-3 py-2 text-sm
+                   placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring
+                   disabled:opacity-50 disabled:cursor-not-allowed"
+        placeholder="Enter clinical observations, findings, and diagnosis here..."
+        value={notes}
+        disabled={!isEditable || saveNotes.isPending}
+        onChange={(e) => {
+          setNotes(e.target.value);
+          setIsDirty(true);
+        }}
+      />
+
+      {isEditable && (
+        <div className="flex justify-end">
+          <button
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm
+                       font-medium text-primary-foreground hover:bg-primary/90
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={!isDirty || saveNotes.isPending || notes.trim().length === 0}
+            onClick={() => saveNotes.mutate({ visitId, notes })}
+          >
+            {saveNotes.isPending ? 'Saving…' : 'Save Notes'}
+          </button>
+        </div>
+      )}
+
+      {existingNotes && !isEditable && (
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{existingNotes}</p>
+      )}
+    </div>
+  );
+}
+```
+
+### File: `apps/web/src/app/(dashboard)/dashboard/queue/[id]/page.tsx`
+
+Find the patient detail section inside this page. Add the `ConsultationNotes` component after the patient info block:
+
+```tsx
+// At the top of the file, add the import:
+import { ConsultationNotes } from './_components/consultation-notes';
+
+// Inside the JSX, locate where the patient visit info is rendered.
+// Add this block directly below the patient card / status section:
+<ConsultationNotes
+  visitId={visit.id}
+  existingNotes={visit.notes ?? null}
+  visitStatus={visit.status}
+/>
+```
+
+---
+
+## PHASE 5 — Frontend: Cashier / Billing Page
+
+### New file: `apps/web/src/app/(dashboard)/dashboard/billing/page.tsx`
+
+Create this file in full:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc/client';  // adjust import path to match project
+import { toast } from 'sonner';
+
+type PaymentMethod = 'CASH' | 'CARD' | 'MPESA';
+
+export default function BillingPage() {
+  const utils = trpc.useUtils();
+
+  const { data: invoices, isLoading } = trpc.billing.listIssuedInvoices.useQuery(undefined, {
+    refetchInterval: 15_000,  // auto-refresh every 15s
+  });
+
+  const recordPayment = trpc.billing.recordPayment.useMutation({
+    onSuccess: () => {
+      toast.success('Payment confirmed. Visit marked complete.');
+      utils.billing.listIssuedInvoices.invalidate();
+    },
+    onError: (err) => {
+      toast.error(`Payment failed: ${err.message}`);
+    },
+  });
+
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<Record<string, PaymentMethod>>({});
+
+  function handleConfirmPayment(invoiceId: string, amount: number) {
+    const method = selectedMethod[invoiceId] ?? 'CASH';
+    setProcessingId(invoiceId);
+    recordPayment.mutate(
+      { invoiceId, amount, method },
+      { onSettled: () => setProcessingId(null) }
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6 text-sm text-muted-foreground">Loading invoices…</div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold">Cashier — Pending Payments</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Patients waiting for payment confirmation
+        </p>
+      </div>
+
+      {!invoices || invoices.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-12 text-center text-sm text-muted-foreground">
+          No invoices pending payment
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {invoices.map((invoice) => {
+            const patient = invoice.visit?.patient;
+            const isProcessing = processingId === invoice.id;
+            const method = selectedMethod[invoice.id] ?? 'CASH';
+
+            return (
+              <div
+                key={invoice.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between
+                           rounded-lg border p-4 gap-4 bg-card"
+              >
+                {/* Patient info */}
+                <div className="space-y-0.5">
+                  <p className="font-medium text-sm">
+                    {patient?.firstName} {patient?.lastName}
+                    <span className="ml-2 text-xs text-muted-foreground font-normal">
+                      #{patient?.patientNumber}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Invoice: {invoice.id.slice(0, 8).toUpperCase()}
+                  </p>
+                </div>
+
+                {/* Amount */}
+                <div className="text-lg font-semibold tabular-nums min-w-[80px] text-right">
+                  KES {Number(invoice.totalAmount).toFixed(2)}
+                </div>
+
+                {/* Payment method selector */}
+                <select
+                  className="rounded-md border bg-background px-3 py-1.5 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={method}
+                  disabled={isProcessing}
+                  onChange={(e) =>
+                    setSelectedMethod((prev) => ({
+                      ...prev,
+                      [invoice.id]: e.target.value as PaymentMethod,
+                    }))
+                  }
+                >
+                  <option value="CASH">Cash</option>
+                  <option value="MPESA">M-Pesa</option>
+                  <option value="CARD">Card</option>
+                </select>
+
+                {/* Confirm button */}
+                <button
+                  className="inline-flex items-center justify-center rounded-md bg-primary
+                             px-5 py-2 text-sm font-medium text-primary-foreground
+                             hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed
+                             transition-colors min-w-[140px]"
+                  disabled={isProcessing}
+                  onClick={() =>
+                    handleConfirmPayment(invoice.id, Number(invoice.totalAmount))
+                  }
+                >
+                  {isProcessing ? 'Processing…' : 'Confirm Payment'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## PHASE 6 — Frontend: Add Billing Link to Sidebar
+
+### Find the sidebar/nav config file
+
+Look in one of these locations (check which exists):
+- `apps/web/src/app/(dashboard)/_components/sidebar.tsx`
+- `apps/web/src/app/(dashboard)/layout.tsx`
+- `apps/web/src/components/nav.tsx`
+
+Search for existing nav items. They will look like:
+
+```tsx
+{ label: 'Patients', href: '/dashboard/patients', icon: Users },
+{ label: 'Queue',    href: '/dashboard/queue',    icon: ListOrdered },
+```
+
+Add the billing link in that same array/list:
+
+```tsx
+{ label: 'Billing', href: '/dashboard/billing', icon: Receipt },
+```
+
+Make sure `Receipt` is imported from `lucide-react`:
+
+```tsx
+import { Receipt } from 'lucide-react';
+```
+
+---
+
+## PHASE 7 — Wire tRPC Types (if needed)
+
+If the project uses a generated tRPC type export, run the following after adding all new procedures:
+
+```bash
+bun run build --filter=@visyx/api
+```
+
+Or if the web app imports types directly from the api package:
+
+```bash
+bun turbo run build --filter=apps/api
+```
+
+This ensures the new procedures (`saveConsultationNotes`, `listIssuedInvoices`, `recordPayment`) appear in the client's type inference.
+
+---
+
+## PHASE 8 — End-to-End Smoke Test Checklist
+
+Run through this manually once before demoing:
+
+```
+[ ] 1. Register a new patient
+        → Go to /dashboard/patients → New Patient
+        → Fill: name, DOB, phone, gender
+        → Submit → verify patient appears in the list
+
+[ ] 2. Start a visit
+        → Open the patient detail page
+        → Click "Start Visit"
+        → Select visit type: General Consultation
+        → Select payer: Cash
+        → Submit
+        → Expected: visit row created with status=WAITING
+
+[ ] 3. Verify invoice was auto-created
+        → In your DB: SELECT * FROM invoices WHERE visit_id = '<visit_id>';
+        → Expected: 1 row with status='DRAFT'
+
+[ ] 4. Call patient from queue (doctor view)
+        → Go to /dashboard/queue
+        → Find the patient in the Consultation department
+        → Click "Call" → status should change to IN_PROGRESS
+
+[ ] 5. Save consultation notes
+        → Open /dashboard/queue/<visit_id>
+        → Consultation Notes box should now be editable
+        → Type some notes → click "Save Notes"
+        → Verify in DB: SELECT notes FROM visits WHERE id = '<visit_id>';
+
+[ ] 6. Advance to billing
+        → Click "Advance" (or "Next Department") on the queue page
+        → Expected: visit moves to Billing department (status=WAITING in BILL dept)
+
+[ ] 7. Issue the invoice (if not already auto-issued)
+        → In DB or via API: call billing.issueInvoice for the invoice
+        → Expected: invoice status changes to ISSUED
+
+[ ] 8. Confirm payment (cashier view)
+        → Go to /dashboard/billing
+        → Patient should appear with their invoice total
+        → Select payment method → click "Confirm Payment"
+        → Expected:
+            - payments row inserted in DB
+            - invoice.status = PAID
+            - visits.status = DONE
+
+[ ] 9. Verify visit is closed
+        → Go back to patient detail page
+        → Visit should appear in history as DONE
+        → No "Start Visit" button should allow a new visit
+          until the active visit guard clears (status no longer WAITING/IN_PROGRESS/ON_HOLD)
+```
+
+---
+
+## Error Reference — Common Failures & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `startVisit throws "visit type not found"` | No visit_types rows in DB | Run the seed SQL in the DO THIS FIRST section |
+| `startVisit throws "price book not found"` | No price_books rows linked to branch | Seed a price book for the branch |
+| `saveConsultationNotes: notes column does not exist` | Migration not run | Run `bun drizzle-kit migrate` |
+| `recordPayment: invoice is in DRAFT state` | `issueInvoice` was not called before payment | Call `billing.issueInvoice` first, or add auto-issue logic inside `advanceWorkflow` when the last clinical dept is complete |
+| `listIssuedInvoices returns empty` | Invoice status is still DRAFT | Issue the invoice manually or trigger it from `advanceWorkflow` |
+| `Visit does not move to DONE after payment` | `updatedInvoice.visitId` is null | Ensure `visitId` is stored on the invoice at creation time (check `startVisit` transaction in `queue/service.ts`) |
+| tRPC type errors on new procedures | Api package not rebuilt | Run `bun turbo run build --filter=apps/api` |
+
+---
+
+## Optional: Auto-Issue Invoice on Workflow Advance
+
+If you want the invoice to auto-issue when the patient advances to the Billing department
+(so the cashier page is always ready without a manual step), add this to `advanceWorkflow`
+in `apps/api/src/modules/queue/service.ts`:
+
+```ts
+// Inside advanceWorkflow, after updating the visit's currentDepartmentId:
+const nextDeptCode = nextDept.code;  // adjust to match actual field name
+
+if (nextDeptCode === 'BILL') {
+  // Auto-issue the invoice when patient reaches billing dept
+  const invoice = await db.query.invoices.findFirst({
+    where: and(
+      eq(invoices.visitId, visitId),
+      eq(invoices.status, 'DRAFT')
+    ),
+  });
+  if (invoice) {
+    await billingService.issueInvoice(ctx, { invoiceId: invoice.id });
+  }
+}
+```
+
+This removes the need for the cashier to manually issue — the invoice will be ISSUED and
+visible on the cashier screen the moment the doctor advances the patient.

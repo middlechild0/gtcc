@@ -72,7 +72,9 @@ export function ConsultationNotes({
         <div className="flex justify-end">
           <Button
             size="sm"
-            disabled={!isDirty || saveNotes.isPending || notes.trim().length === 0}
+            disabled={
+              !isDirty || saveNotes.isPending || notes.trim().length === 0
+            }
             onClick={() =>
               saveNotes.mutate({
                 visitId,
