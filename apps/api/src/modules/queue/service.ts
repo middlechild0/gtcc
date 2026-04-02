@@ -13,9 +13,12 @@ import {
   visits,
   visitTypes,
 } from "@visyx/db/schema";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import type { Context } from "../../trpc/init";
 import type {
   GetDepartmentPoolInput,
+  SaveConsultationNotesInput,
   StartVisitInput,
   TransferPatientInput,
   UpdateVisitStatusInput,
@@ -485,6 +488,36 @@ export class QueueService {
 
       return { completed: false, visit: advanced };
     });
+  }
+
+  /**
+   * Saves clinical notes written by the clinician during consultation.
+   */
+  async saveConsultationNotes(ctx: Context, input: SaveConsultationNotesInput) {
+    if (!ctx.branchId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "No active branch selected.",
+      });
+    }
+
+    const [visit] = await db
+      .select({ id: visits.id })
+      .from(visits)
+      .where(and(eq(visits.id, input.visitId), eq(visits.branchId, ctx.branchId)))
+      .limit(1);
+
+    if (!visit) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Visit not found or does not belong to this branch.",
+      });
+    }
+
+    await db
+      .update(visits)
+      .set({ notes: input.notes })
+      .where(eq(visits.id, input.visitId));
   }
 
   /**

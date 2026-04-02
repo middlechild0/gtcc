@@ -33,6 +33,9 @@ export const IssueInvoiceSchema = z.object({
   invoiceId: z.string().uuid(),
 });
 
+// ─── List issued invoices for cashier queue ─────────────────────────────────
+export const ListIssuedInvoicesSchema = z.object({});
+
 // ─── Record a payment ────────────────────────────────────────────────────────
 export const RecordPaymentSchema = z.object({
   invoiceId: z.string().uuid(),
@@ -48,3 +51,4 @@ export type AddLineItemInput = z.infer<typeof AddLineItemSchema>;
 export type RemoveLineItemInput = z.infer<typeof RemoveLineItemSchema>;
 export type IssueInvoiceInput = z.infer<typeof IssueInvoiceSchema>;
 export type RecordPaymentInput = z.infer<typeof RecordPaymentSchema>;
+export type ListIssuedInvoicesInput = z.infer<typeof ListIssuedInvoicesSchema>;

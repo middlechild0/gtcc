@@ -126,6 +126,7 @@ export class PatientService {
         id: visits.id,
         ticketNumber: visits.ticketNumber,
         status: visits.status,
+        notes: visits.notes,
         priority: visits.priority,
         payerType: visits.payerType,
         registeredAt: visits.registeredAt,

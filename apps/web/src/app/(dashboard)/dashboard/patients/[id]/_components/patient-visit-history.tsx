@@ -18,6 +18,7 @@ import {
 } from "@visyx/ui/table";
 import { format } from "date-fns";
 import { trpc } from "@/trpc/client";
+import { ConsultationNotes } from "./consultation-notes";
 
 const ACTIVE_VISIT_STATUSES = new Set(["WAITING", "IN_PROGRESS", "ON_HOLD"]);
 
@@ -80,6 +81,14 @@ export function PatientVisitHistory({
               {activeVisit.visitType.name} · {activeVisit.department.name} ·
               Started {format(new Date(activeVisit.registeredAt), "PPp")}
             </p>
+
+            <div className="mt-4">
+              <ConsultationNotes
+                visitId={activeVisit.id}
+                existingNotes={activeVisit.notes ?? null}
+                visitStatus={activeVisit.status}
+              />
+            </div>
           </div>
         ) : (
           <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">

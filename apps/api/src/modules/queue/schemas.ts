@@ -33,7 +33,15 @@ export const TransferPatientSchema = z.object({
   targetDepartmentId: z.number().int().positive(),
 });
 
+export const SaveConsultationNotesSchema = z.object({
+  visitId: z.string().uuid(),
+  notes: z.string().min(1, "Notes cannot be empty").max(10000),
+});
+
 export type GetDepartmentPoolInput = z.infer<typeof GetDepartmentPoolSchema>;
 export type StartVisitInput = z.infer<typeof StartVisitSchema>;
 export type UpdateVisitStatusInput = z.infer<typeof UpdateVisitStatusSchema>;
 export type TransferPatientInput = z.infer<typeof TransferPatientSchema>;
+export type SaveConsultationNotesInput = z.infer<
+  typeof SaveConsultationNotesSchema
+>;

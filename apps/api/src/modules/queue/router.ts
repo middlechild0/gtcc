@@ -4,6 +4,7 @@ import { withAuditLog } from "../../trpc/middleware/withAudit";
 import { hasPermission } from "../../trpc/middleware/withPermission";
 import {
   GetDepartmentPoolSchema,
+  SaveConsultationNotesSchema,
   StartVisitSchema,
   TransferPatientSchema,
   UpdateVisitStatusSchema,
@@ -61,6 +62,20 @@ export const queueRouter = router({
     )
     .mutation(async ({ input }) => {
       return queueService.advanceWorkflow(input);
+    }),
+
+  saveConsultationNotes: protectedProcedure
+    .input(SaveConsultationNotesSchema)
+    .use(hasPermission("queue:manage"))
+    .use(
+      withAuditLog(
+        "queue:manage",
+        "visit",
+        (input, result) => input?.visitId ?? result?.id,
+      ),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return queueService.saveConsultationNotes(ctx, input);
     }),
 
   transferPatient: protectedProcedure

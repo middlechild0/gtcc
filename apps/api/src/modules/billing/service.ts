@@ -7,13 +7,15 @@ import {
   invoiceLineItems,
   invoices,
   payments,
+  patients,
   priceBookEntries,
   products,
   services,
   taxRates,
   visits,
 } from "@visyx/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
+import type { Context } from "../../trpc/init";
 import type {
   AddLineItemInput,
   GetInvoiceForVisitInput,
@@ -69,6 +71,54 @@ async function recomputeInvoiceTotal(
 }
 
 export class BillingService {
+  /**
+   * Returns all ISSUED invoices for the active branch cashier queue.
+   */
+  async listIssuedInvoices(ctx: Context) {
+    if (!ctx.branchId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "No active branch selected.",
+      });
+    }
+
+    const rows = await db
+      .select({
+        id: invoices.id,
+        totalAmount: invoices.totalAmount,
+        amountPaid: invoices.amountPaid,
+        status: invoices.status,
+        createdAt: invoices.createdAt,
+        visitId: visits.id,
+        patientId: patients.id,
+        patientFirstName: patients.firstName,
+        patientLastName: patients.lastName,
+        patientNumber: patients.patientNumber,
+      })
+      .from(invoices)
+      .innerJoin(visits, eq(invoices.visitId, visits.id))
+      .innerJoin(patients, eq(visits.patientId, patients.id))
+      .where(and(eq(invoices.status, "ISSUED"), eq(visits.branchId, ctx.branchId)))
+      .orderBy(asc(invoices.createdAt));
+
+    return rows.map((row) => ({
+      id: row.id,
+      totalAmount: row.totalAmount,
+      amountPaid: row.amountPaid,
+      status: row.status,
+      createdAt: row.createdAt,
+      visit: {
+        id: row.visitId,
+        patient: {
+          id: row.patientId,
+          firstName: row.patientFirstName,
+          lastName: row.patientLastName,
+          patientNumber: row.patientNumber,
+        },
+      },
+    }));
+  }
+
   /**
    * Returns the full enriched invoice (with line items) for a given visit.
    */
@@ -421,7 +471,7 @@ export class BillingService {
    * Records a payment against an ISSUED invoice.
    * Recomputes amountPaid from the payments table and marks PAID when fully covered.
    */
-  async recordPayment(input: RecordPaymentInput) {
+  async recordPayment(ctx: Context, input: RecordPaymentInput) {
     return await db.transaction(async (tx) => {
       // Lock the invoice row
       const invoice = await lockInvoiceRow(tx, input.invoiceId);
@@ -430,6 +480,37 @@ export class BillingService {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Invoice not found",
+        });
+      }
+
+      const [invoiceVisit] = await tx
+        .select({
+          visitId: invoices.visitId,
+          branchId: visits.branchId,
+        })
+        .from(invoices)
+        .innerJoin(visits, eq(invoices.visitId, visits.id))
+        .where(eq(invoices.id, input.invoiceId))
+        .limit(1);
+
+      if (!invoiceVisit) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice visit not found",
+        });
+      }
+
+      if (!ctx.branchId || invoiceVisit.branchId !== ctx.branchId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Invoice does not belong to the active branch.",
+        });
+      }
+
+      if (invoice.status === "DRAFT") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invoice must be issued before payment can be recorded.",
         });
       }
 
@@ -471,6 +552,13 @@ export class BillingService {
           updatedAt: new Date(),
         })
         .where(eq(invoices.id, input.invoiceId));
+
+      if (newStatus === "PAID") {
+        await tx
+          .update(visits)
+          .set({ status: "DONE", completedAt: new Date() })
+          .where(eq(visits.id, invoiceVisit.visitId));
+      }
 
       return { payment: newPayment, totalPaid, invoiceStatus: newStatus };
     });

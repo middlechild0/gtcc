@@ -6,6 +6,7 @@ import {
   AddLineItemSchema,
   GetInvoiceForVisitSchema,
   IssueInvoiceSchema,
+  ListIssuedInvoicesSchema,
   RecordPaymentSchema,
   RemoveLineItemSchema,
 } from "./schemas";
@@ -77,6 +78,13 @@ export const billingRouter = router({
       return billingService.issueInvoice(input);
     }),
 
+  listIssuedInvoices: protectedProcedure
+    .use(hasPermission("billing:view_invoices"))
+    .input(ListIssuedInvoicesSchema)
+    .query(async ({ ctx }) => {
+      return billingService.listIssuedInvoices(ctx);
+    }),
+
   /**
    * Record a payment against an invoice (cashier flow).
    * Automatically sets status to PAID once totalAmount is fully covered.
@@ -85,7 +93,7 @@ export const billingRouter = router({
     .use(hasPermission("billing:record_payment"))
     .use(withAuditLog("billing:record_payment", "invoice"))
     .input(RecordPaymentSchema)
-    .mutation(async ({ input }) => {
-      return billingService.recordPayment(input);
+    .mutation(async ({ input, ctx }) => {
+      return billingService.recordPayment(ctx, input);
     }),
 });

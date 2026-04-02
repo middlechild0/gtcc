@@ -534,6 +534,7 @@ export const visits = pgTable("visits", {
     .notNull()
     .references(() => departments.id),
   status: visitStatusEnum("status").default("WAITING").notNull(),
+  notes: text("notes"),
 
   registeredAt: timestamp("registered_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),

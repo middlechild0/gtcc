@@ -1,4 +1,10 @@
-import { LayoutDashboard, ListOrdered, User, Users } from "lucide-react";
+import {
+  LayoutDashboard,
+  ListOrdered,
+  Receipt,
+  User,
+  Users,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import type { PermissionKey } from "@/auth/permissions";
 
@@ -79,6 +85,16 @@ export const routes: RouteConfig[] = [
     permissions: "queue:view",
     showInSearch: false,
     showInSidebar: false,
+  },
+  {
+    id: "billing-overview",
+    path: "/dashboard/billing",
+    label: "Billing",
+    group: "main",
+    showInSidebar: true,
+    showInSearch: true,
+    permissions: "billing:view_invoices",
+    icon: Receipt,
   },
 
   {
